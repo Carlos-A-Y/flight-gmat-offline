@@ -5,27 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Flight GMAT">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#071515">
   <title>Flight GMAT</title>
   <style>
     :root {
-      --bg: #ffffff;
-      --surface: #f7f9fa;
-      --surface-strong: #eef5f4;
-      --text: #101828;
-      --muted: #61707a;
-      --line: #d9e1e4;
-      --line-strong: #c4d0d5;
-      --teal: #08766d;
-      --teal-strong: #055f59;
-      --teal-soft: #e5f5f3;
-      --amber: #b76a00;
-      --amber-soft: #fff3dc;
+      --bg: #f5f8f8;
+      --cockpit: #071515;
+      --cockpit-2: #0d2322;
+      --surface: #f7faf9;
+      --surface-strong: #eaf5f3;
+      --text: #172027;
+      --muted: #5e6d73;
+      --line: #d3dcdf;
+      --line-strong: #aebdc3;
+      --teal: #087a75;
+      --teal-strong: #055d59;
+      --teal-soft: #e2f4f2;
+      --amber: #b66a00;
+      --amber-soft: #fff1d8;
       --red: #c3332b;
       --red-soft: #fff0ee;
-      --green: #167b3a;
-      --green-soft: #eaf7ed;
-      --shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+      --green: #177c3f;
+      --green-soft: #e8f7ec;
+      --shadow: 0 14px 34px rgba(15, 29, 33, 0.09);
       --radius: 8px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -75,7 +77,7 @@
       min-height: 100vh;
       padding-bottom: calc(88px + var(--safe-bottom));
       background:
-        linear-gradient(180deg, #ffffff 0%, #ffffff 62%, #f7f9fa 100%);
+        linear-gradient(180deg, var(--cockpit) 0 104px, var(--bg) 104px 100%);
     }
 
     .topbar {
@@ -85,18 +87,21 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      min-height: 58px;
-      padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(18px);
+      gap: 14px;
+      min-height: 90px;
+      padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 18px;
+      border-bottom: 1px solid rgba(147, 173, 172, 0.34);
+      background:
+        repeating-linear-gradient(90deg, transparent 0 30px, rgba(255, 255, 255, 0.045) 30px 31px),
+        linear-gradient(135deg, var(--cockpit) 0%, var(--cockpit-2) 100%);
+      color: #ffffff;
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1 1 auto;
       min-width: 0;
     }
 
@@ -109,12 +114,16 @@
     }
 
     .brand-mark {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      color: var(--teal);
-      background: var(--surface);
+      width: 128px;
+      height: 34px;
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    .brand-mark svg {
+      display: block;
+      width: 100%;
+      height: 100%;
     }
 
     .brand-title {
@@ -125,32 +134,56 @@
 
     h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 26px;
       line-height: 1.05;
-      font-weight: 760;
+      font-style: italic;
+      font-weight: 820;
       letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    h1 strong {
+      color: #26b7ae;
+      font-weight: 850;
     }
 
     .micro {
-      color: var(--muted);
+      color: #9db4b4;
       font-size: 12px;
       line-height: 1.2;
-      font-weight: 560;
+      font-weight: 650;
     }
 
     .offline {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      height: 32px;
-      padding: 0 10px;
-      border: 1px solid #b6d9d4;
-      border-radius: 999px;
-      color: var(--teal-strong);
-      background: var(--teal-soft);
-      font-size: 13px;
-      font-weight: 680;
+      gap: 8px;
+      min-height: 46px;
+      padding: 7px 10px;
+      border: 1px solid rgba(178, 208, 206, 0.5);
+      border-radius: 7px;
+      color: #d8f6f3;
+      background: rgba(255, 255, 255, 0.045);
+      font-size: 12px;
+      font-weight: 780;
+      flex: 0 0 auto;
       white-space: nowrap;
+    }
+
+    .offline small {
+      display: block;
+      color: #68e477;
+      font-size: 11px;
+      font-weight: 760;
+      line-height: 1.15;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #58db65;
+      box-shadow: 0 0 0 4px rgba(88, 219, 101, 0.14);
     }
 
     .shell {
@@ -159,22 +192,91 @@
     }
 
     .session {
+      min-width: 0;
+      margin: 14px 16px 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      box-shadow: 0 8px 24px rgba(15, 29, 33, 0.06);
+    }
+
+    .flight-plan {
+      width: 100%;
+    }
+
+    .flight-plan > summary {
+      list-style: none;
+    }
+
+    .flight-plan > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .plan-summary {
       display: grid;
-      grid-template-columns: 48px minmax(0, 1fr) 48px;
+      grid-template-columns: minmax(0, 1fr) auto 22px;
       align-items: center;
       gap: 10px;
-      padding: 12px 16px 10px;
-      border-bottom: 1px solid var(--line);
-      background: #ffffff;
+      min-height: 66px;
+      padding: 12px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .plan-copy {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .plan-copy strong {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.05;
+      font-weight: 820;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .summary-chevron {
+      display: inline-grid;
+      place-items: center;
+      color: var(--muted);
+      transition: transform 140ms ease;
+    }
+
+    .flight-plan[open] .summary-chevron {
+      transform: rotate(180deg);
+    }
+
+    .plan-summary .timer-progress {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+
+    .plan-controls {
+      display: grid;
+      gap: 10px;
+      padding: 0 12px 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .plan-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding-top: 10px;
     }
 
     .icon-button {
-      width: 44px;
-      height: 44px;
+      width: 46px;
+      height: 46px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       color: var(--text);
-      background: #ffffff;
+      background: var(--surface);
     }
 
     .icon-button:active,
@@ -191,15 +293,15 @@
       align-items: center;
       gap: 10px;
       min-height: 44px;
-      padding: 8px 10px;
+      padding: 9px 11px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--surface);
+      background: #ffffff;
     }
 
     .timer-label {
-      color: var(--muted);
-      font-size: 12px;
+      color: var(--teal-strong);
+      font-size: 11px;
       font-weight: 680;
       line-height: 1;
     }
@@ -208,6 +310,7 @@
       display: inline-flex;
       align-items: baseline;
       gap: 6px;
+      min-width: 0;
       color: var(--amber);
       font-variant-numeric: tabular-nums;
       font-size: 22px;
@@ -234,67 +337,99 @@
       height: 100%;
       width: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, var(--teal), var(--amber));
+      background: linear-gradient(90deg, var(--teal), #2d9e70, var(--amber));
       transform-origin: left center;
     }
 
     .segments {
-      position: sticky;
-      top: calc(59px + env(safe-area-inset-top, 0px));
-      z-index: 18;
+      position: relative;
+      z-index: 1;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--line);
+      gap: 0;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(18px);
     }
 
     .segment {
       min-width: 0;
-      min-height: 40px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
+      min-height: 54px;
+      border-right: 1px solid var(--line);
       color: var(--muted);
       background: #ffffff;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1;
-      font-weight: 720;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .segment:last-child {
+      border-right: 0;
+    }
+
+    .segment,
+    .mode-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .segment svg,
+    .mode-button svg {
+      flex: 0 0 auto;
+    }
+
+    .segment span,
+    .mode-button span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .segment[aria-selected="true"] {
-      border-color: #83c5bf;
-      color: var(--teal-strong);
-      background: var(--teal-soft);
-      box-shadow: inset 0 0 0 1px rgba(8, 118, 109, 0.08);
+      color: #ffffff;
+      background:
+        linear-gradient(135deg, #087a75 0%, #075e5c 100%);
+      box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.25);
     }
 
     .modes {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      padding: 0 16px 10px;
-      border-bottom: 1px solid var(--line);
+      gap: 0;
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
       background: #ffffff;
     }
 
     .mode-button {
       min-width: 0;
-      min-height: 36px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
+      min-height: 46px;
+      border-right: 1px solid var(--line);
       color: var(--muted);
-      background: var(--surface);
+      background: #ffffff;
       font-size: 13px;
       line-height: 1;
       font-weight: 760;
     }
 
+    .mode-button:last-child {
+      border-right: 0;
+    }
+
     .mode-button[aria-selected="true"] {
-      border-color: #e0b063;
+      border-color: var(--line);
       color: #774600;
-      background: var(--amber-soft);
+      background: linear-gradient(180deg, var(--amber-soft) 0%, #ffffff 100%);
+      box-shadow: inset 0 -3px 0 var(--amber);
     }
 
     .content {
@@ -306,6 +441,7 @@
     .question-panel,
     .review-panel,
     .stats-panel {
+      min-width: 0;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: #ffffff;
@@ -313,7 +449,16 @@
     }
 
     .question-panel {
+      position: relative;
       overflow: hidden;
+      border-color: #c5d5d8;
+    }
+
+    .question-panel::before {
+      content: "";
+      display: block;
+      height: 4px;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
     }
 
     .question-head {
@@ -321,7 +466,9 @@
       gap: 8px;
       padding: 14px 14px 12px;
       border-bottom: 1px solid var(--line);
-      background: #ffffff;
+      background:
+        repeating-linear-gradient(90deg, rgba(8, 122, 117, 0.08) 0 1px, transparent 1px 54px),
+        linear-gradient(180deg, #edf8f7 0%, #ffffff 100%);
     }
 
     .question-topline {
@@ -334,12 +481,12 @@
 
     .question-count {
       font-size: 14px;
-      font-weight: 760;
+      font-weight: 820;
       line-height: 1.2;
     }
 
     .topic {
-      max-width: 45%;
+      max-width: 52%;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -350,40 +497,77 @@
     }
 
     .progress-strip {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(var(--count), minmax(14px, 1fr));
-      gap: 4px;
+      gap: 0;
       align-items: center;
+      padding: 9px 0 8px;
+    }
+
+    .progress-strip::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 50%;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #9fb0b6 0 9px, transparent 9px 16px);
+      transform: translateY(-50%);
     }
 
     .dot {
       position: relative;
       min-width: 0;
-      height: 24px;
+      height: 26px;
       border: 0;
-      border-radius: 6px;
-      background: #edf1f3;
+      border-radius: 0;
+      background: transparent;
     }
 
     .dot::after {
       content: "";
       position: absolute;
-      inset: 8px max(5px, 30%) 8px;
-      border-radius: 999px;
-      background: #bdc9cf;
+      left: 50%;
+      top: 50%;
+      width: 9px;
+      height: 9px;
+      border: 2px solid #acbac0;
+      border-radius: 50%;
+      background: #ffffff;
+      transform: translate(-50%, -50%);
     }
 
     .dot.is-current {
-      background: var(--teal-soft);
-      outline: 1px solid #80c5bf;
+      color: var(--teal);
+      outline: 0;
+    }
+
+    .dot.is-current::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 24px;
+      height: 16px;
+      background: currentColor;
+      clip-path: polygon(0 43%, 58% 43%, 72% 7%, 82% 7%, 79% 43%, 100% 43%, 100% 57%, 79% 57%, 82% 93%, 72% 93%, 58% 57%, 0 57%);
+      transform: translate(-50%, -50%);
+    }
+
+    .dot.is-current::after {
+      display: none;
     }
 
     .dot.is-correct::after {
       background: var(--green);
+      border-color: var(--green);
     }
 
     .dot.is-wrong::after {
       background: var(--red);
+      border-color: var(--red);
     }
 
     .dot.is-flagged::before {
@@ -408,7 +592,7 @@
       color: var(--text);
       font-size: 18px;
       line-height: 1.48;
-      font-weight: 620;
+      font-weight: 640;
     }
 
     .context-box {
@@ -448,18 +632,23 @@
       display: inline-flex;
       align-items: center;
       min-height: 28px;
+      max-width: 100%;
       padding: 0 9px;
-      border-radius: 999px;
-      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
       color: var(--muted);
       font-size: 12px;
       font-weight: 760;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .choices {
       display: grid;
-      gap: 8px;
+      gap: 0;
+      border-top: 1px solid var(--line);
     }
 
     .choice {
@@ -467,21 +656,25 @@
       grid-template-columns: 36px minmax(0, 1fr);
       align-items: center;
       gap: 10px;
-      min-height: 54px;
-      padding: 9px 10px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
+      min-height: 58px;
+      padding: 10px 2px;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
       background: #ffffff;
       color: var(--text);
       text-align: left;
     }
 
+    .choice:last-child {
+      border-bottom: 0;
+    }
+
     .choice-letter {
       display: grid;
       place-items: center;
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--line-strong);
+      width: 30px;
+      height: 30px;
+      border: 2px solid var(--line-strong);
       border-radius: 50%;
       background: #ffffff;
       font-size: 14px;
@@ -496,21 +689,33 @@
     }
 
     .choice.is-selected {
-      border-color: #7dc6c0;
       background: var(--teal-soft);
       box-shadow: inset 3px 0 0 var(--teal);
     }
 
+    .choice.is-selected .choice-letter {
+      border-color: var(--teal);
+      color: var(--teal-strong);
+    }
+
     .choice.is-correct {
-      border-color: #92cfa3;
       background: var(--green-soft);
       box-shadow: inset 3px 0 0 var(--green);
     }
 
+    .choice.is-correct .choice-letter {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
     .choice.is-wrong {
-      border-color: #edaaa4;
       background: var(--red-soft);
       box-shadow: inset 3px 0 0 var(--red);
+    }
+
+    .choice.is-wrong .choice-letter {
+      border-color: var(--red);
+      color: var(--red);
     }
 
     .actions-row {
@@ -569,6 +774,12 @@
       display: grid;
     }
 
+    .explanation.is-locked {
+      border-style: dashed;
+      border-color: #c7d0d5;
+      background: #f8fafb;
+    }
+
     .explanation-head {
       display: flex;
       align-items: center;
@@ -585,6 +796,10 @@
       color: var(--green);
     }
 
+    .result.is-locked {
+      color: var(--muted);
+    }
+
     .result.is-wrong {
       color: var(--red);
     }
@@ -597,11 +812,23 @@
       font-weight: 500;
     }
 
-    .review-panel,
-    .stats-panel {
+    .review-panel {
       display: grid;
       gap: 12px;
       padding: 14px;
+    }
+
+    .stats-panel {
+      display: grid;
+      gap: 0;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .stats-panel .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
     }
 
     .panel-head {
@@ -621,17 +848,21 @@
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 0;
     }
 
     .stat {
       display: grid;
       gap: 4px;
-      min-height: 68px;
+      min-height: 72px;
       padding: 10px 8px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+      text-align: center;
+    }
+
+    .stat:last-child {
+      border-right: 0;
     }
 
     .stat strong {
@@ -725,12 +956,13 @@
       bottom: 0;
       z-index: 30;
       display: grid;
-      grid-template-columns: 1fr 1fr 1.15fr;
+      grid-template-columns: 1fr 1.25fr;
       gap: 8px;
       padding: 10px 16px calc(10px + var(--safe-bottom));
       border-top: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.97);
       backdrop-filter: blur(18px);
+      box-shadow: 0 -12px 28px rgba(15, 29, 33, 0.08);
     }
 
     .bottom-bar .text-button {
@@ -782,44 +1014,96 @@
         padding-right: 12px;
       }
 
+      .brand {
+        gap: 8px;
+      }
+
+      .brand-mark {
+        width: 46px;
+      }
+
       h1 {
-        font-size: 18px;
+        font-size: 20px;
       }
 
       .offline {
-        height: 30px;
-        padding: 0 8px;
-        font-size: 12px;
+        justify-content: center;
+        width: 36px;
+        min-height: 36px;
+        padding: 0;
       }
 
-      .session,
-      .segments,
-      .modes,
+      .offline > span:not(.status-dot) {
+        display: none;
+      }
+
       .content,
       .bottom-bar {
         padding-left: 12px;
         padding-right: 12px;
       }
 
-      .segments,
-      .modes,
+      .session {
+        margin-left: 12px;
+        margin-right: 12px;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .plan-summary {
+        grid-template-columns: minmax(0, 1fr) auto 18px;
+        gap: 7px;
+        padding: 11px 10px;
+      }
+
+      .plan-copy strong {
+        font-size: 16px;
+      }
+
+      .plan-controls {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
       .bottom-bar {
         gap: 6px;
       }
 
       .segment,
       .mode-button {
-        font-size: 13px;
+        gap: 5px;
+        font-size: 12px;
       }
 
-      .timer-card {
-        gap: 6px;
-        padding-left: 8px;
-        padding-right: 8px;
+      .segment {
+        min-height: 50px;
       }
 
       .timer-value {
-        font-size: 20px;
+        font-size: 17px;
+      }
+
+      .timer-value span {
+        display: none;
+      }
+
+      .prompt-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .chips {
+        justify-content: flex-start;
+      }
+
+      .score-chip {
+        min-height: 26px;
+        padding: 0 7px;
+        font-size: 11px;
+      }
+
+      #scoreChip {
+        display: none;
       }
 
       .question-head,
@@ -854,47 +1138,76 @@
     <header class="topbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-            <path d="M4 12h16M4 6h16M4 18h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <svg width="128" height="34" viewBox="0 0 128 34" fill="none">
+            <path d="M3 18h33" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
+            <path d="M46 18h64" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="8 10" opacity=".7"/>
+            <path d="M28 6l13 12-13 12-2.5-2.5 4.2-7.3H17.4l-4.2 5.2-3.2-1.2 3.3-6.2-3.3-6.2 3.2-1.2 4.2 5.2h12.3l-4.2-7.3L28 6Z" fill="currentColor"/>
           </svg>
         </span>
         <div class="brand-title">
-          <h1>Flight GMAT</h1>
-          <span class="micro" id="saveState">Saved locally</span>
+          <h1>Flight <strong>GMAT</strong></h1>
+          <span class="micro" id="saveState">1,480-question bank</span>
         </div>
       </div>
       <span class="offline" aria-label="Offline ready">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M3.5 13.5 21 5l-8.5 17-2-7-7-1.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-        Offline
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Offline<small>Local mode</small></span>
       </span>
     </header>
 
     <div class="shell">
-      <section class="session" aria-label="Timed Set">
-        <button class="icon-button" id="pauseButton" aria-label="Pause timer"></button>
-        <div class="timer-card">
-          <div>
-            <div class="timer-label">Timed Set</div>
-            <div class="timer-progress" aria-hidden="true"><span id="timerProgress"></span></div>
+      <section class="session" aria-label="Session">
+        <details class="flight-plan" id="flightPlan">
+          <summary class="plan-summary">
+            <span class="plan-copy">
+              <span class="timer-label">Flight plan</span>
+              <strong id="planSummary">Quant - Adaptive</strong>
+            </span>
+            <span class="timer-value" id="timerValue">24:00 <span>left</span></span>
+            <span class="summary-chevron" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="timer-progress" aria-hidden="true"><span id="timerProgress"></span></span>
+          </summary>
+          <div class="plan-controls">
+            <div class="plan-actions">
+              <button class="text-button" id="pauseButton" aria-label="Pause timer"></button>
+              <button class="text-button" id="resetButton" aria-label="Reset section"></button>
+            </div>
+            <nav class="segments" aria-label="GMAT section">
+              <button class="segment" data-section="Quant" aria-selected="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v14H5V5Zm4 0v14M5 9h14M5 14h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>Quant</span>
+              </button>
+              <button class="segment" data-section="Verbal" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v11H9l-4 4V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                <span>Verbal</span>
+              </button>
+              <button class="segment" data-section="DI" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+                <span>DI</span>
+              </button>
+            </nav>
+
+            <nav class="modes" aria-label="Practice mode">
+              <button class="mode-button" data-mode="Adaptive" aria-selected="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l5-5 4 4 7-8M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Adaptive</span>
+              </button>
+              <button class="mode-button" data-mode="Marathon" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="13" r="7" stroke="currentColor" stroke-width="2"/><path d="M12 13V9m0-6h4M8 3h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>Marathon</span>
+              </button>
+              <button class="mode-button" data-mode="Review" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10v16H7V4Zm3 5h4m-4 4h4m-4 4h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>Review</span>
+              </button>
+            </nav>
           </div>
-          <div class="timer-value" id="timerValue">24:00 <span>left</span></div>
-        </div>
-        <button class="icon-button" id="resetButton" aria-label="Reset section"></button>
+        </details>
       </section>
-
-      <nav class="segments" aria-label="GMAT section">
-        <button class="segment" data-section="Quant" aria-selected="true">Quant</button>
-        <button class="segment" data-section="Verbal" aria-selected="false">Verbal</button>
-        <button class="segment" data-section="DI" aria-selected="false">DI</button>
-      </nav>
-
-      <nav class="modes" aria-label="Practice mode">
-        <button class="mode-button" data-mode="Adaptive" aria-selected="true">Adaptive</button>
-        <button class="mode-button" data-mode="Marathon" aria-selected="false">Marathon</button>
-        <button class="mode-button" data-mode="Review" aria-selected="false">Review</button>
-      </nav>
 
       <main class="content">
         <section class="question-panel" aria-live="polite">
@@ -917,7 +1230,7 @@
               </span>
             </div>
             <div class="choices" id="choices"></div>
-            <div class="actions-row">
+            <div class="actions-row" hidden>
               <button class="text-button" id="explainButton"></button>
               <button class="icon-button" id="flagButton" aria-label="Mark for review"></button>
             </div>
@@ -934,7 +1247,7 @@
         <section class="stats-panel" aria-label="Progress">
           <div class="panel-head">
             <h2 class="panel-title">Review</h2>
-            <button class="text-button" id="reviewMissedButton">Missed</button>
+            <button class="text-button" id="reviewMissedButton" hidden>Missed</button>
           </div>
           <div class="stats-grid">
             <div class="stat"><strong id="doneStat">0</strong><span>answered</span></div>
@@ -946,7 +1259,7 @@
         <section class="review-panel" aria-label="Error Log">
           <div class="panel-head">
             <h2 class="panel-title">Error Log</h2>
-            <button class="text-button" id="clearLogButton">Clear</button>
+            <button class="text-button" id="clearLogButton" hidden>Clear</button>
           </div>
           <div class="error-list" id="errorList"></div>
         </section>
@@ -954,7 +1267,7 @@
         <section class="review-panel" aria-label="Notes">
           <div class="panel-head">
             <h2 class="panel-title">Notes</h2>
-            <button class="text-button" id="clearNotesButton">Clear</button>
+            <button class="text-button" id="clearNotesButton" hidden>Clear</button>
           </div>
           <textarea class="notes" id="notes" placeholder="Scratch notes stay on this device."></textarea>
         </section>
@@ -963,7 +1276,7 @@
 
     <nav class="bottom-bar" aria-label="Question navigation">
       <button class="text-button" id="previousButton">Back</button>
-      <button class="text-button warning" id="reviewButton">Review</button>
+      <button class="text-button warning" id="reviewButton" hidden>Review</button>
       <button class="text-button primary" id="nextButton">Next</button>
     </nav>
   </div>
@@ -978,6 +1291,12 @@
       eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="2"/></svg>',
       check: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       x: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+    };
+
+    const sectionLabel = {
+      Quant: "Quant",
+      Verbal: "Verbal",
+      DI: "Data Insights"
     };
 
     const BANK = [
@@ -2178,9 +2497,9 @@
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        $("#saveState").textContent = "Saved locally";
+        $("#saveState").textContent = "Local progress";
       } catch (_) {
-        $("#saveState").textContent = "Session active";
+        $("#saveState").textContent = "Session only";
       }
     }
 
@@ -2284,9 +2603,10 @@
       const remaining = state.timers[state.section] ?? SECTION_SECONDS;
       $("#timerValue").innerHTML = `${formatTime(remaining)} <span>left</span>`;
       $("#timerProgress").style.transform = `scaleX(${Math.max(0, remaining / SECTION_SECONDS)})`;
-      $("#pauseButton").innerHTML = state.paused ? icon.play : icon.pause;
+      $("#pauseButton").innerHTML = `${state.paused ? icon.play : icon.pause} ${state.paused ? "Resume" : "Pause"}`;
       $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
-      $("#resetButton").innerHTML = icon.reset;
+      $("#resetButton").innerHTML = `${icon.reset} Reset`;
+      $("#planSummary").textContent = `${sectionLabel[state.section] || state.section} - ${state.mode}`;
     }
 
     function renderSegments() {
@@ -2312,16 +2632,14 @@
       visible.forEach((question, offset) => {
         const absoluteIndex = start + offset;
         const answer = state.answers[question.id];
-        const button = document.createElement("button");
-        button.className = "dot";
-        if (absoluteIndex === index) button.classList.add("is-current");
-        if (answer?.correct) button.classList.add("is-correct");
-        if (answer && !answer.correct) button.classList.add("is-wrong");
-        if (state.flagged[question.id]) button.classList.add("is-flagged");
-        button.type = "button";
-        button.setAttribute("aria-label", `Go to question ${absoluteIndex + 1}`);
-        button.addEventListener("click", () => setIndex(absoluteIndex));
-        strip.appendChild(button);
+        const marker = document.createElement("span");
+        marker.className = "dot";
+        if (absoluteIndex === index) marker.classList.add("is-current");
+        if (answer?.correct) marker.classList.add("is-correct");
+        if (answer && !answer.correct) marker.classList.add("is-wrong");
+        if (state.flagged[question.id]) marker.classList.add("is-flagged");
+        marker.setAttribute("aria-hidden", "true");
+        strip.appendChild(marker);
       });
     }
 
@@ -2350,6 +2668,13 @@
       explanation.classList.toggle("is-visible", isVisible);
       $("#explainButton").disabled = !answer;
       $("#explainButton").innerHTML = answer ? `${icon.eye} ${isVisible ? "Hide explanation" : "Show explanation"}` : `${icon.eye} Answer first`;
+      if (!answer) {
+        $("#resultLabel").className = "result";
+        $("#resultLabel").textContent = "";
+        $("#correctAnswer").textContent = "";
+        $("#explanationText").textContent = "";
+        return;
+      }
       if (answer?.correct) {
         $("#resultLabel").className = "result";
         $("#resultLabel").innerHTML = `${icon.check} Correct`;
@@ -2421,8 +2746,8 @@
       renderProgress(list);
       renderStats();
 
-      $("#questionCount").textContent = state.mode === "Adaptive" ? `Question ${index + 1} · Level ${state.targetDifficulty[state.section] || 2}` : `Question ${index + 1} of ${list.length}`;
-      $("#questionTopic").textContent = `${question.topic} · L${question.difficulty}`;
+      $("#questionCount").textContent = state.mode === "Adaptive" ? `Question ${index + 1} - Level ${state.targetDifficulty[state.section] || 2}` : `Question ${index + 1} of ${list.length}`;
+      $("#questionTopic").textContent = `${question.topic} - L${question.difficulty}`;
       $("#questionStem").textContent = question.stem;
       $("#questionContext").hidden = !question.context;
       $("#questionContext").textContent = question.context || "";
