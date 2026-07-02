@@ -1,0 +1,2631 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Flight GMAT">
+  <meta name="theme-color" content="#ffffff">
+  <title>Flight GMAT</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f7f9fa;
+      --surface-strong: #eef5f4;
+      --text: #101828;
+      --muted: #61707a;
+      --line: #d9e1e4;
+      --line-strong: #c4d0d5;
+      --teal: #08766d;
+      --teal-strong: #055f59;
+      --teal-soft: #e5f5f3;
+      --amber: #b76a00;
+      --amber-soft: #fff3dc;
+      --red: #c3332b;
+      --red-soft: #fff0ee;
+      --green: #167b3a;
+      --green-soft: #eaf7ed;
+      --shadow: 0 18px 48px rgba(16, 24, 40, 0.08);
+      --radius: 8px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    html {
+      background: var(--bg);
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      letter-spacing: 0;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      min-height: 100vh;
+      padding-bottom: calc(88px + var(--safe-bottom));
+      background:
+        linear-gradient(180deg, #ffffff 0%, #ffffff 62%, #f7f9fa 100%);
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 58px;
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark,
+    .icon-button,
+    .tiny-icon {
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+    }
+
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--teal);
+      background: var(--surface);
+    }
+
+    .brand-title {
+      display: grid;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.05;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .micro {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 560;
+    }
+
+    .offline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid #b6d9d4;
+      border-radius: 999px;
+      color: var(--teal-strong);
+      background: var(--teal-soft);
+      font-size: 13px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .shell {
+      width: min(100%, 920px);
+      margin: 0 auto;
+    }
+
+    .session {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 48px;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .icon-button {
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      background: #ffffff;
+    }
+
+    .icon-button:active,
+    .text-button:active,
+    .choice:active,
+    .segment:active,
+    .mode-button:active {
+      transform: translateY(1px);
+    }
+
+    .timer-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .timer-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+      line-height: 1;
+    }
+
+    .timer-value {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--amber);
+      font-variant-numeric: tabular-nums;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 780;
+    }
+
+    .timer-value span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .timer-progress {
+      height: 4px;
+      margin-top: 7px;
+      border-radius: 999px;
+      background: #e6ecef;
+      overflow: hidden;
+    }
+
+    .timer-progress > span {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+      transform-origin: left center;
+    }
+
+    .segments {
+      position: sticky;
+      top: calc(59px + env(safe-area-inset-top, 0px));
+      z-index: 18;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(18px);
+    }
+
+    .segment {
+      min-width: 0;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: #ffffff;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 720;
+    }
+
+    .segment[aria-selected="true"] {
+      border-color: #83c5bf;
+      color: var(--teal-strong);
+      background: var(--teal-soft);
+      box-shadow: inset 0 0 0 1px rgba(8, 118, 109, 0.08);
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      padding: 0 16px 10px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .mode-button {
+      min-width: 0;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 13px;
+      line-height: 1;
+      font-weight: 760;
+    }
+
+    .mode-button[aria-selected="true"] {
+      border-color: #e0b063;
+      color: #774600;
+      background: var(--amber-soft);
+    }
+
+    .content {
+      display: grid;
+      gap: 14px;
+      padding: 14px 16px 0;
+    }
+
+    .question-panel,
+    .review-panel,
+    .stats-panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .question-panel {
+      overflow: hidden;
+    }
+
+    .question-head {
+      display: grid;
+      gap: 8px;
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .question-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .question-count {
+      font-size: 14px;
+      font-weight: 760;
+      line-height: 1.2;
+    }
+
+    .topic {
+      max-width: 45%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+      text-align: right;
+    }
+
+    .progress-strip {
+      display: grid;
+      grid-template-columns: repeat(var(--count), minmax(14px, 1fr));
+      gap: 4px;
+      align-items: center;
+    }
+
+    .dot {
+      position: relative;
+      min-width: 0;
+      height: 24px;
+      border: 0;
+      border-radius: 6px;
+      background: #edf1f3;
+    }
+
+    .dot::after {
+      content: "";
+      position: absolute;
+      inset: 8px max(5px, 30%) 8px;
+      border-radius: 999px;
+      background: #bdc9cf;
+    }
+
+    .dot.is-current {
+      background: var(--teal-soft);
+      outline: 1px solid #80c5bf;
+    }
+
+    .dot.is-correct::after {
+      background: var(--green);
+    }
+
+    .dot.is-wrong::after {
+      background: var(--red);
+    }
+
+    .dot.is-flagged::before {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--amber);
+    }
+
+    .question-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px 14px 14px;
+    }
+
+    .stem {
+      margin: 0;
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.48;
+      font-weight: 620;
+    }
+
+    .context-box {
+      display: grid;
+      gap: 8px;
+      margin-top: 2px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: #26323a;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 520;
+      white-space: pre-line;
+    }
+
+    .prompt-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .chips {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .score-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .choices {
+      display: grid;
+      gap: 8px;
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      min-height: 54px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      text-align: left;
+    }
+
+    .choice-letter {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: #ffffff;
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .choice-text {
+      overflow-wrap: anywhere;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 580;
+    }
+
+    .choice.is-selected {
+      border-color: #7dc6c0;
+      background: var(--teal-soft);
+      box-shadow: inset 3px 0 0 var(--teal);
+    }
+
+    .choice.is-correct {
+      border-color: #92cfa3;
+      background: var(--green-soft);
+      box-shadow: inset 3px 0 0 var(--green);
+    }
+
+    .choice.is-wrong {
+      border-color: #edaaa4;
+      background: var(--red-soft);
+      box-shadow: inset 3px 0 0 var(--red);
+    }
+
+    .actions-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 48px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 0;
+      min-height: 46px;
+      padding: 0 13px;
+      border: 1px solid #69aaa4;
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--teal-strong);
+      font-size: 15px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .text-button.primary {
+      border-color: var(--teal);
+      background: var(--teal);
+      color: #ffffff;
+    }
+
+    .text-button.warning {
+      border-color: #e0b063;
+      background: var(--amber-soft);
+      color: #774600;
+    }
+
+    .text-button:disabled,
+    .icon-button:disabled {
+      cursor: default;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .explanation {
+      display: none;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid #cae4cf;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #f1fbf3 0%, #ffffff 100%);
+    }
+
+    .explanation.is-visible {
+      display: grid;
+    }
+
+    .explanation-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 780;
+    }
+
+    .result {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--green);
+    }
+
+    .result.is-wrong {
+      color: var(--red);
+    }
+
+    .explanation p {
+      margin: 0;
+      color: #27343c;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    .review-panel,
+    .stats-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.2;
+      font-weight: 780;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat {
+      display: grid;
+      gap: 4px;
+      min-height: 68px;
+      padding: 10px 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .stat strong {
+      font-size: 21px;
+      line-height: 1;
+      font-weight: 780;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 680;
+      line-height: 1.2;
+    }
+
+    .error-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .error-item {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      text-align: left;
+    }
+
+    .error-item strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: 740;
+    }
+
+    .error-item span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 620;
+    }
+
+    .empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 560;
+    }
+
+    .notes {
+      width: 100%;
+      min-height: 80px;
+      resize: vertical;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+
+    .notes:focus,
+    .choice:focus-visible,
+    .segment:focus-visible,
+    .mode-button:focus-visible,
+    .text-button:focus-visible,
+    .icon-button:focus-visible,
+    .dot:focus-visible,
+    .error-item:focus-visible {
+      outline: 3px solid rgba(8, 118, 109, 0.24);
+      outline-offset: 2px;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.15fr;
+      gap: 8px;
+      padding: 10px 16px calc(10px + var(--safe-bottom));
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(18px);
+    }
+
+    .bottom-bar .text-button {
+      min-height: 48px;
+      padding: 0 10px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (min-width: 760px) {
+      .app {
+        padding-bottom: 0;
+      }
+
+      .content {
+        grid-template-columns: minmax(0, 1fr) 300px;
+        align-items: start;
+        padding-bottom: 28px;
+      }
+
+      .question-panel {
+        grid-row: span 3;
+      }
+
+      .bottom-bar {
+        position: sticky;
+        bottom: 0;
+        width: min(100%, 920px);
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: var(--radius) var(--radius) 0 0;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .topbar {
+        gap: 8px;
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      .offline {
+        height: 30px;
+        padding: 0 8px;
+        font-size: 12px;
+      }
+
+      .session,
+      .segments,
+      .modes,
+      .content,
+      .bottom-bar {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .segments,
+      .modes,
+      .bottom-bar {
+        gap: 6px;
+      }
+
+      .segment,
+      .mode-button {
+        font-size: 13px;
+      }
+
+      .timer-card {
+        gap: 6px;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .timer-value {
+        font-size: 20px;
+      }
+
+      .question-head,
+      .question-body {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .stem {
+        font-size: 17px;
+      }
+
+      .bottom-bar .text-button {
+        font-size: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .choice,
+      .segment,
+      .mode-button,
+      .text-button,
+      .icon-button,
+      .error-item {
+        transition: transform 120ms ease, border-color 140ms ease, background 140ms ease, color 140ms ease;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+            <path d="M4 12h16M4 6h16M4 18h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div class="brand-title">
+          <h1>Flight GMAT</h1>
+          <span class="micro" id="saveState">Saved locally</span>
+        </div>
+      </div>
+      <span class="offline" aria-label="Offline ready">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3.5 13.5 21 5l-8.5 17-2-7-7-1.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+        Offline
+      </span>
+    </header>
+
+    <div class="shell">
+      <section class="session" aria-label="Timed Set">
+        <button class="icon-button" id="pauseButton" aria-label="Pause timer"></button>
+        <div class="timer-card">
+          <div>
+            <div class="timer-label">Timed Set</div>
+            <div class="timer-progress" aria-hidden="true"><span id="timerProgress"></span></div>
+          </div>
+          <div class="timer-value" id="timerValue">24:00 <span>left</span></div>
+        </div>
+        <button class="icon-button" id="resetButton" aria-label="Reset section"></button>
+      </section>
+
+      <nav class="segments" aria-label="GMAT section">
+        <button class="segment" data-section="Quant" aria-selected="true">Quant</button>
+        <button class="segment" data-section="Verbal" aria-selected="false">Verbal</button>
+        <button class="segment" data-section="DI" aria-selected="false">DI</button>
+      </nav>
+
+      <nav class="modes" aria-label="Practice mode">
+        <button class="mode-button" data-mode="Adaptive" aria-selected="true">Adaptive</button>
+        <button class="mode-button" data-mode="Marathon" aria-selected="false">Marathon</button>
+        <button class="mode-button" data-mode="Review" aria-selected="false">Review</button>
+      </nav>
+
+      <main class="content">
+        <section class="question-panel" aria-live="polite">
+          <div class="question-head">
+            <div class="question-topline">
+              <div class="question-count" id="questionCount">Question 1 of 12</div>
+              <div class="topic" id="questionTopic">Arithmetic</div>
+            </div>
+            <div class="progress-strip" id="progressStrip" style="--count: 12"></div>
+          </div>
+
+          <div class="question-body">
+            <p class="stem" id="questionStem"></p>
+            <div class="context-box" id="questionContext" hidden></div>
+            <div class="prompt-row">
+              <span id="promptLabel">Pick an answer</span>
+              <span class="chips">
+                <span class="score-chip" id="difficultyChip">Level 2</span>
+                <span class="score-chip" id="scoreChip">0 correct</span>
+              </span>
+            </div>
+            <div class="choices" id="choices"></div>
+            <div class="actions-row">
+              <button class="text-button" id="explainButton"></button>
+              <button class="icon-button" id="flagButton" aria-label="Mark for review"></button>
+            </div>
+            <section class="explanation" id="explanation">
+              <div class="explanation-head">
+                <span class="result" id="resultLabel"></span>
+                <span id="correctAnswer"></span>
+              </div>
+              <p id="explanationText"></p>
+            </section>
+          </div>
+        </section>
+
+        <section class="stats-panel" aria-label="Progress">
+          <div class="panel-head">
+            <h2 class="panel-title">Review</h2>
+            <button class="text-button" id="reviewMissedButton">Missed</button>
+          </div>
+          <div class="stats-grid">
+            <div class="stat"><strong id="doneStat">0</strong><span>answered</span></div>
+            <div class="stat"><strong id="rightStat">0%</strong><span>accuracy</span></div>
+            <div class="stat"><strong id="flagStat">L2</strong><span>level</span></div>
+          </div>
+        </section>
+
+        <section class="review-panel" aria-label="Error Log">
+          <div class="panel-head">
+            <h2 class="panel-title">Error Log</h2>
+            <button class="text-button" id="clearLogButton">Clear</button>
+          </div>
+          <div class="error-list" id="errorList"></div>
+        </section>
+
+        <section class="review-panel" aria-label="Notes">
+          <div class="panel-head">
+            <h2 class="panel-title">Notes</h2>
+            <button class="text-button" id="clearNotesButton">Clear</button>
+          </div>
+          <textarea class="notes" id="notes" placeholder="Scratch notes stay on this device."></textarea>
+        </section>
+      </main>
+    </div>
+
+    <nav class="bottom-bar" aria-label="Question navigation">
+      <button class="text-button" id="previousButton">Back</button>
+      <button class="text-button warning" id="reviewButton">Review</button>
+      <button class="text-button primary" id="nextButton">Next</button>
+    </nav>
+  </div>
+
+  <script>
+    const icon = {
+      pause: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+      play: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5v14l11-7L8 5Z" fill="currentColor"/></svg>',
+      reset: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7v5h5M6.6 16.4A7 7 0 1 0 7.2 6.6L5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      flag: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4v17M7 5h10l-1.4 4L17 13H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      flagFilled: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4v17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7 5h10l-1.4 4L17 13H7V5Z" fill="currentColor"/></svg>',
+      eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="2"/></svg>',
+      check: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      x: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'
+    };
+
+    const BANK = [
+      {
+        id: "q1", section: "Quant", topic: "Algebra",
+        stem: "If 3x + 5 = 2x + 17, what is the value of x?",
+        choices: ["6", "8", "10", "12", "14"], answer: 3,
+        explanation: "Subtract 2x from both sides to get x + 5 = 17. Subtract 5, so x = 12."
+      },
+      {
+        id: "q2", section: "Quant", topic: "Percents",
+        stem: "A price is increased by 20% and then discounted by 25%. The final price is what percent of the original price?",
+        choices: ["85%", "90%", "95%", "100%", "105%"], answer: 1,
+        explanation: "Let the original price be 100. After the increase it is 120, and after the 25% discount it is 120 x 0.75 = 90."
+      },
+      {
+        id: "q3", section: "Quant", topic: "Number Properties",
+        stem: "Positive integers x and y have xy = 48 and x < y. What is the greatest possible value of x + y?",
+        choices: ["14", "16", "19", "26", "49"], answer: 4,
+        explanation: "Factor pairs with x < y are (1,48), (2,24), (3,16), (4,12), and (6,8). The greatest sum is 1 + 48 = 49."
+      },
+      {
+        id: "q4", section: "Quant", topic: "Averages",
+        stem: "The average of 5 numbers is 18. If four of the numbers have a sum of 70, what is the fifth number?",
+        choices: ["16", "18", "20", "22", "24"], answer: 2,
+        explanation: "The total of all 5 numbers is 5 x 18 = 90. The fifth number is 90 - 70 = 20."
+      },
+      {
+        id: "q5", section: "Quant", topic: "Rates",
+        stem: "A train that is 0.25 mile long travels at 60 miles per hour. How many seconds does it take the train to pass completely through a 1.5-mile tunnel?",
+        choices: ["90", "105", "120", "150", "175"], answer: 1,
+        explanation: "The front of the train must travel 1.5 + 0.25 = 1.75 miles. At 60 mph, that takes 1.75/60 hours, or 1.75 minutes = 105 seconds."
+      },
+      {
+        id: "q6", section: "Quant", topic: "Functions",
+        stem: "For all x, f(x) = 2x^2 - 3. If f(a) = 15, what is the sum of all possible values of a?",
+        choices: ["-6", "-3", "0", "3", "6"], answer: 2,
+        explanation: "2a^2 - 3 = 15, so 2a^2 = 18 and a^2 = 9. The possible values are -3 and 3, whose sum is 0."
+      },
+      {
+        id: "q7", section: "Quant", topic: "Geometry",
+        stem: "The angles of a triangle are 2x + 10, 3x - 5, and x + 25 degrees. What is the measure of the largest angle?",
+        choices: ["55", "60", "65", "70", "75"], answer: 3,
+        explanation: "The angles sum to 180: 2x + 10 + 3x - 5 + x + 25 = 180, so 6x + 30 = 180 and x = 25. The angles are 60, 70, and 50."
+      },
+      {
+        id: "q8", section: "Quant", topic: "Remainders",
+        stem: "What is the smallest positive integer n that leaves a remainder of 2 when divided by 5 and a remainder of 3 when divided by 7?",
+        choices: ["12", "17", "22", "27", "32"], answer: 1,
+        explanation: "Numbers that are 2 more than a multiple of 5 are 2, 7, 12, 17, 22, ... Of these, 17 leaves a remainder of 3 when divided by 7."
+      },
+      {
+        id: "q9", section: "Quant", topic: "Percents",
+        stem: "Forty percent of a number is 18 less than the number. What is the number?",
+        choices: ["24", "27", "30", "36", "45"], answer: 2,
+        explanation: "Let the number be n. Then 0.40n = n - 18, so 0.60n = 18 and n = 30."
+      },
+      {
+        id: "q10", section: "Quant", topic: "Combinatorics",
+        stem: "From the set {2, 4, 6, 8, 10}, how many unordered pairs have a sum divisible by 4?",
+        choices: ["2", "3", "4", "5", "6"], answer: 2,
+        explanation: "Numbers with remainder 0 mod 4 are 4 and 8, giving 1 pair. Numbers with remainder 2 mod 4 are 2, 6, and 10, giving 3 pairs. Total: 4."
+      },
+      {
+        id: "q11", section: "Quant", topic: "Fractions",
+        stem: "If 1/a + 1/b = 1/6 and a = b, what is the value of a?",
+        choices: ["6", "8", "10", "12", "18"], answer: 3,
+        explanation: "Since a = b, the left side is 2/a. So 2/a = 1/6, which gives a = 12."
+      },
+      {
+        id: "q12", section: "Quant", topic: "Word Problems",
+        stem: "A rectangular garden has a perimeter of 50 meters. Its length is 5 meters greater than its width. What is its area?",
+        choices: ["100", "125", "150", "175", "200"], answer: 2,
+        explanation: "Let width be w and length be w + 5. Since 2l + 2w = 50, l + w = 25. Thus 2w + 5 = 25, so w = 10 and l = 15. Area = 150."
+      },
+      {
+        id: "v1", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A manufacturer claims that its new light bulb will save consumers money because it lasts twice as long as the standard bulb while costing only 50% more. Which assumption is required?",
+        choices: [
+          "Consumers prefer brighter bulbs to longer-lasting bulbs.",
+          "The new bulb does not use enough extra electricity to offset the savings from buying fewer bulbs.",
+          "Most consumers replace standard bulbs before they burn out.",
+          "Retail stores will promote the new bulb more heavily than the standard bulb.",
+          "The standard bulb is made by the same manufacturer."
+        ],
+        answer: 1,
+        explanation: "The argument compares purchase cost over time. It assumes other costs, especially electricity, do not wipe out the purchase-cost advantage."
+      },
+      {
+        id: "v2", section: "Verbal", topic: "Critical Reasoning",
+        stem: "After a city added protected bike lanes, reported bicycle accidents fell by 15%. A city official concluded that the lanes made biking safer. Which fact most weakens the conclusion?",
+        choices: [
+          "The city also repainted several crosswalks near schools.",
+          "During the same period, the number of bicycle trips in the city fell by 35%.",
+          "Some residents complained that the bike lanes reduced parking.",
+          "The city plans to add more bike lanes next year.",
+          "Most accidents were reported within two days of occurring."
+        ],
+        answer: 1,
+        explanation: "If bike trips fell by more than accidents fell, accidents per trip may not have improved. The raw accident count alone is not enough."
+      },
+      {
+        id: "v3", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A gym survey found that 80% of members favor extended weekend hours. Therefore, the gym should stay open later on weekends. Which statement most strengthens the argument?",
+        choices: [
+          "Many gyms in nearby neighborhoods are open late on weekdays.",
+          "The members favoring extended weekend hours are mostly members who say they would work out during those added hours.",
+          "The gym recently replaced several machines.",
+          "The survey was sent by email rather than by text message.",
+          "Membership fees have not increased in two years."
+        ],
+        answer: 1,
+        explanation: "The plan depends on actual use, not just abstract preference. This choice links the preference to likely behavior."
+      },
+      {
+        id: "v4", section: "Verbal", topic: "Reading Comprehension",
+        context: "A study of software teams found that remote work was associated with higher short-term code output but slower onboarding of new employees. The researchers cautioned that output metrics capture only part of team performance: mentoring, design alignment, and trust are harder to measure but can strongly affect long-term results.",
+        stem: "Which choice best states the main point of the passage?",
+        choices: [
+          "Remote work always improves software teams' long-term performance.",
+          "Output metrics can be useful, but they may give an incomplete picture of remote-work effects.",
+          "New employees should avoid remote software teams.",
+          "Mentoring is impossible to measure in any workplace.",
+          "Code output is the only reliable indicator of team performance."
+        ],
+        answer: 1,
+        explanation: "The passage presents a mixed finding and emphasizes that measured output does not capture all important team outcomes."
+      },
+      {
+        id: "v5", section: "Verbal", topic: "Reading Comprehension",
+        context: "A study of software teams found that remote work was associated with higher short-term code output but slower onboarding of new employees. The researchers cautioned that output metrics capture only part of team performance: mentoring, design alignment, and trust are harder to measure but can strongly affect long-term results.",
+        stem: "The passage implies that a company evaluating remote work should pay particular attention to which group?",
+        choices: [
+          "Employees who recently joined the company",
+          "Employees who never write code",
+          "Customers who use the software daily",
+          "Competitors that publish productivity data",
+          "Investors who prefer short-term cost cuts"
+        ],
+        answer: 0,
+        explanation: "The passage specifically says onboarding slowed, so new employees are a group whose experience could reveal costs not captured by output metrics."
+      },
+      {
+        id: "v6", section: "Verbal", topic: "Reading Comprehension",
+        context: "A study of software teams found that remote work was associated with higher short-term code output but slower onboarding of new employees. The researchers cautioned that output metrics capture only part of team performance: mentoring, design alignment, and trust are harder to measure but can strongly affect long-term results.",
+        stem: "In the passage, the finding that code output rose primarily serves to",
+        choices: [
+          "introduce a positive metric that is later qualified",
+          "prove that remote work has no drawbacks",
+          "show that mentoring is unnecessary",
+          "reject the value of all productivity measurement",
+          "explain why trust cannot affect performance"
+        ],
+        answer: 0,
+        explanation: "The positive output result is acknowledged, then limited by concerns about onboarding and harder-to-measure outcomes."
+      },
+      {
+        id: "v7", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A startup charges $20 per month. In a survey, twice as many respondents said they would subscribe at $12 as currently subscribe at $20. The startup concludes that lowering the price to $12 will increase monthly revenue. Which statement most weakens the argument?",
+        choices: [
+          "Several competitors charge less than $12 per month.",
+          "The survey asked about interest, but did not require respondents to make an actual purchase decision.",
+          "The startup recently redesigned its logo.",
+          "Some current subscribers use the product every day.",
+          "The product costs the startup very little to deliver."
+        ],
+        answer: 1,
+        explanation: "The revenue forecast relies on survey interest translating into real subscriptions. If the survey overstates actual purchase behavior, the conclusion weakens."
+      },
+      {
+        id: "v8", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A city will ban private cars from downtown to reduce air pollution there. The plan assumes which of the following?",
+        choices: [
+          "Every downtown business supports the ban.",
+          "Drivers will not simply reroute to nearby streets in a way that leaves downtown pollution largely unchanged.",
+          "Public transit fares will be lowered before the ban starts.",
+          "Most downtown buildings were constructed after 1980.",
+          "The city has never tried a car ban before."
+        ],
+        answer: 1,
+        explanation: "The ban can reduce downtown pollution only if displaced traffic does not continue creating similar pollution in the same area."
+      },
+      {
+        id: "v9", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A coffee shop raised the price of coffee by 10%. The number of cups sold stayed about the same, yet total revenue declined. Which fact best resolves the apparent discrepancy?",
+        choices: [
+          "The shop also began closing one hour earlier each day.",
+          "Many customers who still bought coffee stopped buying pastries and other add-ons.",
+          "The shop changed its coffee supplier.",
+          "Nearby offices added more employees.",
+          "The shop's cups became slightly larger."
+        ],
+        answer: 1,
+        explanation: "Total revenue includes more than coffee. If add-on purchases dropped enough, total revenue could fall even with coffee unit sales unchanged."
+      },
+      {
+        id: "v10", section: "Verbal", topic: "Critical Reasoning",
+        stem: "A hospital plans to reduce patient wait times by adopting a new appointment-scheduling app. Which question is most important to evaluate the plan?",
+        choices: [
+          "Do most patients own smartphones with large screens?",
+          "Are current wait times mainly caused by scheduling problems rather than by limited staff or room availability?",
+          "Will the app use the hospital's colors?",
+          "Do other hospitals advertise their scheduling systems?",
+          "Can the app display a map of the parking garage?"
+        ],
+        answer: 1,
+        explanation: "A scheduling app helps only if scheduling is a major cause of the delays. If capacity is the cause, the app may not reduce waits."
+      },
+      {
+        id: "v11", section: "Verbal", topic: "Critical Reasoning",
+        stem: "Students who took several practice tests scored higher on a final exam than students who did not. A tutor concludes that taking practice tests caused the higher scores. Which evidence would most strengthen the conclusion?",
+        choices: [
+          "Students were randomly assigned either to take practice tests or not to take them.",
+          "The final exam had fewer questions than the practice tests.",
+          "Some students took the final exam in the morning.",
+          "The tutor has taught for more than ten years.",
+          "The practice tests used a different font from the final exam."
+        ],
+        answer: 0,
+        explanation: "Random assignment reduces the chance that stronger or more motivated students simply chose to take practice tests."
+      },
+      {
+        id: "v12", section: "Verbal", topic: "Critical Reasoning",
+        stem: "Although cloud storage prices per gigabyte have fallen, a firm should archive less-used data more carefully because retrieval fees have risen. Which choice best describes the role of the statement after 'because'?",
+        choices: [
+          "It is the main conclusion of the argument.",
+          "It is a reason offered in support of the recommendation.",
+          "It is an example that contradicts the recommendation.",
+          "It is a definition of cloud storage.",
+          "It is a prediction unrelated to the recommendation."
+        ],
+        answer: 1,
+        explanation: "The recommendation is to archive less-used data more carefully. Rising retrieval fees are presented as the reason for that recommendation."
+      },
+      {
+        id: "d1", section: "DI", topic: "Table Analysis",
+        context: "Route | Seats | Passengers\nA | 180 | 153\nB | 160 | 144\nC | 200 | 170\nD | 150 | 129",
+        stem: "Which route had the highest load factor, defined as passengers divided by seats?",
+        choices: ["Route A", "Route B", "Route C", "Route D", "Routes A and C tie"], answer: 1,
+        explanation: "A: 153/180 = 85%. B: 144/160 = 90%. C: 170/200 = 85%. D: 129/150 = 86%. Route B is highest."
+      },
+      {
+        id: "d2", section: "DI", topic: "Data Sufficiency",
+        stem: "Is x greater than y?\n(1) x - y = 3\n(2) x + y = 1",
+        choices: [
+          "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+          "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+          "Both statements together are sufficient, but neither alone is sufficient.",
+          "Each statement alone is sufficient.",
+          "Statements (1) and (2) together are not sufficient."
+        ],
+        answer: 0,
+        explanation: "Statement (1) directly gives x = y + 3, so x > y. Statement (2) allows many pairs, such as (2,-1) or (-1,2), so it is not sufficient."
+      },
+      {
+        id: "d3", section: "DI", topic: "Table Analysis",
+        context: "Product | Units sold | Defect rate\nK | 1,000 | 2%\nL | 800 | 3%\nM | 600 | 4%\nN | 1,200 | 1%",
+        stem: "Which product had the greatest number of defective units?",
+        choices: ["K", "L", "M", "N", "L and M tie"], answer: 4,
+        explanation: "Defective units: K = 20, L = 24, M = 24, N = 12. L and M tie."
+      },
+      {
+        id: "d4", section: "DI", topic: "Graphics Interpretation",
+        context: "Quarterly subscriptions:\nQ1: 400\nQ2: 460\nQ3: 575\nQ4: 690",
+        stem: "From Q2 to Q4, subscriptions increased by approximately what percent?",
+        choices: ["25%", "33%", "40%", "50%", "65%"], answer: 3,
+        explanation: "The increase from 460 to 690 is 230. Since 230/460 = 0.50, the increase is 50%."
+      },
+      {
+        id: "d5", section: "DI", topic: "Two-Part Analysis",
+        context: "A retailer sells Basic and Plus plans. Basic costs $12 and Plus costs $20. In March, the store sold 90 total plans for $1,320 revenue.",
+        stem: "How many Plus plans were sold?",
+        choices: ["20", "25", "30", "35", "40"], answer: 2,
+        explanation: "Let p be Plus plans. Basic plans are 90 - p. Revenue: 20p + 12(90 - p) = 1320. Thus 8p + 1080 = 1320, so p = 30."
+      },
+      {
+        id: "d6", section: "DI", topic: "Multi-Source Reasoning",
+        context: "Train schedule:\nTrain R departs 8:10 and arrives 9:25.\nTrain S departs 8:30 and arrives 9:50.\nTrain T departs 8:45 and arrives 10:05.",
+        stem: "A traveler arrives at the station at 8:20 and wants the earliest possible arrival. Which train should the traveler take?",
+        choices: ["R", "S", "T", "Either S or T", "None of the trains"], answer: 1,
+        explanation: "Train R has already departed. Train S is the next available train and arrives at 9:50, earlier than Train T."
+      },
+      {
+        id: "d7", section: "DI", topic: "Data Sufficiency",
+        stem: "Is integer n even?\n(1) n is divisible by 6.\n(2) n + 1 is odd.",
+        choices: [
+          "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+          "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+          "Both statements together are sufficient, but neither alone is sufficient.",
+          "Each statement alone is sufficient.",
+          "Statements (1) and (2) together are not sufficient."
+        ],
+        answer: 3,
+        explanation: "If n is divisible by 6, n is even. If n + 1 is odd, then n is even. Each statement alone is sufficient."
+      },
+      {
+        id: "d8", section: "DI", topic: "Table Analysis",
+        context: "City | Population 2020 | Population 2025\nA | 120,000 | 138,000\nB | 95,000 | 116,000\nC | 210,000 | 228,000\nD | 80,000 | 104,000",
+        stem: "Which city had the largest absolute population increase?",
+        choices: ["City A", "City B", "City C", "City D", "Cities B and D tie"], answer: 3,
+        explanation: "Increases are A: 18,000; B: 21,000; C: 18,000; D: 24,000. City D is largest."
+      },
+      {
+        id: "d9", section: "DI", topic: "Sets",
+        stem: "In a group of 80 customers, 30 bought product A, 25 bought product B, and 10 bought both. How many bought neither product?",
+        choices: ["25", "30", "35", "40", "45"], answer: 2,
+        explanation: "Bought at least one = 30 + 25 - 10 = 45. Bought neither = 80 - 45 = 35."
+      },
+      {
+        id: "d10", section: "DI", topic: "Data Sufficiency",
+        stem: "What is the average of x, y, and z?\n(1) x + y + z = 42\n(2) x = y = z",
+        choices: [
+          "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+          "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+          "Both statements together are sufficient, but neither alone is sufficient.",
+          "Each statement alone is sufficient.",
+          "Statements (1) and (2) together are not sufficient."
+        ],
+        answer: 0,
+        explanation: "Statement (1) gives the sum, so the average is 42/3 = 14. Statement (2) says the values are equal but not what they are."
+      },
+      {
+        id: "d11", section: "DI", topic: "Rates",
+        context: "Aircraft fuel use:\nTaxi: 12 gallons in 15 minutes\nClimb: 90 gallons in 30 minutes\nCruise: 180 gallons in 2 hours",
+        stem: "What is the average fuel use during cruise, in gallons per hour?",
+        choices: ["60", "75", "90", "105", "120"], answer: 2,
+        explanation: "Cruise uses 180 gallons over 2 hours, so the average is 180/2 = 90 gallons per hour."
+      },
+      {
+        id: "d12", section: "DI", topic: "Data Sufficiency",
+        stem: "A merchant's profit on an item is selling price minus cost. What was the profit?\n(1) The selling price was 25% greater than the cost.\n(2) The selling price was $50.",
+        choices: [
+          "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+          "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+          "Both statements together are sufficient, but neither alone is sufficient.",
+          "Each statement alone is sufficient.",
+          "Statements (1) and (2) together are not sufficient."
+        ],
+        answer: 2,
+        explanation: "Statement (1) gives profit as a percentage of cost, not a dollar amount. Statement (2) gives selling price only. Together, if selling price is 1.25c = 50, cost is 40 and profit is 10."
+      }
+    ];
+
+    function hashText(text) {
+      let hash = 2166136261;
+      for (let index = 0; index < text.length; index += 1) {
+        hash ^= text.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return Math.abs(hash >>> 0);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function dedupe(values) {
+      const seen = new Set();
+      return values
+        .map((value) => String(value))
+        .filter((value) => {
+          if (seen.has(value)) return false;
+          seen.add(value);
+          return true;
+        });
+    }
+
+    function packChoices(correct, distractors, seed) {
+      const values = dedupe([correct, ...distractors]);
+      let nudge = 1;
+      while (values.length < 5) {
+        const numeric = Number.parseFloat(String(correct).replace(/[^\d.-]/g, ""));
+        values.push(Number.isFinite(numeric) ? String(numeric + nudge * 3) : `Choice ${values.length + 1}`);
+        nudge += 1;
+      }
+      const trimmed = values.slice(0, 5);
+      const ordered = trimmed
+        .map((value) => ({ value, rank: hashText(`${seed}-${value}`) }))
+        .sort((a, b) => a.rank - b.rank)
+        .map((item) => item.value);
+      return { choices: ordered, answer: ordered.indexOf(String(correct)) };
+    }
+
+    function numericQuestion({ id, section, topic, stem, correct, distractors, explanation, difficulty, context }) {
+      const packed = packChoices(correct, distractors, id);
+      return {
+        id,
+        section,
+        topic,
+        stem,
+        context,
+        choices: packed.choices,
+        answer: packed.answer,
+        explanation,
+        difficulty
+      };
+    }
+
+    function buildQuantGeneratedBank() {
+      const questions = [];
+      let id = 1;
+      const add = (question) => questions.push(question);
+
+      for (let index = 0; index < 22; index += 1) {
+        const x = 4 + (index % 11);
+        const a = 3 + (index % 5);
+        const c = 1 + (index % 2);
+        const b = 6 + (index % 7);
+        const d = (a - c) * x + b;
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Algebra",
+          stem: `If ${a}x + ${b} = ${c}x + ${d}, what is the value of x?`,
+          correct: x,
+          distractors: [x - 2, x - 1, x + 1, x + 3],
+          explanation: `Subtract ${c}x from both sides: ${a - c}x + ${b} = ${d}. Then ${a - c}x = ${d - b}, so x = ${x}.`,
+          difficulty: 1 + Math.floor(index / 8)
+        }));
+      }
+
+      const percentPairs = [[15, 20], [20, 10], [25, 20], [30, 15], [40, 25], [10, 30], [35, 20], [50, 10], [12, 25], [18, 20], [22, 15], [45, 30], [60, 25], [28, 35], [75, 20], [16, 40], [32, 25], [55, 30]];
+      percentPairs.forEach(([increase, decrease], index) => {
+        const finalPercent = ((1 + increase / 100) * (1 - decrease / 100) * 100).toFixed(1).replace(".0", "");
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Percents",
+          stem: `A value is increased by ${increase}% and then decreased by ${decrease}%. The final value is what percent of the original value?`,
+          correct: `${finalPercent}%`,
+          distractors: [`${100 + increase - decrease}%`, `${100 - decrease}%`, `${100 + increase}%`, `${Math.max(1, 100 - increase + decrease)}%`],
+          explanation: `Use successive multipliers, not addition. The final percent is 100 x ${1 + increase / 100} x ${1 - decrease / 100} = ${finalPercent}%.`,
+          difficulty: clamp(2 + Math.floor(index / 6), 2, 5)
+        }));
+      });
+
+      for (let index = 0; index < 18; index += 1) {
+        const count = 5 + (index % 4);
+        const average = 14 + (index % 9) * 2;
+        const missing = 9 + (index % 13);
+        const knownSum = count * average - missing;
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Averages",
+          stem: `The average of ${count} numbers is ${average}. If ${count - 1} of the numbers have a sum of ${knownSum}, what is the remaining number?`,
+          correct: missing,
+          distractors: [missing - 4, missing - 2, missing + 3, missing + 6],
+          explanation: `The total is ${count} x ${average} = ${count * average}. The remaining number is ${count * average} - ${knownSum} = ${missing}.`,
+          difficulty: clamp(1 + Math.floor(index / 6), 1, 4)
+        }));
+      }
+
+      for (let index = 0; index < 18; index += 1) {
+        const speed = 40 + (index % 7) * 5;
+        const minutes = 30 + (index % 6) * 10;
+        const distance = speed * minutes / 60;
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Rates",
+          stem: `A vehicle travels at ${speed} miles per hour for ${minutes} minutes. How many miles does it travel?`,
+          correct: Number.isInteger(distance) ? distance : distance.toFixed(1),
+          distractors: [distance + 5, Math.max(1, distance - 5), speed + minutes, Math.round(distance * 1.5)],
+          explanation: `${minutes} minutes is ${minutes}/60 hours. Distance = rate x time = ${speed} x ${minutes}/60 = ${distance} miles.`,
+          difficulty: clamp(2 + Math.floor(index / 7), 2, 4)
+        }));
+      }
+
+      for (let index = 0; index < 18; index += 1) {
+        const width = 6 + (index % 8);
+        const extra = 3 + (index % 5);
+        const length = width + extra;
+        const perimeter = 2 * (length + width);
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Geometry",
+          stem: `A rectangle has a perimeter of ${perimeter}. Its length is ${extra} greater than its width. What is its area?`,
+          correct: width * length,
+          distractors: [perimeter * extra, width + length, width * width, length * length],
+          explanation: `Let the width be w, so the length is w + ${extra}. Since 2w + 2(w + ${extra}) = ${perimeter}, w = ${width} and the length is ${length}. Area = ${width} x ${length} = ${width * length}.`,
+          difficulty: clamp(2 + Math.floor(index / 6), 2, 5)
+        }));
+      }
+
+      const remainderPairs = [[5, 7], [5, 8], [5, 9], [6, 7], [6, 11], [7, 8], [7, 10], [8, 9], [8, 11], [9, 10]];
+      for (let index = 0; index < 20; index += 1) {
+        const [divisorA, divisorB] = remainderPairs[index % remainderPairs.length];
+        const remA = 1 + (index % (divisorA - 1));
+        const remB = 2 + (index % Math.max(2, divisorB - 2));
+        let answer = remA;
+        while (answer % divisorB !== remB % divisorB) answer += divisorA;
+        add(numericQuestion({
+          id: `gq${id++}`,
+          section: "Quant",
+          topic: "Remainders",
+          stem: `What is the smallest positive integer n that leaves a remainder of ${remA} when divided by ${divisorA} and a remainder of ${remB % divisorB} when divided by ${divisorB}?`,
+          correct: answer,
+          distractors: [answer - divisorA, answer + divisorA, answer + divisorB, answer + divisorA + divisorB].filter((value) => value > 0),
+          explanation: `Test numbers congruent to ${remA} modulo ${divisorA}: ${remA}, ${remA + divisorA}, ${remA + 2 * divisorA}, ... The first that has remainder ${remB % divisorB} modulo ${divisorB} is ${answer}.`,
+          difficulty: clamp(3 + Math.floor(index / 7), 3, 5)
+        }));
+      }
+
+      return questions;
+    }
+
+    function buildVerbalGeneratedBank() {
+      const questions = [];
+      let id = 1;
+      const add = (question) => questions.push(question);
+
+      const assumptionScenarios = [
+        ["meal-kit company", "new insulated packaging", "food waste", "customers will not cancel because the packaging is harder to recycle"],
+        ["language app", "daily streak reminders", "paid renewals", "users who receive reminders will not disable them at high rates"],
+        ["airport cafe", "mobile preorders", "morning sales", "pickup delays will not become long enough to discourage repeat purchases"],
+        ["online retailer", "free returns", "sales", "the extra return shipping cost will not exceed the added profit from new orders"],
+        ["fitness studio", "later evening classes", "membership retention", "enough members who say they prefer later classes will actually attend them"],
+        ["software firm", "shorter onboarding videos", "new-hire productivity", "the shorter videos still cover the material that new hires need most"]
+      ];
+      assumptionScenarios.forEach(([actor, plan, outcome, assumption], index) => {
+        add({
+          id: `gv${id++}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem: `A ${actor} plans to use ${plan} to increase ${outcome}. Which assumption is required by the plan?`,
+          choices: [
+            `The ${actor} has never tried a similar plan before.`,
+            assumption.charAt(0).toUpperCase() + assumption.slice(1) + ".",
+            `Competitors of the ${actor} will copy the plan immediately.`,
+            `The plan will be popular with every current customer.`,
+            `The cost of advertising will remain exactly the same.`
+          ],
+          answer: 1,
+          explanation: `The plan works only if the proposed change actually supports ${outcome} without introducing an offsetting problem. The required assumption is that ${assumption}.`,
+          difficulty: 2 + (index % 2)
+        });
+      });
+
+      const weakenScenarios = [
+        ["bike-lane network", "reported accidents fell by 12%", "total bicycle trips fell by 35%"],
+        ["remote-work policy", "completed tickets increased by 18%", "the average complexity of tickets completed during the period fell substantially"],
+        ["new tutoring program", "participants scored higher on the final", "students chose whether to participate, and stronger students were more likely to join"],
+        ["discount campaign", "store visits increased", "average spending per visit dropped enough that total profit declined"],
+        ["warehouse robots", "packing errors declined", "the warehouse simultaneously stopped selling the products that had caused most packing errors"],
+        ["commuter rail ads", "ridership rose", "a nearby highway was closed for repairs during the same period"]
+      ];
+      weakenScenarios.forEach(([change, evidence, weakener], index) => {
+        add({
+          id: `gv${id++}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem: `After adopting a ${change}, an organization found that ${evidence}. It concluded that the change caused an improvement. Which fact most weakens the conclusion?`,
+          choices: [
+            `The organization announced the change before measuring the result.`,
+            `Some people disliked the change at first.`,
+            weakener.charAt(0).toUpperCase() + weakener.slice(1) + ".",
+            `The result was measured in the same units as before.`,
+            `The organization plans to keep the change for another month.`
+          ],
+          answer: 2,
+          explanation: `This choice gives an alternate explanation for the apparent improvement, so the raw before-and-after result no longer strongly supports the causal conclusion.`,
+          difficulty: 3 + (index % 2)
+        });
+      });
+
+      const strengthenScenarios = [
+        ["email reminders", "appointment attendance", "patients who received reminders confirmed appointments at much higher rates than similar patients who did not"],
+        ["simplified checkout", "completed purchases", "users randomly shown the simplified checkout abandoned carts less often"],
+        ["manager coaching", "employee retention", "teams whose managers used the coaching process had lower quit rates after controlling for pay and workload"],
+        ["practice quizzes", "exam performance", "students randomly assigned extra quizzes improved more than students assigned extra reading"],
+        ["inventory alerts", "stockout prevention", "stores using the alerts reordered fast-selling items earlier than otherwise similar stores"],
+        ["shorter support forms", "customer satisfaction", "the shorter form reduced incomplete requests without increasing follow-up questions"]
+      ];
+      strengthenScenarios.forEach(([plan, goal, evidence], index) => {
+        add({
+          id: `gv${id++}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem: `A company argues that ${plan} will improve ${goal}. Which evidence most strengthens the argument?`,
+          choices: [
+            `The company recently redesigned its website.`,
+            evidence.charAt(0).toUpperCase() + evidence.slice(1) + ".",
+            `Several competitors have considered a different plan.`,
+            `The goal has been discussed at recent staff meetings.`,
+            `The plan has a memorable name.`
+          ],
+          answer: 1,
+          explanation: `The strengthening evidence directly connects the proposed plan to the intended outcome while reducing the chance that the result is just preference or coincidence.`,
+          difficulty: 2 + (index % 3)
+        });
+      });
+
+      const evaluateScenarios = [
+        ["a scheduling app", "reduce hospital wait times", "whether current waits are mostly caused by scheduling rather than limited staff or rooms"],
+        ["a subscription discount", "increase monthly revenue", "whether enough new subscribers will actually pay, not merely express interest"],
+        ["a new supplier", "improve product quality", "whether defects are mainly caused by supplied parts rather than assembly mistakes"],
+        ["a training course", "improve sales performance", "whether salespeople who need the training will complete and apply it"],
+        ["a baggage-tracking system", "reduce lost luggage claims", "whether most claims come from tracking failures rather than loading mistakes"],
+        ["a loyalty program", "increase repeat visits", "whether discounts given to returning customers will exceed the added profit from extra visits"]
+      ];
+      evaluateScenarios.forEach(([plan, goal, question], index) => {
+        add({
+          id: `gv${id++}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem: `A manager proposes using ${plan} to ${goal}. Which question is most important to evaluate the proposal?`,
+          choices: [
+            question.charAt(0).toUpperCase() + question.slice(1) + "?",
+            `Whether the proposal can be described in fewer than ten words?`,
+            `Whether every employee likes the proposal equally?`,
+            `Whether the proposal uses the same colors as the company's logo?`,
+            `Whether a different company has a larger office?`
+          ],
+          answer: 0,
+          explanation: `The key evaluation question tests whether the plan addresses the real constraint behind the goal and whether its benefits are likely to exceed its costs.`,
+          difficulty: 3 + (index % 3)
+        });
+      });
+
+      const passages = [
+        {
+          topic: "Reading Comprehension",
+          context: "Researchers studying urban delivery found that electric cargo bikes completed short downtown routes faster than vans during peak traffic. However, the bikes carried less volume per trip and required more frequent depot returns. The researchers concluded that bikes were most valuable when paired with routing software that assigned them dense, nearby stops.",
+          main: ["Which choice best states the main point of the passage?", "Electric cargo bikes can outperform vans on some routes, but their advantage depends on route density and operational planning.", "Electric cargo bikes should replace every delivery van immediately."],
+          infer: ["The passage suggests that cargo bikes would be least useful for", "routes with widely scattered stops and large packages", "short routes with many nearby stops"],
+          role: ["The statement that bikes carry less volume per trip primarily serves to", "identify a limitation that qualifies the initial positive finding", "prove that routing software is unnecessary"]
+        },
+        {
+          topic: "Reading Comprehension",
+          context: "A study of workplace training found that employees remembered more when lessons were spaced over several weeks than when the same material was delivered in a single day. The authors cautioned, though, that spaced training required stronger manager follow-up because employees often postponed later modules when workloads increased.",
+          main: ["Which choice best states the passage's main point?", "Spaced training can improve retention, but it needs follow-up to prevent delays.", "Single-day training is always superior to spaced training."],
+          infer: ["The passage implies that a company using spaced training should especially monitor", "whether employees complete later modules on schedule", "whether the training room has enough chairs"],
+          role: ["The caution about workloads primarily", "limits the recommendation by naming an implementation risk", "rejects the finding about memory"]
+        },
+        {
+          topic: "Reading Comprehension",
+          context: "Economists examining subscription businesses found that low introductory prices increased sign-ups but also attracted customers with lower long-term retention. The most profitable firms used introductory discounts selectively, pairing them with onboarding steps that helped new customers discover recurring value quickly.",
+          main: ["Which choice best captures the passage?", "Introductory discounts can help, but profitability depends on retention and onboarding.", "Low introductory prices guarantee higher long-term profit."],
+          infer: ["The passage suggests that sign-up volume alone is an incomplete metric because it", "does not reveal how long customers will remain or how profitable they will be", "cannot be measured by subscription businesses"],
+          role: ["The discussion of onboarding serves to", "present a way firms can improve the quality of discounted sign-ups", "argue that discounts should never be used"]
+        },
+        {
+          topic: "Reading Comprehension",
+          context: "Analysts of airline boarding methods found that highly ordered boarding groups looked efficient on paper but often slowed down when passengers blocked aisles while searching for overhead space. More flexible systems sometimes worked better because they reduced conflicts between strict sequencing and real passenger behavior.",
+          main: ["The passage is mainly about", "why operational systems that appear efficient may fail when human behavior is ignored", "why passengers should never bring carry-on luggage"],
+          infer: ["The passage implies that boarding models should account for", "aisle blockages and overhead-bin searches", "only the number of printed boarding groups"],
+          role: ["The example of passengers searching for overhead space is used to", "show a practical behavior that can undermine a theoretical process", "prove that ordered groups always work perfectly"]
+        },
+        {
+          topic: "Reading Comprehension",
+          context: "A review of financial dashboards found that managers made better decisions when dashboards highlighted a few leading indicators rather than many lagging metrics. The review did not argue that historical metrics were useless; rather, it claimed that too many backward-looking numbers can crowd out signals that require immediate action.",
+          main: ["Which choice best states the passage's claim?", "Dashboards should balance historical metrics with a focused set of actionable leading indicators.", "Historical metrics should be removed from every dashboard."],
+          infer: ["The passage suggests that a dashboard with too many lagging metrics might", "make urgent signals harder to notice", "automatically improve every decision"],
+          role: ["The phrase about not being useless primarily", "prevents an overly broad interpretation of the argument", "contradicts the entire passage"]
+        },
+        {
+          topic: "Reading Comprehension",
+          context: "Biologists tracking reef restoration found that transplanting mature coral produced visible short-term gains, but reefs recovered more reliably when water temperature, pollution, and herbivore populations were managed at the same time. The researchers warned that visible coral coverage can mask underlying fragility.",
+          main: ["The passage mainly argues that", "reef restoration needs ecosystem-level management, not just visible coral replacement", "mature coral should never be transplanted"],
+          infer: ["The passage implies that a reef with high visible coral coverage may still be", "vulnerable if environmental conditions remain poor", "guaranteed to recover permanently"],
+          role: ["The warning about visible coral coverage serves to", "distinguish appearance from long-term resilience", "show that measurement is impossible"]
+        }
+      ];
+
+      passages.forEach((passage, passageIndex) => {
+        [["main", 2], ["infer", 3], ["role", 4]].forEach(([kind, difficulty], offset) => {
+          const [stem, correct, wrong] = passage[kind];
+          const packed = packChoices(correct, [wrong, "repeat a detail without explaining its significance", "introduce an unrelated comparison", "claim a certainty the passage does not support"], `gv-rc-${passageIndex}-${offset}`);
+          add({
+            id: `gv${id++}`,
+            section: "Verbal",
+            topic: passage.topic,
+            context: passage.context,
+            stem,
+            choices: packed.choices,
+            answer: packed.answer,
+            explanation: `The correct answer matches the passage's qualified claim. The passage gives a mixed or conditional conclusion, so answers that are absolute, unrelated, or merely repeat a detail are too broad or too narrow.`,
+            difficulty
+          });
+        });
+      });
+
+      return questions;
+    }
+
+    function buildDIGeneratedBank() {
+      const questions = [];
+      let id = 1;
+      const add = (question) => questions.push(question);
+      const dsChoices = [
+        "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+        "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+        "Both statements together are sufficient, but neither alone is sufficient.",
+        "Each statement alone is sufficient.",
+        "Statements (1) and (2) together are not sufficient."
+      ];
+
+      for (let index = 0; index < 18; index += 1) {
+        const seats = [160 + index * 2, 140 + index, 180 + index * 3, 150 + index * 2];
+        const factors = [0.82, 0.9, 0.86, 0.88];
+        const passengers = seats.map((seat, seatIndex) => Math.round(seat * factors[(seatIndex + index) % factors.length]));
+        const rates = seats.map((seat, seatIndex) => passengers[seatIndex] / seat);
+        const answer = rates.indexOf(Math.max(...rates));
+        add({
+          id: `gd${id++}`,
+          section: "DI",
+          topic: "Table Analysis",
+          context: `Route | Seats | Passengers\nA | ${seats[0]} | ${passengers[0]}\nB | ${seats[1]} | ${passengers[1]}\nC | ${seats[2]} | ${passengers[2]}\nD | ${seats[3]} | ${passengers[3]}`,
+          stem: "Which route had the highest load factor, defined as passengers divided by seats?",
+          choices: ["Route A", "Route B", "Route C", "Route D", "All four routes tie"],
+          answer,
+          explanation: `Compute passengers divided by seats for each route. The largest ratio is for Route ${["A", "B", "C", "D"][answer]}.`,
+          difficulty: clamp(2 + Math.floor(index / 6), 2, 4)
+        });
+      }
+
+      for (let index = 0; index < 16; index += 1) {
+        const basic = 40 + index * 3;
+        const plus = 20 + index;
+        const basicPrice = 12 + (index % 4);
+        const plusPrice = basicPrice + 8 + (index % 3);
+        const total = basic + plus;
+        const revenue = basic * basicPrice + plus * plusPrice;
+        add(numericQuestion({
+          id: `gd${id++}`,
+          section: "DI",
+          topic: "Two-Part Analysis",
+          context: `Basic plan price: $${basicPrice}\nPlus plan price: $${plusPrice}\nTotal plans sold: ${total}\nTotal revenue: $${revenue}`,
+          stem: "How many Plus plans were sold?",
+          correct: plus,
+          distractors: [plus - 8, plus - 4, plus + 5, plus + 10],
+          explanation: `Let p be Plus plans. Then ${plusPrice}p + ${basicPrice}(${total} - p) = ${revenue}. Solving gives p = ${plus}.`,
+          difficulty: clamp(3 + Math.floor(index / 6), 3, 5)
+        }));
+      }
+
+      for (let index = 0; index < 18; index += 1) {
+        const total = 80 + index * 4;
+        const a = 30 + index * 2;
+        const b = 25 + index;
+        const both = 8 + (index % 9);
+        const neither = total - (a + b - both);
+        add(numericQuestion({
+          id: `gd${id++}`,
+          section: "DI",
+          topic: "Sets",
+          stem: `In a group of ${total} customers, ${a} bought product A, ${b} bought product B, and ${both} bought both. How many bought neither product?`,
+          correct: neither,
+          distractors: [neither - 6, neither - 3, neither + 4, neither + 8],
+          explanation: `Bought at least one = ${a} + ${b} - ${both} = ${a + b - both}. Bought neither = ${total} - ${a + b - both} = ${neither}.`,
+          difficulty: clamp(2 + Math.floor(index / 7), 2, 4)
+        }));
+      }
+
+      for (let index = 0; index < 18; index += 1) {
+        const sum = 30 + index * 3;
+        add({
+          id: `gd${id++}`,
+          section: "DI",
+          topic: "Data Sufficiency",
+          stem: `What is the average of x, y, and z?\n(1) x + y + z = ${sum}\n(2) x = y = z`,
+          choices: dsChoices,
+          answer: 0,
+          explanation: `Statement (1) gives the sum, so the average is ${sum}/3. Statement (2) says the values are equal but gives no value. Statement (1) alone is sufficient.`,
+          difficulty: 3
+        });
+      }
+
+      for (let index = 0; index < 18; index += 1) {
+        const divisor = 4 + (index % 5);
+        add({
+          id: `gd${id++}`,
+          section: "DI",
+          topic: "Data Sufficiency",
+          stem: `Is integer n divisible by ${divisor * 2}?\n(1) n is divisible by ${divisor}.\n(2) n is even.`,
+          choices: dsChoices,
+          answer: 2,
+          explanation: `Divisibility by ${divisor} alone does not guarantee the extra factor of 2, and evenness alone does not guarantee divisibility by ${divisor}. Together, n has both conditions needed for divisibility by ${divisor * 2}.`,
+          difficulty: 4
+        });
+      }
+
+      return questions;
+    }
+
+    function buildLongFlightGeneratedBank() {
+      const questions = [];
+      const add = (question) => questions.push(question);
+      const dsChoices = [
+        "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+        "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+        "Both statements together are sufficient, but neither alone is sufficient.",
+        "Each statement alone is sufficient.",
+        "Statements (1) and (2) together are not sufficient."
+      ];
+
+      for (let index = 0; index < 80; index += 1) {
+        const a = 2 + (index % 8);
+        const c = 1 + (index % 5);
+        const x = 3 + (index % 17);
+        const b = 4 + ((index * 3) % 19);
+        const d = (a - c) * x + b;
+        add(numericQuestion({
+          id: `lq-a-${index}`,
+          section: "Quant",
+          topic: "Algebra",
+          stem: `If ${a}x + ${b} = ${c}x + ${d}, what is the value of x?`,
+          correct: x,
+          distractors: [x - 3, x - 1, x + 2, x + 4].filter((value) => value > 0),
+          explanation: `Subtract ${c}x and ${b}: ${a - c}x = ${d - b}. Divide by ${a - c}, so x = ${x}.`,
+          difficulty: clamp(1 + Math.floor(index / 22), 1, 5)
+        }));
+      }
+
+      for (let index = 0; index < 70; index += 1) {
+        const original = 80 + (index % 13) * 10;
+        const increase = 5 + ((index * 7) % 55);
+        const decrease = 5 + ((index * 11) % 45);
+        const final = original * (1 + increase / 100) * (1 - decrease / 100);
+        const rounded = Number.isInteger(final) ? final : Number(final.toFixed(1));
+        add(numericQuestion({
+          id: `lq-p-${index}`,
+          section: "Quant",
+          topic: "Percents",
+          stem: `A value of ${original} is increased by ${increase}% and then decreased by ${decrease}%. What is the final value?`,
+          correct: rounded,
+          distractors: [
+            Number((original * (1 + (increase - decrease) / 100)).toFixed(1)),
+            Number((original * (1 + increase / 100)).toFixed(1)),
+            Number((original * (1 - decrease / 100)).toFixed(1)),
+            Number((rounded + original * 0.1).toFixed(1))
+          ],
+          explanation: `Successive percent changes multiply. The final value is ${original} x ${1 + increase / 100} x ${1 - decrease / 100} = ${rounded}.`,
+          difficulty: clamp(2 + Math.floor(index / 18), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 60; index += 1) {
+        const n1 = 3 + (index % 5);
+        const n2 = 4 + ((index * 2) % 7);
+        const avg1 = 12 + ((index * 3) % 18);
+        const avg2 = 18 + ((index * 5) % 16);
+        const combined = Number(((n1 * avg1 + n2 * avg2) / (n1 + n2)).toFixed(1));
+        add(numericQuestion({
+          id: `lq-w-${index}`,
+          section: "Quant",
+          topic: "Averages",
+          stem: `A group of ${n1} numbers has an average of ${avg1}. A second group of ${n2} numbers has an average of ${avg2}. What is the average of all ${n1 + n2} numbers?`,
+          correct: combined,
+          distractors: [Number(((avg1 + avg2) / 2).toFixed(1)), avg1 + avg2, combined + 2, Math.max(1, combined - 2)],
+          explanation: `Use a weighted average: (${n1} x ${avg1} + ${n2} x ${avg2}) / ${n1 + n2} = ${combined}.`,
+          difficulty: clamp(2 + Math.floor(index / 16), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 65; index += 1) {
+        const rateA = 4 + (index % 8);
+        const rateB = 6 + ((index * 2) % 9);
+        const work = rateA * rateB * (2 + (index % 4));
+        const together = Number((work / (rateA + rateB)).toFixed(1));
+        add(numericQuestion({
+          id: `lq-r-${index}`,
+          section: "Quant",
+          topic: "Rates",
+          stem: `Machine A completes ${rateA} units per hour and Machine B completes ${rateB} units per hour. Working together, how many hours do they need to complete ${work} units?`,
+          correct: together,
+          distractors: [Number((work / rateA).toFixed(1)), Number((work / rateB).toFixed(1)), Number((together + 1.5).toFixed(1)), Math.max(0.5, Number((together - 1).toFixed(1)))],
+          explanation: `Together the machines complete ${rateA + rateB} units per hour. Time = ${work} / ${rateA + rateB} = ${together} hours.`,
+          difficulty: clamp(2 + Math.floor(index / 18), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 65; index += 1) {
+        const width = 5 + (index % 13);
+        const extra = 2 + ((index * 3) % 9);
+        const length = width + extra;
+        const area = width * length;
+        const perimeter = 2 * (width + length);
+        add(numericQuestion({
+          id: `lq-g-${index}`,
+          section: "Quant",
+          topic: "Geometry",
+          stem: `A rectangle has perimeter ${perimeter}, and its length is ${extra} greater than its width. What is its area?`,
+          correct: area,
+          distractors: [perimeter, width + length, width * width, length * length],
+          explanation: `Let the width be w. Then 2w + 2(w + ${extra}) = ${perimeter}, so w = ${width}, length = ${length}, and area = ${area}.`,
+          difficulty: clamp(2 + Math.floor(index / 18), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 65; index += 1) {
+        const divisor = 3 + (index % 9);
+        const multiplier = 4 + ((index * 5) % 12);
+        const n = divisor * multiplier;
+        add(numericQuestion({
+          id: `lq-n-${index}`,
+          section: "Quant",
+          topic: "Number Properties",
+          stem: `If n is the least positive multiple of ${divisor} that is greater than ${n - divisor}, what is n?`,
+          correct: n,
+          distractors: [n - divisor, n + divisor, divisor + multiplier, divisor * (multiplier + 2)],
+          explanation: `The multiples of ${divisor} near the cutoff are ${n - divisor} and ${n}. The least positive multiple greater than ${n - divisor} is ${n}.`,
+          difficulty: clamp(1 + Math.floor(index / 18), 1, 5)
+        }));
+      }
+
+      for (let index = 0; index < 45; index += 1) {
+        const total = 7 + (index % 8);
+        const chosen = 2 + (index % 2);
+        const combinations = chosen === 2 ? total * (total - 1) / 2 : total * (total - 1) * (total - 2) / 6;
+        add(numericQuestion({
+          id: `lq-c-${index}`,
+          section: "Quant",
+          topic: "Combinatorics",
+          stem: `From ${total} distinct items, how many groups of ${chosen} can be selected if order does not matter?`,
+          correct: combinations,
+          distractors: [total * chosen, Math.max(1, combinations - total), combinations + total, total * (total - 1)],
+          explanation: `Use combinations. ${total} choose ${chosen} = ${combinations}; order does not create new groups.`,
+          difficulty: clamp(3 + Math.floor(index / 16), 3, 5)
+        }));
+      }
+
+      const actors = ["airline", "retailer", "software company", "hospital", "bank", "delivery service", "university", "hotel chain", "fitness app", "manufacturer"];
+      const plans = ["launching a mobile check-in tool", "offering a short-term discount", "adding reminder emails", "changing appointment slots", "using automated fraud alerts", "rerouting drivers with software", "moving lessons online", "bundling services", "adding progress streaks", "using a new production process"];
+      const goals = ["increase repeat use", "raise profit", "reduce delays", "improve customer satisfaction", "lower operating costs", "increase retention", "reduce errors", "speed up onboarding"];
+      const blockers = ["the plan's added cost will not exceed the financial gain", "customers who express interest will actually change their behavior", "the measured problem is caused by the factor the plan addresses", "the plan will not create a new bottleneck elsewhere", "the survey respondents are representative of the affected users"];
+      const crTypes = ["assumption", "weaken", "strengthen", "evaluate", "explain"];
+      for (let index = 0; index < 260; index += 1) {
+        const actor = actors[index % actors.length];
+        const plan = plans[(index * 3) % plans.length];
+        const goal = goals[(index * 5) % goals.length];
+        const blocker = blockers[(index * 7) % blockers.length];
+        const type = crTypes[index % crTypes.length];
+        let stem;
+        let correct;
+        let explanation;
+        if (type === "assumption") {
+          stem = `A ${actor} argues that ${plan} will ${goal}. Which assumption is required by the argument?`;
+          correct = blocker.charAt(0).toUpperCase() + blocker.slice(1) + ".";
+          explanation = `The conclusion depends on the plan causing the intended result without an offsetting issue. The required assumption is that ${blocker}.`;
+        } else if (type === "weaken") {
+          stem = `After ${plan}, a ${actor} found that one metric improved and concluded that the plan helped ${goal}. Which fact most weakens the conclusion?`;
+          correct = `A separate change during the same period could have produced the improved metric without the plan.`;
+          explanation = `This weakens the causal claim by giving an alternative explanation for the observed improvement.`;
+        } else if (type === "strengthen") {
+          stem = `A ${actor} predicts that ${plan} will ${goal}. Which evidence most strengthens the prediction?`;
+          correct = `A comparable group exposed to the plan improved on the target outcome more than a similar group not exposed to the plan.`;
+          explanation = `The answer strengthens the argument by directly connecting the plan to the outcome while controlling for comparison.`;
+        } else if (type === "evaluate") {
+          stem = `Before using ${plan} to ${goal}, what question should a ${actor} most want answered?`;
+          correct = `Whether the main obstacle to ${goal} is the specific problem that the plan is designed to solve.`;
+          explanation = `The most useful evaluation question tests whether the plan attacks the real constraint behind the goal.`;
+        } else {
+          stem = `A ${actor} expected that ${plan} would ${goal}. Instead, the target metric improved while total profit declined. Which fact best explains the result?`;
+          correct = `The plan increased usage by low-margin customers while reducing purchases by higher-margin customers.`;
+          explanation = `The apparent discrepancy is resolved by separating the target metric from profit: one can rise while the other falls.`;
+        }
+        const packed = packChoices(correct, [
+          `The ${actor} recently changed its logo.`,
+          `Some employees preferred the previous process for unrelated reasons.`,
+          `The plan was announced before it was implemented.`,
+          `Competitors use a different approach in another market.`
+        ], `lv-cr-${index}`);
+        add({
+          id: `lv-cr-${index}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      const passageThemes = [
+        ["warehouse automation", "robots increased picking speed but required clearer bin labeling", "automation gains depend on matching technology with process design"],
+        ["remote training", "short modules improved completion but reduced peer discussion", "training design involves a trade-off between convenience and interaction"],
+        ["airline pricing", "lower fares increased bookings but reduced ancillary purchases", "revenue effects can differ from demand effects"],
+        ["urban transit", "express buses helped long trips but skipped some short-trip riders", "efficiency improvements can shift benefits across user groups"],
+        ["medical triage", "software flagged urgent cases faster but created false alarms", "decision tools must balance speed with accuracy"],
+        ["subscription products", "free trials increased signups but attracted lower-retention users", "customer quality matters as much as signup volume"],
+        ["supply chains", "larger inventories reduced stockouts but tied up cash", "operational resilience can have financial costs"],
+        ["data dashboards", "more metrics increased visibility but slowed decisions", "information systems should prioritize actionable signals"],
+        ["energy storage", "batteries smoothed demand peaks but depended on local pricing rules", "technology value depends on economic context"],
+        ["restaurant ordering", "kiosks reduced checkout lines but raised customization errors", "automation can move friction from one step to another"]
+      ];
+      for (let index = 0; index < 90; index += 1) {
+        const [subject, evidence, thesis] = passageThemes[index % passageThemes.length];
+        const kind = index % 3;
+        const context = `A study of ${subject} found that ${evidence}. The authors did not conclude that the change was simply good or bad. Instead, they argued that ${thesis}, especially when managers use multiple performance measures rather than a single headline result.`;
+        const stems = [
+          "Which choice best states the main point of the passage?",
+          "The passage most strongly implies that managers should",
+          "The reference to a single headline result primarily serves to"
+        ];
+        const corrects = [
+          thesis.charAt(0).toUpperCase() + thesis.slice(1) + ", so the change should be evaluated with more than one metric.",
+          "evaluate the change using both its benefits and its trade-offs",
+          "warn against judging a complex operational change by one metric alone"
+        ];
+        const packed = packChoices(corrects[kind], [
+          `reject all uses of ${subject.split(" ")[0]} technology`,
+          "focus only on the fastest-changing metric",
+          "assume that any improvement in one metric guarantees a profit increase",
+          "ignore implementation details because the broad trend is enough"
+        ], `lv-rc-${index}`);
+        add({
+          id: `lv-rc-${index}`,
+          section: "Verbal",
+          topic: "Reading Comprehension",
+          context,
+          stem: stems[kind],
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation: `The passage is qualified: it identifies a benefit, a limitation, and a broader conclusion about evaluating trade-offs. The correct answer preserves that qualification.`,
+          difficulty: clamp(2 + kind + Math.floor((index % 9) / 5), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const base = 100 + index * 3;
+        const values = [base, base + 12 + (index % 9), base + 24 + ((index * 2) % 11), base + 8 + ((index * 5) % 17)];
+        const increases = values.map((value, valueIndex) => value + 10 + ((index + valueIndex * 7) % 26));
+        const growth = increases.map((value, valueIndex) => value - values[valueIndex]);
+        const answer = growth.indexOf(Math.max(...growth));
+        add({
+          id: `ld-t-${index}`,
+          section: "DI",
+          topic: "Table Analysis",
+          context: `Region | 2025 units | 2026 units\nA | ${values[0]} | ${increases[0]}\nB | ${values[1]} | ${increases[1]}\nC | ${values[2]} | ${increases[2]}\nD | ${values[3]} | ${increases[3]}`,
+          stem: "Which region had the greatest absolute increase in units?",
+          choices: ["Region A", "Region B", "Region C", "Region D", "All regions tie"],
+          answer,
+          explanation: `Compute 2026 units minus 2025 units for each region. The largest increase is for Region ${["A", "B", "C", "D"][answer]}.`,
+          difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+        });
+      }
+
+      for (let index = 0; index < 80; index += 1) {
+        const fixed = 200 + (index % 13) * 20;
+        const unit = 6 + (index % 7);
+        const price = unit + 4 + (index % 5);
+        const target = 80 + (index % 16) * 10;
+        const profit = target * (price - unit) - fixed;
+        add(numericQuestion({
+          id: `ld-g-${index}`,
+          section: "DI",
+          topic: "Graphics Interpretation",
+          context: `A product has fixed cost $${fixed}, variable cost $${unit} per unit, and selling price $${price} per unit.`,
+          stem: `What is the profit from selling ${target} units?`,
+          correct: profit,
+          distractors: [target * price, target * unit, profit + fixed, profit - fixed],
+          explanation: `Profit = revenue - variable cost - fixed cost = ${target}(${price}) - ${target}(${unit}) - ${fixed} = ${profit}.`,
+          difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 80; index += 1) {
+        const total = 60 + index * 2;
+        const a = 20 + (index % 20);
+        const b = 18 + ((index * 3) % 18);
+        const both = 5 + (index % 10);
+        const neither = total - (a + b - both);
+        add(numericQuestion({
+          id: `ld-s-${index}`,
+          section: "DI",
+          topic: "Sets",
+          stem: `Among ${total} survey respondents, ${a} selected option A, ${b} selected option B, and ${both} selected both. How many selected neither option?`,
+          correct: neither,
+          distractors: [neither - 5, neither + 5, a + b - both, total - a - b],
+          explanation: `Selected at least one = ${a} + ${b} - ${both} = ${a + b - both}. Neither = ${total} - ${a + b - both} = ${neither}.`,
+          difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const answerType = index % 5;
+        let stem;
+        let answer;
+        let explanation;
+        if (answerType === 0) {
+          const sum = 36 + index * 2;
+          stem = `What is the average of x, y, and z?\n(1) x + y + z = ${sum}\n(2) x = y`;
+          answer = 0;
+          explanation = `Statement (1) gives the total, so the average is determined. Statement (2) alone gives only a relationship.`;
+        } else if (answerType === 1) {
+          const value = 10 + index;
+          stem = `Is x greater than ${value}?\n(1) x > ${value + 4}\n(2) x is positive`;
+          answer = 0;
+          explanation = `Statement (1) directly implies x > ${value}. Statement (2) allows values above and below ${value}.`;
+        } else if (answerType === 2) {
+          const divisor = 3 + (index % 7);
+          stem = `Is integer n divisible by ${divisor * 2}?\n(1) n is divisible by ${divisor}\n(2) n is even`;
+          answer = 2;
+          explanation = `Neither statement alone guarantees both factors, but together they give divisibility by ${divisor} and by 2.`;
+        } else if (answerType === 3) {
+          const value = 12 + index;
+          stem = `What is the value of x?\n(1) x + y = ${value}\n(2) y = ${Math.floor(value / 2)}`;
+          answer = 2;
+          explanation = `Neither statement alone determines x, but together x = ${value} - ${Math.floor(value / 2)}.`;
+        } else {
+          stem = `Is integer n odd?\n(1) n + 1 is even\n(2) 3n is odd`;
+          answer = 3;
+          explanation = `If n + 1 is even, n is odd. If 3n is odd, n is odd. Each statement alone is sufficient.`;
+        }
+        add({
+          id: `ld-ds-${index}`,
+          section: "DI",
+          topic: "Data Sufficiency",
+          stem,
+          choices: dsChoices,
+          answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 60; index += 1) {
+        const basicPrice = 10 + (index % 6);
+        const premiumPrice = basicPrice + 8 + (index % 5);
+        const premium = 15 + (index % 24);
+        const basic = 40 + ((index * 2) % 35);
+        const total = basic + premium;
+        const revenue = basic * basicPrice + premium * premiumPrice;
+        add(numericQuestion({
+          id: `ld-tp-${index}`,
+          section: "DI",
+          topic: "Two-Part Analysis",
+          context: `Basic price: $${basicPrice}\nPremium price: $${premiumPrice}\nTotal plans sold: ${total}\nTotal revenue: $${revenue}`,
+          stem: "How many Premium plans were sold?",
+          correct: premium,
+          distractors: [premium - 6, premium - 3, premium + 4, basic],
+          explanation: `Let p be Premium plans. Then ${premiumPrice}p + ${basicPrice}(${total} - p) = ${revenue}, so p = ${premium}.`,
+          difficulty: clamp(3 + Math.floor(index / 20), 3, 5)
+        }));
+      }
+
+      return questions;
+    }
+
+    BANK.forEach((question, index) => {
+      question.difficulty = question.difficulty || clamp(1 + Math.floor((index % 12) / 3), 1, 5);
+      question.source = "seed";
+    });
+    BANK.push(...buildQuantGeneratedBank(), ...buildVerbalGeneratedBank(), ...buildDIGeneratedBank(), ...buildLongFlightGeneratedBank());
+
+    const SECTION_SECONDS = 90 * 60;
+    const STORAGE_KEY = "flight-gmat-state-v2";
+    const LETTERS = ["A", "B", "C", "D", "E"];
+    const sections = ["Quant", "Verbal", "DI"];
+    const modes = ["Adaptive", "Marathon", "Review"];
+    const questionById = new Map(BANK.map((question) => [question.id, question]));
+    const $ = (selector) => document.querySelector(selector);
+
+    const defaultState = () => ({
+      section: "Quant",
+      mode: "Adaptive",
+      indexBySection: { Quant: 0, Verbal: 0, DI: 0 },
+      queueBySection: { Quant: [], Verbal: [], DI: [] },
+      targetDifficulty: { Quant: 2, Verbal: 2, DI: 2 },
+      streakBySection: { Quant: 0, Verbal: 0, DI: 0 },
+      topicStats: {},
+      answers: {},
+      flagged: {},
+      showExplanation: {},
+      notes: "",
+      paused: false,
+      timers: { Quant: SECTION_SECONDS, Verbal: SECTION_SECONDS, DI: SECTION_SECONDS }
+    });
+
+    let state = loadState();
+    let tickHandle = null;
+
+    function loadState() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        const base = defaultState();
+        return Object.assign(base, stored || {}, {
+          mode: modes.includes(stored?.mode) ? stored.mode : "Adaptive",
+          indexBySection: Object.assign(base.indexBySection, stored?.indexBySection || {}),
+          queueBySection: Object.assign(base.queueBySection, stored?.queueBySection || {}),
+          targetDifficulty: Object.assign(base.targetDifficulty, stored?.targetDifficulty || {}),
+          streakBySection: Object.assign(base.streakBySection, stored?.streakBySection || {}),
+          topicStats: stored?.topicStats || {},
+          answers: stored?.answers || {},
+          flagged: stored?.flagged || {},
+          showExplanation: stored?.showExplanation || {},
+          timers: Object.assign(base.timers, stored?.timers || {})
+        });
+      } catch (_) {
+        return defaultState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        $("#saveState").textContent = "Saved locally";
+      } catch (_) {
+        $("#saveState").textContent = "Session active";
+      }
+    }
+
+    function bySection(section = state.section) {
+      return BANK
+        .filter((q) => q.section === section)
+        .sort((a, b) => a.difficulty - b.difficulty || a.topic.localeCompare(b.topic) || a.id.localeCompare(b.id));
+    }
+
+    function cleanQueue(section = state.section) {
+      const validIds = new Set(bySection(section).map((question) => question.id));
+      state.queueBySection[section] = (state.queueBySection[section] || []).filter((id) => validIds.has(id));
+      return state.queueBySection[section];
+    }
+
+    function topicWeakness(topic) {
+      const stats = state.topicStats[topic];
+      if (!stats) return 0;
+      return Math.max(0, (stats.wrong || 0) - (stats.correct || 0));
+    }
+
+    function pickAdaptiveQuestion(section = state.section) {
+      const queue = cleanQueue(section);
+      const lastId = queue[queue.length - 1];
+      const all = bySection(section);
+      const unanswered = all.filter((question) => !state.answers[question.id]);
+      const pool = (unanswered.length ? unanswered : all).filter((question) => question.id !== lastId);
+      const candidates = pool.length ? pool : all;
+      const target = state.targetDifficulty[section] || 2;
+      return candidates
+        .map((question) => {
+          const answeredPenalty = state.answers[question.id] ? 42 : 0;
+          const queuePenalty = queue.includes(question.id) ? 18 : 0;
+          const weakTopicBonus = topicWeakness(question.topic) * 8;
+          const jitter = hashText(`${question.id}-${queue.length}`) % 7;
+          return {
+            question,
+            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + jitter - weakTopicBonus
+          };
+        })
+        .sort((a, b) => a.score - b.score || a.question.id.localeCompare(b.question.id))[0]?.question;
+    }
+
+    function ensureAdaptiveQueue(section = state.section) {
+      cleanQueue(section);
+      if (!state.queueBySection[section].length) {
+        const first = pickAdaptiveQuestion(section);
+        if (first) state.queueBySection[section].push(first.id);
+      }
+      const queue = state.queueBySection[section];
+      const maxIndex = Math.max(0, queue.length - 1);
+      state.indexBySection[section] = clamp(state.indexBySection[section] || 0, 0, maxIndex);
+      return queue.map((id) => questionById.get(id)).filter(Boolean);
+    }
+
+    function currentList() {
+      if (state.mode === "Adaptive") return ensureAdaptiveQueue();
+      if (state.mode === "Review") {
+        const reviewList = bySection().filter((q) => state.flagged[q.id] || (state.answers[q.id] && !state.answers[q.id].correct));
+        return reviewList.length ? reviewList : bySection().filter((q) => state.answers[q.id]).slice(0, 24).concat(bySection().slice(0, 1)).slice(0, 24);
+      }
+      return bySection();
+    }
+
+    function currentQuestion() {
+      const list = currentList();
+      const index = Math.min(state.indexBySection[state.section] || 0, list.length - 1);
+      state.indexBySection[state.section] = index;
+      return list[index];
+    }
+
+    function currentIndex() {
+      return state.indexBySection[state.section] || 0;
+    }
+
+    function setIndex(index) {
+      const list = currentList();
+      state.indexBySection[state.section] = Math.max(0, Math.min(index, list.length - 1));
+      saveState();
+      render();
+    }
+
+    function statsFor(section = state.section) {
+      const list = bySection(section);
+      const answered = list.filter((q) => state.answers[q.id]).length;
+      const correct = list.filter((q) => state.answers[q.id]?.correct).length;
+      const flagged = list.filter((q) => state.flagged[q.id]).length;
+      const wrong = list.filter((q) => state.answers[q.id] && !state.answers[q.id].correct).length;
+      const accuracy = answered ? Math.round((correct / answered) * 100) : 0;
+      return { answered, correct, flagged, wrong, total: list.length, accuracy };
+    }
+
+    function formatTime(seconds) {
+      const value = Math.max(0, seconds);
+      const minutes = Math.floor(value / 60);
+      const remainingSeconds = value % 60;
+      return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+    }
+
+    function renderTimer() {
+      const remaining = state.timers[state.section] ?? SECTION_SECONDS;
+      $("#timerValue").innerHTML = `${formatTime(remaining)} <span>left</span>`;
+      $("#timerProgress").style.transform = `scaleX(${Math.max(0, remaining / SECTION_SECONDS)})`;
+      $("#pauseButton").innerHTML = state.paused ? icon.play : icon.pause;
+      $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
+      $("#resetButton").innerHTML = icon.reset;
+    }
+
+    function renderSegments() {
+      document.querySelectorAll(".segment").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.section === state.section));
+      });
+    }
+
+    function renderModes() {
+      document.querySelectorAll(".mode-button").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.mode === state.mode));
+      });
+    }
+
+    function renderProgress(list) {
+      const strip = $("#progressStrip");
+      const index = currentIndex();
+      const windowSize = Math.min(12, list.length);
+      const start = Math.max(0, Math.min(index - 5, list.length - windowSize));
+      const visible = list.slice(start, start + windowSize);
+      strip.style.setProperty("--count", visible.length || 1);
+      strip.innerHTML = "";
+      visible.forEach((question, offset) => {
+        const absoluteIndex = start + offset;
+        const answer = state.answers[question.id];
+        const button = document.createElement("button");
+        button.className = "dot";
+        if (absoluteIndex === index) button.classList.add("is-current");
+        if (answer?.correct) button.classList.add("is-correct");
+        if (answer && !answer.correct) button.classList.add("is-wrong");
+        if (state.flagged[question.id]) button.classList.add("is-flagged");
+        button.type = "button";
+        button.setAttribute("aria-label", `Go to question ${absoluteIndex + 1}`);
+        button.addEventListener("click", () => setIndex(absoluteIndex));
+        strip.appendChild(button);
+      });
+    }
+
+    function renderChoices(question) {
+      const choices = $("#choices");
+      const answer = state.answers[question.id];
+      const show = Boolean(state.showExplanation[question.id]);
+      choices.innerHTML = "";
+      question.choices.forEach((choice, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "choice";
+        if (answer?.choice === index) button.classList.add("is-selected");
+        if (show && index === question.answer) button.classList.add("is-correct");
+        if (show && answer?.choice === index && !answer.correct) button.classList.add("is-wrong");
+        button.innerHTML = `<span class="choice-letter">${LETTERS[index]}</span><span class="choice-text">${choice}</span>`;
+        button.addEventListener("click", () => chooseAnswer(question, index));
+        choices.appendChild(button);
+      });
+    }
+
+    function renderExplanation(question) {
+      const answer = state.answers[question.id];
+      const isVisible = Boolean(answer && state.showExplanation[question.id]);
+      const explanation = $("#explanation");
+      explanation.classList.toggle("is-visible", isVisible);
+      $("#explainButton").disabled = !answer;
+      $("#explainButton").innerHTML = answer ? `${icon.eye} ${isVisible ? "Hide explanation" : "Show explanation"}` : `${icon.eye} Answer first`;
+      if (answer?.correct) {
+        $("#resultLabel").className = "result";
+        $("#resultLabel").innerHTML = `${icon.check} Correct`;
+      } else {
+        $("#resultLabel").className = "result is-wrong";
+        $("#resultLabel").innerHTML = `${icon.x} Review this`;
+      }
+      $("#correctAnswer").textContent = `Answer: ${LETTERS[question.answer]}`;
+      $("#explanationText").textContent = question.explanation;
+    }
+
+    function renderErrorLog() {
+      const list = bySection();
+      const missed = list.filter((q) => state.answers[q.id] && !state.answers[q.id].correct);
+      const container = $("#errorList");
+      container.innerHTML = "";
+      if (!missed.length) {
+        const empty = document.createElement("p");
+        empty.className = "empty";
+        empty.textContent = "Missed questions will appear here as you practice.";
+        container.appendChild(empty);
+        return;
+      }
+      missed.forEach((question) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "error-item";
+        const index = list.findIndex((q) => q.id === question.id);
+        button.innerHTML = `
+          <span class="tiny-icon" style="color: var(--red)">${icon.x}</span>
+          <span><strong>Q${index + 1} - ${question.topic}</strong><span>${question.stem}</span></span>
+          <span class="tiny-icon" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        `;
+        button.addEventListener("click", () => {
+          state.mode = "Review";
+          const reviewIndex = currentList().findIndex((q) => q.id === question.id);
+          state.indexBySection[state.section] = Math.max(0, reviewIndex);
+          state.showExplanation[question.id] = true;
+          saveState();
+          render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+        container.appendChild(button);
+      });
+    }
+
+    function renderStats() {
+      const stats = statsFor();
+      const target = state.targetDifficulty[state.section] || 2;
+      $("#doneStat").textContent = `${stats.answered}/${stats.total}`;
+      $("#rightStat").textContent = `${stats.accuracy}%`;
+      $("#flagStat").textContent = `L${target}`;
+      $("#difficultyChip").textContent = `Target L${target}`;
+      $("#scoreChip").textContent = `${stats.correct}/${stats.answered || 0}`;
+      $("#reviewMissedButton").textContent = stats.wrong ? `Missed ${stats.wrong}` : "Missed";
+    }
+
+    function render() {
+      const list = currentList();
+      const question = currentQuestion();
+      const index = currentIndex();
+      const answer = state.answers[question.id];
+
+      renderTimer();
+      renderSegments();
+      renderModes();
+      renderProgress(list);
+      renderStats();
+
+      $("#questionCount").textContent = state.mode === "Adaptive" ? `Question ${index + 1} · Level ${state.targetDifficulty[state.section] || 2}` : `Question ${index + 1} of ${list.length}`;
+      $("#questionTopic").textContent = `${question.topic} · L${question.difficulty}`;
+      $("#questionStem").textContent = question.stem;
+      $("#questionContext").hidden = !question.context;
+      $("#questionContext").textContent = question.context || "";
+      $("#flagButton").innerHTML = state.flagged[question.id] ? icon.flagFilled : icon.flag;
+      $("#reviewButton").innerHTML = `${state.flagged[question.id] ? icon.flagFilled : icon.flag} Review`;
+
+      renderChoices(question);
+      renderExplanation(question);
+      renderErrorLog();
+
+      $("#previousButton").disabled = index === 0;
+      $("#nextButton").textContent = state.mode === "Adaptive" || index < list.length - 1 ? "Next" : "Finish";
+      $("#notes").value = state.notes || "";
+
+      if (answer && !state.showExplanation[question.id]) {
+        $("#explainButton").classList.add("primary");
+      } else {
+        $("#explainButton").classList.remove("primary");
+      }
+    }
+
+    function chooseAnswer(question, choice) {
+      const previous = state.answers[question.id];
+      const correct = choice === question.answer;
+      state.answers[question.id] = {
+        choice,
+        correct,
+        section: question.section,
+        topic: question.topic,
+        difficulty: question.difficulty,
+        at: Date.now()
+      };
+      if (!previous) updateAdaptiveDifficulty(question, correct);
+      state.showExplanation[question.id] = true;
+      saveState();
+      render();
+    }
+
+    function updateAdaptiveDifficulty(question, correct) {
+      const section = question.section;
+      const topicStats = state.topicStats[question.topic] || { correct: 0, wrong: 0 };
+      if (correct) topicStats.correct += 1;
+      else topicStats.wrong += 1;
+      state.topicStats[question.topic] = topicStats;
+
+      const previousTarget = state.targetDifficulty[section] || 2;
+      if (correct) {
+        state.streakBySection[section] = (state.streakBySection[section] || 0) + 1;
+        const shouldRaise = state.streakBySection[section] >= 2 || question.difficulty > previousTarget;
+        state.targetDifficulty[section] = clamp(previousTarget + (shouldRaise ? 1 : 0), 1, 5);
+      } else {
+        state.streakBySection[section] = 0;
+        state.targetDifficulty[section] = clamp(previousTarget - 1, 1, 5);
+      }
+    }
+
+    function toggleFlag() {
+      const question = currentQuestion();
+      state.flagged[question.id] = !state.flagged[question.id];
+      if (!state.flagged[question.id]) delete state.flagged[question.id];
+      saveState();
+      render();
+    }
+
+    function startTimer() {
+      clearInterval(tickHandle);
+      tickHandle = setInterval(() => {
+        if (state.paused) return;
+        const remaining = state.timers[state.section] ?? SECTION_SECONDS;
+        if (remaining <= 0) return;
+        state.timers[state.section] = remaining - 1;
+        renderTimer();
+        if (remaining % 10 === 0) saveState();
+      }, 1000);
+    }
+
+    function resetSection() {
+      const list = bySection();
+      list.forEach((question) => {
+        delete state.answers[question.id];
+        delete state.flagged[question.id];
+        delete state.showExplanation[question.id];
+      });
+      state.indexBySection[state.section] = 0;
+      state.queueBySection[state.section] = [];
+      state.targetDifficulty[state.section] = 2;
+      state.streakBySection[state.section] = 0;
+      state.timers[state.section] = SECTION_SECONDS;
+      state.paused = false;
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function jumpToMissed() {
+      const previousMode = state.mode;
+      state.mode = "Review";
+      const list = currentList();
+      const index = list.findIndex((q) => state.answers[q.id] && !state.answers[q.id].correct);
+      if (index >= 0) {
+        state.indexBySection[state.section] = index;
+        state.showExplanation[list[index].id] = true;
+        saveState();
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        state.mode = previousMode;
+        saveState();
+        render();
+      }
+    }
+
+    document.querySelectorAll(".segment").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.section = button.dataset.section;
+        const list = currentList();
+        state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
+        saveState();
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    document.querySelectorAll(".mode-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.mode = button.dataset.mode;
+        const list = currentList();
+        state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
+        saveState();
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+
+    $("#pauseButton").addEventListener("click", () => {
+      state.paused = !state.paused;
+      saveState();
+      render();
+    });
+
+    $("#resetButton").addEventListener("click", resetSection);
+    $("#flagButton").addEventListener("click", toggleFlag);
+    $("#reviewButton").addEventListener("click", toggleFlag);
+
+    $("#explainButton").addEventListener("click", () => {
+      const question = currentQuestion();
+      if (!state.answers[question.id]) return;
+      state.showExplanation[question.id] = !state.showExplanation[question.id];
+      saveState();
+      render();
+    });
+
+    $("#previousButton").addEventListener("click", () => setIndex(currentIndex() - 1));
+    $("#nextButton").addEventListener("click", () => {
+      const list = currentList();
+      if (state.mode === "Adaptive" && currentIndex() === list.length - 1) {
+        const next = pickAdaptiveQuestion();
+        if (next) {
+          state.queueBySection[state.section].push(next.id);
+          state.indexBySection[state.section] = state.queueBySection[state.section].length - 1;
+          saveState();
+          render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        return;
+      }
+      if (currentIndex() === list.length - 1) {
+        state.paused = true;
+        saveState();
+        render();
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        return;
+      }
+      setIndex(currentIndex() + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    $("#reviewMissedButton").addEventListener("click", jumpToMissed);
+    $("#clearLogButton").addEventListener("click", () => {
+      bySection().forEach((question) => {
+        if (state.answers[question.id] && !state.answers[question.id].correct) {
+          delete state.answers[question.id];
+          delete state.showExplanation[question.id];
+        }
+      });
+      saveState();
+      render();
+    });
+
+    $("#notes").addEventListener("input", (event) => {
+      state.notes = event.target.value;
+      saveState();
+    });
+
+    $("#clearNotesButton").addEventListener("click", () => {
+      state.notes = "";
+      saveState();
+      render();
+    });
+
+    window.addEventListener("pagehide", saveState);
+    render();
+    startTimer();
+  </script>
+</body>
+</html>
