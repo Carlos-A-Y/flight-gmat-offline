@@ -2626,6 +2626,10 @@
     window.addEventListener("pagehide", saveState);
     render();
     startTimer();
+
+    if ("serviceWorker" in navigator && /^https?:$/.test(window.location.protocol)) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    }
   </script>
 </body>
 </html>
