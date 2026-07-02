@@ -1146,7 +1146,7 @@
         </span>
         <div class="brand-title">
           <h1>Flight <strong>GMAT</strong></h1>
-          <span class="micro" id="saveState">1,480-question bank</span>
+          <span class="micro" id="saveState">1,054-question bank</span>
         </div>
       </div>
       <span class="offline" aria-label="Offline ready">
@@ -2440,11 +2440,367 @@
       return questions;
     }
 
+    function isStandardsAlignedQuestion(question) {
+      const text = `${question.stem || ""} ${question.context || ""} ${question.explanation || ""}`;
+      if (question.section === "Quant") {
+        return !/geometry|triangle|rectangle|perimeter|area|angle/i.test(`${question.topic || ""} ${text}`);
+      }
+      if (question.section === "Verbal") {
+        return question.topic === "Critical Reasoning" || question.topic === "Reading Comprehension";
+      }
+      if (question.section === "DI") {
+        return question.topic === "Data Sufficiency" || question.topic === "Table Analysis" || question.topic === "Multi-Source Reasoning";
+      }
+      return false;
+    }
+
+    function pruneQuestionBank(bank) {
+      const seen = new Set();
+      return bank.filter((question) => {
+        if (!isStandardsAlignedQuestion(question)) return false;
+        const key = `${question.section}|${question.topic}|${String(question.context || "")} ${question.stem}`.replace(/\s+/g, " ").trim();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function buildStandardsAlignedBank() {
+      const questions = [];
+      const add = (question) => questions.push(question);
+      const dsChoices = [
+        "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+        "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+        "Both statements together are sufficient, but neither alone is sufficient.",
+        "Each statement alone is sufficient.",
+        "Statements (1) and (2) together are not sufficient."
+      ];
+
+      for (let index = 0; index < 70; index += 1) {
+        const x = 4 + index;
+        const a = 3 + (index % 7);
+        const c = 1 + (index % 2);
+        const b = 5 + ((index * 5) % 31);
+        const d = (a - c) * x + b;
+        add(numericQuestion({
+          id: `std-q-alg-${index}`,
+          section: "Quant",
+          topic: "Algebra",
+          stem: `If ${a}x + ${b} = ${c}x + ${d}, what is the value of x?`,
+          correct: x,
+          distractors: [x - 2, x - 1, x + 1, x + 3],
+          explanation: `Subtract ${c}x from both sides to get ${a - c}x + ${b} = ${d}. Then ${a - c}x = ${d - b}, so x = ${x}.`,
+          difficulty: clamp(1 + Math.floor(index / 16), 1, 5)
+        }));
+      }
+
+      for (let index = 0; index < 60; index += 1) {
+        const original = 80 + index * 7;
+        const increase = 8 + ((index * 7) % 37);
+        const decrease = 6 + ((index * 11) % 31);
+        const finalPercent = Number((100 * (1 + increase / 100) * (1 - decrease / 100)).toFixed(1));
+        add(numericQuestion({
+          id: `std-q-pct-${index}`,
+          section: "Quant",
+          topic: "Percents",
+          stem: `A value is increased by ${increase}% and then decreased by ${decrease}%. The final value is what percent of the original value?`,
+          correct: `${finalPercent}%`,
+          distractors: [`${100 + increase - decrease}%`, `${100 - decrease}%`, `${100 + increase}%`, `${Math.max(1, 100 - increase + decrease)}%`],
+          explanation: `Successive percent changes multiply: 100 x ${1 + increase / 100} x ${1 - decrease / 100} = ${finalPercent}%.`,
+          difficulty: clamp(2 + Math.floor(index / 15), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 55; index += 1) {
+        const n1 = 3 + (index % 8);
+        const n2 = 4 + ((index * 3) % 9);
+        const avg1 = 12 + ((index * 4) % 23);
+        const avg2 = 19 + ((index * 5) % 27);
+        const combined = Number(((n1 * avg1 + n2 * avg2) / (n1 + n2)).toFixed(1));
+        add(numericQuestion({
+          id: `std-q-avg-${index}`,
+          section: "Quant",
+          topic: "Averages",
+          stem: `A group of ${n1} numbers has an average of ${avg1}. A second group of ${n2} numbers has an average of ${avg2}. What is the average of all ${n1 + n2} numbers?`,
+          correct: combined,
+          distractors: [Number(((avg1 + avg2) / 2).toFixed(1)), avg1 + avg2, Number((combined + 2.4).toFixed(1)), Math.max(1, Number((combined - 2.2).toFixed(1)))],
+          explanation: `Use a weighted average: (${n1} x ${avg1} + ${n2} x ${avg2}) / ${n1 + n2} = ${combined}.`,
+          difficulty: clamp(2 + Math.floor(index / 14), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 55; index += 1) {
+        const rateA = 4 + (index % 11);
+        const rateB = 7 + ((index * 2) % 13);
+        const hours = 2 + (index % 5);
+        const work = (rateA + rateB) * hours;
+        add(numericQuestion({
+          id: `std-q-rate-${index}`,
+          section: "Quant",
+          topic: "Rates",
+          stem: `Machine A completes ${rateA} units per hour and Machine B completes ${rateB} units per hour. Working together, how many hours do they need to complete ${work} units?`,
+          correct: hours,
+          distractors: [Number((work / rateA).toFixed(1)), Number((work / rateB).toFixed(1)), hours + 1, Math.max(1, hours - 1)],
+          explanation: `Together the machines complete ${rateA + rateB} units per hour. Time = ${work} / ${rateA + rateB} = ${hours} hours.`,
+          difficulty: clamp(2 + Math.floor(index / 14), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 55; index += 1) {
+        const divisorA = 4 + (index % 9);
+        const divisorB = 7 + ((index * 2) % 11);
+        const remA = 1 + (index % (divisorA - 1));
+        const remB = 1 + ((index * 3) % (divisorB - 1));
+        let answer = remA;
+        let guard = 0;
+        while (answer % divisorB !== remB && guard < 200) {
+          answer += divisorA;
+          guard += 1;
+        }
+        if (guard >= 200) answer = remA + divisorA * divisorB;
+        add(numericQuestion({
+          id: `std-q-rem-${index}`,
+          section: "Quant",
+          topic: "Number Properties",
+          stem: `What is the smallest positive integer n that leaves a remainder of ${remA} when divided by ${divisorA} and a remainder of ${remB} when divided by ${divisorB}?`,
+          correct: answer,
+          distractors: [answer + divisorA, answer + divisorB, Math.max(1, answer - divisorA), answer + divisorA + divisorB],
+          explanation: `Check numbers congruent to ${remA} modulo ${divisorA}. The first one with remainder ${remB} modulo ${divisorB} is ${answer}.`,
+          difficulty: clamp(3 + Math.floor(index / 16), 3, 5)
+        }));
+      }
+
+      for (let index = 0; index < 45; index += 1) {
+        const total = 7 + index;
+        const chosen = index % 3 === 0 ? 3 : 2;
+        const combinations = chosen === 2 ? total * (total - 1) / 2 : total * (total - 1) * (total - 2) / 6;
+        add(numericQuestion({
+          id: `std-q-count-${index}`,
+          section: "Quant",
+          topic: "Counting",
+          stem: `From ${total} distinct applications, how many groups of ${chosen} can be selected if order does not matter?`,
+          correct: combinations,
+          distractors: [total * chosen, Math.max(1, combinations - total), combinations + total, total * (total - 1)],
+          explanation: `Because order does not matter, use combinations: ${total} choose ${chosen} = ${combinations}.`,
+          difficulty: clamp(3 + Math.floor(index / 13), 3, 5)
+        }));
+      }
+
+      for (let index = 0; index < 35; index += 1) {
+        const fixed = 120 + index * 15;
+        const price = 14 + (index % 9);
+        const cost = 5 + ((index * 2) % 6);
+        const units = Math.ceil(fixed / (price - cost)) + 4 + (index % 5);
+        const profit = units * (price - cost) - fixed;
+        add(numericQuestion({
+          id: `std-q-profit-${index}`,
+          section: "Quant",
+          topic: "Word Problems",
+          stem: `A seller has fixed costs of $${fixed}. Each unit sells for $${price} and costs $${cost} to make. What is the profit from selling ${units} units?`,
+          correct: profit,
+          distractors: [units * price, units * cost, profit + fixed, Math.max(0, profit - (price - cost))],
+          explanation: `Profit = ${units}(${price} - ${cost}) - ${fixed} = ${profit}.`,
+          difficulty: clamp(2 + Math.floor(index / 9), 2, 5)
+        }));
+      }
+
+      const actors = ["airline", "retailer", "software company", "hospital", "bank", "delivery service", "university", "hotel chain", "fitness app", "manufacturer", "meal-kit company", "insurance firm"];
+      const plans = ["launching a mobile check-in tool", "offering a targeted discount", "adding reminder emails", "changing appointment slots", "using automated fraud alerts", "rerouting drivers with software", "moving lessons online", "bundling services", "adding progress streaks", "using a new production process", "simplifying onboarding", "shortening support forms"];
+      const goals = ["increase repeat use", "raise profit", "reduce delays", "improve customer satisfaction", "lower operating costs", "increase retention", "reduce errors", "speed up onboarding", "increase paid renewals", "reduce missed appointments"];
+      const constraints = ["the plan's added cost will not exceed the financial gain", "customers who express interest will actually change their behavior", "the measured problem is caused by the factor the plan addresses", "the plan will not create a new bottleneck elsewhere", "the survey respondents are representative of affected users", "the plan will reach the users whose behavior most affects the result"];
+      const crTypes = ["assumption", "weaken", "strengthen", "evaluate", "explain"];
+      for (let index = 0; index < 210; index += 1) {
+        const actor = actors[index % actors.length];
+        const plan = plans[(index * 5) % plans.length];
+        const goal = goals[(index * 7) % goals.length];
+        const constraint = constraints[(index * 11) % constraints.length];
+        const baseline = 20 + index;
+        const measured = 6 + (index % 19);
+        const type = crTypes[index % crTypes.length];
+        let stem;
+        let correct;
+        let explanation;
+        if (type === "assumption") {
+          stem = `A ${actor} argues that ${plan} will ${goal}. The pilot group improved by ${measured}% compared with a baseline of ${baseline}. Which assumption is required by the argument?`;
+          correct = constraint.charAt(0).toUpperCase() + constraint.slice(1) + ".";
+          explanation = `The conclusion depends on the plan causing the intended result without an offsetting problem. The required assumption is that ${constraint}.`;
+        } else if (type === "weaken") {
+          stem = `After ${plan}, a ${actor} found that a target metric improved by ${measured}% and concluded that the plan helped ${goal}. Which fact most weakens the conclusion?`;
+          correct = `A separate change during the same period could have produced the improved metric without the plan.`;
+          explanation = `This weakens the causal claim by giving an alternative explanation for the observed improvement.`;
+        } else if (type === "strengthen") {
+          stem = `A ${actor} predicts that ${plan} will ${goal} after a ${baseline}-user pilot. Which evidence most strengthens the prediction?`;
+          correct = `A comparable group exposed to the plan improved on the target outcome more than a similar group not exposed to the plan.`;
+          explanation = `The answer strengthens the argument by directly connecting the plan to the outcome while using a comparison group.`;
+        } else if (type === "evaluate") {
+          stem = `Before using ${plan} to ${goal} across ${baseline + measured} cases, what question should a ${actor} most want answered?`;
+          correct = `Whether the main obstacle to ${goal} is the specific problem that the plan is designed to solve.`;
+          explanation = `The most useful evaluation question tests whether the plan attacks the real constraint behind the goal.`;
+        } else {
+          stem = `A ${actor} expected that ${plan} would ${goal}. Instead, the target metric improved by ${measured}% while total profit declined. Which fact best explains the result?`;
+          correct = `The plan increased activity among low-margin customers while reducing purchases by higher-margin customers.`;
+          explanation = `The apparent discrepancy is resolved by separating the target metric from profit: one can rise while the other falls.`;
+        }
+        const packed = packChoices(correct, [
+          `The ${actor} recently changed its logo.`,
+          `Some employees preferred the previous process for unrelated reasons.`,
+          `The plan was announced before it was implemented.`,
+          `Competitors use a different approach in another market.`
+        ], `std-v-cr-${index}`);
+        add({
+          id: `std-v-cr-${index}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      const passageThemes = [
+        ["warehouse automation", "robots increased picking speed but required clearer bin labeling", "automation gains depend on matching technology with process design"],
+        ["remote training", "short modules improved completion but reduced peer discussion", "training design involves a trade-off between convenience and interaction"],
+        ["airline pricing", "lower fares increased bookings but reduced ancillary purchases", "revenue effects can differ from demand effects"],
+        ["urban transit", "express buses helped long trips but skipped some short-trip riders", "efficiency improvements can shift benefits across user groups"],
+        ["medical triage", "software flagged urgent cases faster but created false alarms", "decision tools must balance speed with accuracy"],
+        ["subscription products", "free trials increased signups but attracted lower-retention users", "customer quality matters as much as signup volume"],
+        ["supply chains", "larger inventories reduced stockouts but tied up cash", "operational resilience can have financial costs"],
+        ["data dashboards", "more metrics increased visibility but slowed decisions", "information systems should prioritize actionable signals"],
+        ["energy storage", "batteries smoothed demand peaks but depended on local pricing rules", "technology value depends on economic context"],
+        ["restaurant ordering", "kiosks reduced checkout lines but raised customization errors", "automation can move friction from one step to another"],
+        ["customer support chatbots", "automated replies shortened queues but missed unusual requests", "service automation works best when escalation paths remain clear"],
+        ["inventory forecasting", "prediction software reduced stockouts but overestimated seasonal demand", "forecasts should be judged by both shortages and excess inventory"],
+        ["mobile banking", "instant alerts reduced fraud losses but increased false reports", "risk tools require a balance between sensitivity and precision"],
+        ["online education", "self-paced lessons improved completion for experienced learners but hurt novices", "learner background affects whether flexibility is beneficial"],
+        ["fleet maintenance", "predictive sensors caught failures earlier but increased inspection workload", "early warnings have value only when teams can act on them"]
+      ];
+      for (let index = 0; index < 120; index += 1) {
+        const [subject, evidence, thesis] = passageThemes[index % passageThemes.length];
+        const kind = index % 3;
+        const context = `A study of ${subject} compared ${18 + index} operating units over ${4 + (index % 5)} months and found that ${evidence}. The authors did not conclude that the change was simply good or bad. Instead, they argued that ${thesis}, especially when managers use multiple performance measures rather than a single headline result.`;
+        const stems = [
+          "Which choice best states the main point of the passage?",
+          "The passage most strongly implies that managers should",
+          "The reference to a single headline result primarily serves to"
+        ];
+        const corrects = [
+          thesis.charAt(0).toUpperCase() + thesis.slice(1) + ", so the change should be evaluated with more than one metric.",
+          "evaluate the change using both its benefits and its trade-offs",
+          "warn against judging a complex operational change by one metric alone"
+        ];
+        const packed = packChoices(corrects[kind], [
+          `reject all uses of ${subject.split(" ")[0]} technology`,
+          "focus only on the fastest-changing metric",
+          "assume that any improvement in one metric guarantees a profit increase",
+          "ignore implementation details because the broad trend is enough"
+        ], `std-v-rc-${index}`);
+        add({
+          id: `std-v-rc-${index}`,
+          section: "Verbal",
+          topic: "Reading Comprehension",
+          context,
+          stem: stems[kind],
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation: `The passage identifies a benefit, a limitation, and a broader conclusion about evaluating trade-offs. The correct answer preserves that qualification.`,
+          difficulty: clamp(2 + kind + Math.floor((index % 12) / 7), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 120; index += 1) {
+        const type = index % 5;
+        let stem;
+        let answer;
+        let explanation;
+        if (type === 0) {
+          const sum = 36 + index * 2;
+          stem = `What is the average of x, y, and z?\n(1) x + y + z = ${sum}\n(2) x = y`;
+          answer = 0;
+          explanation = `Statement (1) gives the total, so the average is determined. Statement (2) alone gives only a relationship.`;
+        } else if (type === 1) {
+          const value = 10 + index;
+          stem = `Is x greater than ${value}?\n(1) x is positive\n(2) x > ${value + 3}`;
+          answer = 1;
+          explanation = `Statement (1) allows positive values below or above ${value}. Statement (2) directly implies x > ${value}.`;
+        } else if (type === 2) {
+          const divisor = [3, 5, 7, 9, 11, 13][index % 6];
+          stem = `Is integer n divisible by ${divisor * 2}?\n(1) n is divisible by ${divisor}\n(2) n is even`;
+          answer = 2;
+          explanation = `Neither statement alone guarantees divisibility by ${divisor * 2}. Since ${divisor} is odd, the two statements together guarantee divisibility by ${divisor} and by 2.`;
+        } else if (type === 3) {
+          stem = `Is integer n odd?\n(1) n + 1 is even\n(2) 3n is odd`;
+          answer = 3;
+          explanation = `If n + 1 is even, n is odd. If 3n is odd, n is odd. Each statement alone is sufficient.`;
+        } else {
+          const sum = 20 + index;
+          const second = 12 + index;
+          stem = `What is the value of x?\n(1) x + y = ${sum}\n(2) y + z = ${second}`;
+          answer = 4;
+          explanation = `Even together the statements leave multiple possible values for x because z is unrestricted. The value of x is not determined.`;
+        }
+        add({
+          id: `std-d-ds-${index}`,
+          section: "DI",
+          topic: "Data Sufficiency",
+          stem,
+          choices: dsChoices,
+          answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 120; index += 1) {
+        const base = 90 + index * 4;
+        const values = [base, base + 12 + (index % 11), base + 25 + ((index * 2) % 13), base + 9 + ((index * 5) % 19)];
+        const next = values.map((value, valueIndex) => value + 8 + ((index + valueIndex * 9) % 32));
+        const growth = next.map((value, valueIndex) => value - values[valueIndex]);
+        const answer = growth.indexOf(Math.max(...growth));
+        add({
+          id: `std-d-table-${index}`,
+          section: "DI",
+          topic: "Table Analysis",
+          context: `Region | 2025 units | 2026 units\nA | ${values[0]} | ${next[0]}\nB | ${values[1]} | ${next[1]}\nC | ${values[2]} | ${next[2]}\nD | ${values[3]} | ${next[3]}`,
+          stem: "Which region had the greatest absolute increase in units?",
+          choices: ["Region A", "Region B", "Region C", "Region D", "All regions tie"],
+          answer,
+          explanation: `Compute 2026 units minus 2025 units for each region. The largest increase is for Region ${["A", "B", "C", "D"][answer]}.`,
+          difficulty: clamp(1 + Math.floor(index / 28), 1, 5)
+        });
+      }
+
+      for (let index = 0; index < 120; index += 1) {
+        const routeNames = ["A", "B", "C", "D"];
+        const fares = routeNames.map((_, routeIndex) => 110 + ((index * 13 + routeIndex * 29) % 95));
+        const passengers = routeNames.map((_, routeIndex) => 42 + ((index * 7 + routeIndex * 11) % 38));
+        const costs = routeNames.map((_, routeIndex) => 4200 + ((index * 251 + routeIndex * 467) % 1800));
+        const margins = routeNames.map((_, routeIndex) => fares[routeIndex] * passengers[routeIndex] - costs[routeIndex]);
+        const answer = margins.indexOf(Math.max(...margins));
+        add({
+          id: `std-d-msr-${index}`,
+          section: "DI",
+          topic: "Multi-Source Reasoning",
+          context: `Source 1 - Forecast passengers\nRoute A: ${passengers[0]}\nRoute B: ${passengers[1]}\nRoute C: ${passengers[2]}\nRoute D: ${passengers[3]}\n\nSource 2 - Fare and operating cost\nRoute A: $${fares[0]} fare, $${costs[0]} cost\nRoute B: $${fares[1]} fare, $${costs[1]} cost\nRoute C: $${fares[2]} fare, $${costs[2]} cost\nRoute D: $${fares[3]} fare, $${costs[3]} cost`,
+          stem: "If expected margin equals fare times forecast passengers minus operating cost, which route has the highest expected margin?",
+          choices: ["Route A", "Route B", "Route C", "Route D", "All routes tie"],
+          answer,
+          explanation: `Expected margins are A: ${margins[0]}, B: ${margins[1]}, C: ${margins[2]}, and D: ${margins[3]}. Route ${routeNames[answer]} is highest.`,
+          difficulty: clamp(2 + Math.floor(index / 30), 2, 5)
+        });
+      }
+
+      return questions;
+    }
+
     BANK.forEach((question, index) => {
       question.difficulty = question.difficulty || clamp(1 + Math.floor((index % 12) / 3), 1, 5);
       question.source = "seed";
     });
-    BANK.push(...buildQuantGeneratedBank(), ...buildVerbalGeneratedBank(), ...buildDIGeneratedBank(), ...buildLongFlightGeneratedBank());
+    BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
+    BANK.push(...buildStandardsAlignedBank());
+    BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
     const SECTION_SECONDS = 90 * 60;
     const STORAGE_KEY = "flight-gmat-state-v2";
