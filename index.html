@@ -959,7 +959,7 @@
       font-weight: 560;
     }
 
-    .calibration-row {
+    .anchor-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
@@ -967,7 +967,7 @@
       margin-top: 2px;
     }
 
-    .calibration-row input {
+    .anchor-row input {
       min-width: 0;
       min-height: 40px;
       padding: 0 10px;
@@ -980,7 +980,7 @@
       font-weight: 680;
     }
 
-    .calibration-row input:focus {
+    .anchor-row input:focus {
       outline: 3px solid rgba(8, 118, 109, 0.18);
       border-color: var(--teal);
     }
@@ -1547,9 +1547,9 @@
             </div>
             <p class="estimate-note" id="estimateNote">Section scores run 60-90; total scores run 205-805.</p>
             <div class="section-estimates" id="sectionEstimates" aria-label="Section score estimates"></div>
-            <div class="calibration-row">
+            <div class="anchor-row">
               <input id="officialScoreInput" inputmode="numeric" pattern="[0-9]*" placeholder="Official practice score">
-              <button class="text-button" id="saveOfficialScoreButton">Calibrate</button>
+              <button class="text-button" id="saveOfficialScoreButton">Anchor</button>
             </div>
           </div>
         </section>
@@ -1583,6 +1583,7 @@
               <div class="method-metrics" id="methodMetrics"></div>
               <div class="coach-chip-row">
                 <button class="reason-chip" id="reportQuestionButton">Report current question</button>
+                <button class="reason-chip" id="exportFeedbackButton">Export reports</button>
                 <button class="reason-chip" id="clearFeedbackButton">Clear reports</button>
               </div>
             </div>
@@ -3997,6 +3998,7 @@
       flagged: {},
       showExplanation: {},
       missReasons: {},
+      resolvedMisses: {},
       confidenceTags: {},
       feedbackReports: {},
       officialScore: "",
@@ -4031,6 +4033,7 @@
           flagged: stored?.flagged || {},
           showExplanation: stored?.showExplanation || {},
           missReasons: stored?.missReasons || {},
+          resolvedMisses: stored?.resolvedMisses || {},
           confidenceTags: stored?.confidenceTags || {},
           feedbackReports: stored?.feedbackReports || {},
           officialScore: stored?.officialScore || "",
@@ -4269,7 +4272,7 @@
       return Number.isFinite(value) && value >= TOTAL_SCORE_MIN && value <= TOTAL_SCORE_MAX ? value : null;
     }
 
-    function applyOfficialCalibration(totalEstimate) {
+    function applyOfficialAnchor(totalEstimate) {
       const official = officialScoreValue();
       if (!totalEstimate || !official) return totalEstimate;
       const blendedScore = roundTotalScore(totalEstimate.score * 0.6 + official * 0.4);
@@ -4279,7 +4282,7 @@
         low: clamp(blendedScore - halfWidth, TOTAL_SCORE_MIN, TOTAL_SCORE_MAX),
         high: clamp(blendedScore + halfWidth, TOTAL_SCORE_MIN, TOTAL_SCORE_MAX),
         answered: totalEstimate.answered,
-        calibrated: true,
+        anchored: true,
         official
       };
     }
@@ -4287,10 +4290,10 @@
     function estimateConfidence(sectionEstimates, totalEstimate) {
       const answered = sectionEstimates.map((estimate) => estimate.answered);
       const minimum = Math.min(...answered);
-      if (totalEstimate?.calibrated && minimum >= 15) return "anchored";
+      if (totalEstimate?.anchored && minimum >= 15) return "anchored";
       if (totalEstimate && minimum >= 25) return "strong";
       if (totalEstimate && minimum >= 15) return "usable";
-      if (totalEstimate) return totalEstimate.calibrated ? "anchored" : "wide";
+      if (totalEstimate) return totalEstimate.anchored ? "anchored" : "wide";
       if (sectionEstimates.some((estimate) => estimate.ready)) return "section";
       return "early";
     }
@@ -4319,7 +4322,7 @@
       const sectionEstimates = sections.map(estimateSectionScore);
       const current = sectionEstimates.find((estimate) => estimate.section === state.section);
       const rawTotalEstimate = estimateTotalScore(sectionEstimates);
-      const totalEstimate = applyOfficialCalibration(rawTotalEstimate);
+      const totalEstimate = applyOfficialAnchor(rawTotalEstimate);
       const confidence = estimateConfidence(sectionEstimates, totalEstimate);
       const missingSections = sectionEstimates
         .filter((estimate) => estimate.answered < TOTAL_ESTIMATE_MIN)
@@ -4332,8 +4335,8 @@
       if (totalEstimate) {
         value = `${totalEstimate.low}-${totalEstimate.high}`;
         percentileText = percentileBand(totalEstimate.low, totalEstimate.high, TOTAL_PERCENTILES, "percentile");
-        const calibrationText = totalEstimate.calibrated ? ` Blended with official practice score ${totalEstimate.official}.` : "";
-        note = `${percentileSentence(percentileText)} Total score is the main admissions-facing number; this is still an estimate from ${totalEstimate.answered} answers.${calibrationText}`;
+        const anchorText = totalEstimate.anchored ? ` Anchored with official practice score ${totalEstimate.official}; this narrows the estimate but does not reproduce GMAC scoring.` : "";
+        note = `${percentileSentence(percentileText)} Total score is the main admissions-facing number; this is still an estimate from ${totalEstimate.answered} answers.${anchorText}`;
       } else if (current?.answered >= 4) {
         value = `${sectionShortName(current.section)} ${current.low}-${current.high}`;
         percentileText = percentileBand(current.low, current.high, SECTION_PERCENTILES[current.section] || {}, "percentile");
@@ -4391,8 +4394,13 @@
       return topics.sort((a, b) => b.weakness - a.weakness || b.wrong - a.wrong || a.topic.localeCompare(b.topic))[0];
     }
 
-    function missedQuestions(section = state.section) {
-      return bySection(section).filter((question) => state.answers[question.id] && !state.answers[question.id].correct);
+    function missedQuestions(section = state.section, options = {}) {
+      const includeResolved = Boolean(options.includeResolved);
+      return bySection(section).filter((question) => (
+        state.answers[question.id]
+        && !state.answers[question.id].correct
+        && (includeResolved || !state.resolvedMisses[question.id])
+      ));
     }
 
     function recommendedSection() {
@@ -4495,12 +4503,13 @@
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
       const expertReviewed = BANK.filter((question) => question.reviewStatus === "Expert reviewed").length;
-      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, and teaching explanations. This build does not claim GMAC affiliation or official scoring; expert review is still required before a real paid launch.";
+      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, and teaching explanations. This build does not claim GMAC affiliation or official scoring; expert review is still required before a real paid launch. Reports can be exported as JSON for review.";
       $("#methodMetrics").innerHTML = `
         <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
         <span class="metric-pill"><strong>${expertReviewed}</strong>expert reviewed</span>
         <span class="metric-pill"><strong>${reported}</strong>reported</span>
       `;
+      $("#exportFeedbackButton").hidden = reported === 0;
       $("#clearFeedbackButton").hidden = reported === 0;
     }
 
@@ -4602,7 +4611,7 @@
 
     function renderErrorLog() {
       const list = bySection();
-      const missed = list.filter((q) => state.answers[q.id] && !state.answers[q.id].correct);
+      const missed = missedQuestions();
       const container = $("#errorList");
       container.innerHTML = "";
       if (!missed.length) {
@@ -4631,7 +4640,7 @@
           const queue = cleanQueue();
           if (!queue.includes(question.id)) queue.push(question.id);
           state.indexBySection[state.section] = Math.max(0, queue.indexOf(question.id));
-          state.showExplanation[question.id] = true;
+          state.showExplanation[question.id] = false;
           saveState();
           render();
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4655,15 +4664,17 @@
 
     function renderStats() {
       const stats = statsFor();
+      const activeMisses = missedQuestions();
       const target = state.targetDifficulty[state.section] || 2;
       $("#doneStat").textContent = `${stats.answered}/${stats.total}`;
       $("#rightStat").textContent = `${stats.accuracy}%`;
       $("#flagStat").textContent = `L${target}`;
       $("#difficultyChip").textContent = `Target L${target}`;
       $("#scoreChip").textContent = `${stats.correct}/${stats.answered || 0}`;
-      $("#reviewMissedButton").textContent = stats.wrong ? `Missed ${stats.wrong}` : "Missed";
-      $("#reviewMissedButton").hidden = !stats.wrong;
-      $("#clearLogButton").hidden = !stats.wrong;
+      $("#reviewMissedButton").textContent = activeMisses.length ? `Missed ${activeMisses.length}` : "Missed";
+      $("#reviewMissedButton").hidden = !activeMisses.length;
+      $("#clearLogButton").textContent = activeMisses.length ? "Resolve" : "Clear";
+      $("#clearLogButton").hidden = !activeMisses.length;
       renderScoreEstimate();
     }
 
@@ -4714,6 +4725,9 @@
         difficulty: question.difficulty,
         at: Date.now()
       };
+      delete state.resolvedMisses[question.id];
+      if (correct) delete state.missReasons[question.id];
+      else delete state.confidenceTags[question.id];
       if (!previous) updateAdaptiveDifficulty(question, correct);
       state.showExplanation[question.id] = true;
       saveState();
@@ -4781,6 +4795,7 @@
         delete state.flagged[question.id];
         delete state.showExplanation[question.id];
         delete state.missReasons[question.id];
+        delete state.resolvedMisses[question.id];
         delete state.confidenceTags[question.id];
       });
       state.indexBySection[state.section] = 0;
@@ -4795,12 +4810,12 @@
     }
 
     function jumpToMissed() {
-      const missed = bySection().find((q) => state.answers[q.id] && !state.answers[q.id].correct);
+      const missed = missedQuestions()[0];
       if (missed) {
         const queue = cleanQueue();
         if (!queue.includes(missed.id)) queue.push(missed.id);
         state.indexBySection[state.section] = Math.max(0, queue.indexOf(missed.id));
-        state.showExplanation[missed.id] = true;
+        state.showExplanation[missed.id] = false;
         saveState();
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -4852,12 +4867,43 @@
       const question = currentQuestion();
       state.feedbackReports[question.id] = {
         at: Date.now(),
+        id: question.id,
         section: question.section,
         topic: question.topic,
+        subskill: question.subskill,
+        difficulty: question.difficulty,
+        stem: question.stem,
+        context: question.context || "",
+        choices: question.choices,
+        answerIndex: question.answer,
+        answerText: question.choices[question.answer],
+        explanation: question.explanation,
+        userAnswer: state.answers[question.id] || null,
+        missReason: state.missReasons[question.id] || "",
         status: "Needs review"
       };
       saveState();
       render();
+    }
+
+    function exportFeedbackReports() {
+      const reports = Object.values(state.feedbackReports || {});
+      if (!reports.length) return;
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        app: "Flight GMAT",
+        reportCount: reports.length,
+        reports
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `flight-gmat-question-reports-${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     document.querySelectorAll(".segment").forEach((button) => {
@@ -4895,6 +4941,7 @@
       if (event.key === "Enter") saveOfficialScore();
     });
     $("#reportQuestionButton").addEventListener("click", reportCurrentQuestion);
+    $("#exportFeedbackButton").addEventListener("click", exportFeedbackReports);
     $("#clearFeedbackButton").addEventListener("click", () => {
       state.feedbackReports = {};
       saveState();
@@ -4929,12 +4976,8 @@
 
     $("#reviewMissedButton").addEventListener("click", jumpToMissed);
     $("#clearLogButton").addEventListener("click", () => {
-      bySection().forEach((question) => {
-        if (state.answers[question.id] && !state.answers[question.id].correct) {
-          delete state.answers[question.id];
-          delete state.showExplanation[question.id];
-          delete state.missReasons[question.id];
-        }
+      missedQuestions().forEach((question) => {
+        state.resolvedMisses[question.id] = true;
       });
       saveState();
       render();
