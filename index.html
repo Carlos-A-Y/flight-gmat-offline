@@ -4291,13 +4291,17 @@
     function isStandardsAlignedQuestion(question) {
       const text = `${question.stem || ""} ${question.context || ""} ${question.explanation || ""}`;
       if (question.section === "Quant") {
-        return !/geometry|triangle|rectangle|perimeter|area|angle/i.test(`${question.topic || ""} ${text}`);
+        return !/\b(geometry|triangle|rectangle|perimeter|area|angle)s?\b/i.test(`${question.topic || ""} ${text}`);
       }
       if (question.section === "Verbal") {
         return question.topic === "Critical Reasoning" || question.topic === "Reading Comprehension";
       }
       if (question.section === "DI") {
-        return question.topic === "Data Sufficiency" || question.topic === "Table Analysis" || question.topic === "Multi-Source Reasoning";
+        return question.topic === "Data Sufficiency"
+          || question.topic === "Table Analysis"
+          || question.topic === "Multi-Source Reasoning"
+          || question.topic === "Graphics Interpretation"
+          || question.topic === "Two-Part Analysis";
       }
       return false;
     }
@@ -4697,6 +4701,18 @@
         if (question.topic === "Rates") {
           return "Use the rate triangle: work = rate x time, time = work / rate, and rate = work / time. If two machines or people work at the same time on the same job, add their rates before finding time. Keep the units consistent, such as hours with units per hour.";
         }
+        if (question.topic === "Ratios") {
+          return "Treat a ratio as a recipe made of parts. Add the ratio parts to get the total number of parts, find the value of one part, and then multiply by the part count you need. For part-to-whole questions, the denominator is the sum of all ratio parts, not just the other category.";
+        }
+        if (question.topic === "Functions") {
+          return "A function is a rule. Substitute carefully before simplifying, and if a question asks you to solve f(x) = value, set the rule equal to that value and solve the resulting equation. For composed functions, work from the inside out.";
+        }
+        if (question.topic === "Sets" || question.topic === "Probability") {
+          return "For overlapping groups, use A or B = A + B - both. For probability, define the allowed pool first; the denominator is the number of equally likely outcomes in that pool, not always the whole original group.";
+        }
+        if (question.topic === "Inequalities") {
+          return "Solve inequalities like equations until you multiply or divide by a negative number; then reverse the inequality sign. For integer-bound questions, translate the final inequality into the greatest or least integer that fits.";
+        }
         if (question.topic === "Number Properties" || question.topic === "Remainders") {
           return "Translate remainders into the form number = divisor x whole number + remainder. A remainder of 3 when divided by 7 means n = 7k + 3. To solve similar questions, list candidates from one condition and test the other condition, or use modular arithmetic if you know it.";
         }
@@ -4750,6 +4766,12 @@
       if (question.topic === "Multi-Source Reasoning") {
         return "For Multi-Source Reasoning, pull only the facts needed from each source. Here that usually means matching the passenger forecast from one source with fare and cost from another source. Write the metric for each route in the same format, then compare.";
       }
+      if (question.topic === "Graphics Interpretation") {
+        return "For Graphics Interpretation, translate the chart into a small table before comparing. Confirm what each axis or column represents, choose the exact metric asked for, and compare all categories using that same metric.";
+      }
+      if (question.topic === "Two-Part Analysis") {
+        return "For Two-Part Analysis, solve the linked quantities together. Usually one equation gives a total and another gives a cost, rate, or difference. Use the first relationship to rewrite one variable, then solve for the pair.";
+      }
       return "For Data Insights, slow down at the setup stage. Decide what each number represents, choose the right metric, and compare consistently.";
     }
 
@@ -4767,6 +4789,18 @@
         if (question.topic === "Rates") {
           return "Common trap: averaging the rates or dividing by the wrong rate. Always ask whether the machines are working alone or together.";
         }
+        if (question.topic === "Ratios") {
+          return "Common trap: using one ratio part as the denominator. Percent-of-total questions use all parts together in the denominator.";
+        }
+        if (question.topic === "Functions") {
+          return "Common trap: treating f(x + h) as f(x) + h. Put the whole input into the function rule before simplifying.";
+        }
+        if (question.topic === "Sets" || question.topic === "Probability") {
+          return "Common trap: double-counting the overlap or using the wrong denominator after the question restricts the group.";
+        }
+        if (question.topic === "Inequalities") {
+          return "Common trap: forgetting to reverse the inequality sign after dividing by a negative number.";
+        }
         return "Common trap: rushing to the answer choices before setting up the relationship. Write one clean equation or formula first.";
       }
       if (question.section === "Verbal") {
@@ -4774,6 +4808,12 @@
       }
       if (question.topic === "Data Sufficiency") {
         return "Common trap: combining the statements too early. You must decide whether each statement works by itself before using them together.";
+      }
+      if (question.topic === "Graphics Interpretation") {
+        return "Common trap: reading the tallest bar or largest number when the question asks for a derived metric such as profit, ratio, or closeness to a target.";
+      }
+      if (question.topic === "Two-Part Analysis") {
+        return "Common trap: solving only one side of the pair. The answer choice must satisfy both linked quantities, not just the total or just the rate.";
       }
       return "Common trap: comparing the wrong metric, such as total instead of percent, revenue instead of margin, or a single source instead of the combined information.";
     }
@@ -5430,7 +5470,475 @@
       return questions;
     }
 
-    BANK.splice(0, BANK.length, ...buildStandardsAlignedBank());
+    function buildExpansionBank() {
+      const questions = [];
+      const add = (question) => questions.push(question);
+      const dsChoices = [
+        "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+        "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+        "Both statements together are sufficient, but neither alone is sufficient.",
+        "Each statement alone is sufficient.",
+        "Statements (1) and (2) together are not sufficient."
+      ];
+
+      for (let index = 0; index < 120; index += 1) {
+        const a = 2 + (index % 7);
+        const b = a + 1 + ((index * 2) % 6);
+        const multiplier = 4 + ((index * 5) % 13);
+        const first = a * multiplier;
+        const second = b * multiplier;
+        const total = first + second;
+        const mode = index % 5;
+        let stem;
+        let correct;
+        let distractors;
+        let explanation;
+        if (mode === 0) {
+          stem = `In a mix, units of Type A and Type B are in the ratio ${a}:${b}. If there are ${total} total units, how many are Type A?`;
+          correct = first;
+          distractors = [second, total / 2, total - first + a, first + b];
+          explanation = `The ratio has ${a + b} total parts. Each part is ${total} / ${a + b} = ${multiplier}, so Type A has ${a} x ${multiplier} = ${first} units.`;
+        } else if (mode === 1) {
+          stem = `Units of Type A and Type B are in the ratio ${a}:${b}. If there are ${first} Type A units, how many total units are there?`;
+          correct = total;
+          distractors = [second, first + b, first * b, total + a + b];
+          explanation = `${a} ratio parts equal ${first}, so 1 part equals ${multiplier}. The total has ${a + b} parts, or ${total}.`;
+        } else if (mode === 2) {
+          const share = `${compactNumber(100 * a / (a + b))}%`;
+          stem = `In a group with ratio ${a}:${b} for Type A to Type B, what percent of the group is Type A?`;
+          correct = share;
+          distractors = [`${compactNumber(100 * b / (a + b))}%`, `${compactNumber(100 * a / b)}%`, `${compactNumber(100 * b / a)}%`, `${compactNumber(100 / (a + b))}%`];
+          explanation = `Type A represents ${a} of ${a + b} total ratio parts, so the percent is ${a} / ${a + b} = ${share}.`;
+        } else if (mode === 3) {
+          stem = `A department has ${first} analysts and ${second} associates. What is the ratio of analysts to all employees in the department?`;
+          correct = `${a}:${a + b}`;
+          distractors = [`${a}:${b}`, `${b}:${a + b}`, `${first}:${second}`, `${a + b}:${a}`];
+          explanation = `Analysts are ${first}, and all employees total ${total}. Divide ${first}:${total} by ${multiplier} to get ${a}:${a + b}.`;
+        } else {
+          stem = `The ratio of domestic to international orders is ${a}:${b}. If international orders exceed domestic orders by ${second - first}, how many total orders are there?`;
+          correct = total;
+          distractors = [second - first, first, second, total + second - first];
+          explanation = `The difference between the ratio parts is ${b - a}. That difference equals ${second - first}, so 1 part equals ${multiplier}. Total orders are ${a + b} x ${multiplier} = ${total}.`;
+        }
+        add(numericQuestion({
+          id: `exp-q-ratio-${index}`,
+          section: "Quant",
+          topic: "Ratios",
+          stem,
+          correct,
+          distractors,
+          explanation,
+          difficulty: clamp(2 + Math.floor(index / 30), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 110; index += 1) {
+        const a = 2 + (index % 6);
+        const b = 3 + ((index * 7) % 19);
+        const x = 2 + ((index * 5) % 12);
+        const h = 1 + (index % 4);
+        const mode = index % 5;
+        let stem;
+        let correct;
+        let distractors;
+        let explanation;
+        if (mode === 0) {
+          const value = a * x + b;
+          stem = `For the function f(t) = ${a}t + ${b}, what is f(${x})?`;
+          correct = value;
+          distractors = [a + x + b, a * (x + 1) + b, a * x, value + a];
+          explanation = `Substitute ${x} for t: f(${x}) = ${a} x ${x} + ${b} = ${value}.`;
+        } else if (mode === 1) {
+          const value = a * x + b;
+          stem = `For f(t) = ${a}t + ${b}, if f(x) = ${value}, what is x?`;
+          correct = x;
+          distractors = [x - 2, x - 1, x + 1, x + 2];
+          explanation = `Solve ${a}x + ${b} = ${value}. Then ${a}x = ${value - b}, so x = ${x}.`;
+        } else if (mode === 2) {
+          const change = a * h;
+          stem = `For f(t) = ${a}t + ${b}, what is f(x + ${h}) - f(x)?`;
+          correct = change;
+          distractors = [a + h, b + h, a * x + b, change + b];
+          explanation = `A linear function with slope ${a} changes by ${a} times the input change. The input change is ${h}, so the output change is ${change}.`;
+        } else if (mode === 3) {
+          const c = 2 + ((index * 3) % 9);
+          const value = a * (x + c) + b;
+          stem = `If f(t) = ${a}t + ${b} and g(t) = t + ${c}, what is f(g(${x}))?`;
+          correct = value;
+          distractors = [a * x + b + c, a * (x + b) + c, value + a, value - c];
+          explanation = `First find g(${x}) = ${x + c}. Then f(${x + c}) = ${a} x ${x + c} + ${b} = ${value}.`;
+        } else {
+          const y = x + h;
+          const value = a * y + b - (a * x + b);
+          stem = `For f(t) = ${a}t + ${b}, by how much is f(${y}) greater than f(${x})?`;
+          correct = value;
+          distractors = [h, a + h, a * y + b, value + b];
+          explanation = `Compute the change in input: ${y} - ${x} = ${h}. Multiply by the slope ${a}: ${a} x ${h} = ${value}.`;
+        }
+        add(numericQuestion({
+          id: `exp-q-function-${index}`,
+          section: "Quant",
+          topic: "Functions",
+          stem,
+          correct,
+          distractors,
+          explanation,
+          difficulty: clamp(2 + Math.floor(index / 28), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const both = 5 + (index % 12);
+        const onlyA = 12 + ((index * 3) % 26);
+        const onlyB = 10 + ((index * 5) % 24);
+        const neither = 8 + ((index * 7) % 20);
+        const aTotal = onlyA + both;
+        const bTotal = onlyB + both;
+        const atLeastOne = onlyA + onlyB + both;
+        const total = atLeastOne + neither;
+        const mode = index % 5;
+        let stem;
+        let correct;
+        let distractors;
+        let explanation;
+        if (mode === 0) {
+          stem = `In a survey of ${total} customers, ${aTotal} use Product A, ${bTotal} use Product B, and ${both} use both. How many use neither product?`;
+          correct = neither;
+          distractors = [atLeastOne, total - aTotal - bTotal, onlyA + onlyB, neither + both];
+          explanation = `Use inclusion-exclusion. At least one = ${aTotal} + ${bTotal} - ${both} = ${atLeastOne}. Neither = ${total} - ${atLeastOne} = ${neither}.`;
+        } else if (mode === 1) {
+          stem = `In a group, ${aTotal} people know Skill A, ${bTotal} know Skill B, and ${both} know both. How many people know exactly one of the two skills?`;
+          correct = onlyA + onlyB;
+          distractors = [atLeastOne, both, aTotal + bTotal, onlyA + onlyB + neither];
+          explanation = `Exactly one means A only plus B only: (${aTotal} - ${both}) + (${bTotal} - ${both}) = ${onlyA + onlyB}.`;
+        } else if (mode === 2) {
+          stem = `A file has ${total} records. ${aTotal} are tagged A, ${bTotal} are tagged B, and ${both} are tagged both A and B. How many records are tagged A or B or both?`;
+          correct = atLeastOne;
+          distractors = [aTotal + bTotal, total - neither - both, onlyA + onlyB, atLeastOne + both];
+          explanation = `A or B means at least one tag: ${aTotal} + ${bTotal} - ${both} = ${atLeastOne}.`;
+        } else if (mode === 3) {
+          const probability = `${both}/${aTotal}`;
+          stem = `Among the ${aTotal} customers who use Product A, ${both} also use Product B. If one Product A user is chosen at random, what is the probability that the customer also uses Product B?`;
+          correct = probability;
+          distractors = [`${both}/${total}`, `${bTotal}/${total}`, `${onlyA}/${aTotal}`, `${aTotal}/${both}`];
+          explanation = `The condition restricts the denominator to Product A users. The probability is both / Product A users = ${both}/${aTotal}.`;
+        } else {
+          stem = `In a group of ${total}, ${neither} have neither certification and ${both} have both certifications. If ${aTotal} have certification A, how many have certification B?`;
+          correct = bTotal;
+          distractors = [onlyB, atLeastOne, total - aTotal, bTotal + both];
+          explanation = `At least one certification is ${total} - ${neither} = ${atLeastOne}. Since A or B = A + B - both, B = ${atLeastOne} - ${aTotal} + ${both} = ${bTotal}.`;
+        }
+        add(numericQuestion({
+          id: `exp-q-sets-${index}`,
+          section: "Quant",
+          topic: mode === 3 ? "Probability" : "Sets",
+          stem,
+          correct,
+          distractors,
+          explanation,
+          difficulty: clamp(2 + Math.floor(index / 23), 2, 5)
+        }));
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const a = 2 + (index % 8);
+        const b = 3 + ((index * 5) % 21);
+        const x = 3 + ((index * 7) % 18);
+        const low = 2 + (index % 12);
+        const high = low + 5 + ((index * 3) % 10);
+        const mode = index % 5;
+        let stem;
+        let correct;
+        let distractors;
+        let explanation;
+        if (mode === 0) {
+          stem = `If ${a}x + ${b} < ${a * (x + 1) + b}, what is the greatest integer value x can have?`;
+          correct = x;
+          distractors = [x - 2, x - 1, x + 1, x + 2];
+          explanation = `Subtract ${b}, then divide by ${a}: x < ${x + 1}. The greatest integer less than ${x + 1} is ${x}.`;
+        } else if (mode === 1) {
+          stem = `If -${a}x + ${b} <= ${b - a * x}, what is the least integer value x can have?`;
+          correct = x;
+          distractors = [x - 2, x - 1, x + 1, x + 2];
+          explanation = `Subtract ${b} to get -${a}x <= -${a * x}. Dividing by a negative number reverses the inequality, so x >= ${x}.`;
+        } else if (mode === 2) {
+          const count = high - low - 1;
+          stem = `How many integer values of x satisfy ${low} < x < ${high}?`;
+          correct = count;
+          distractors = [count + 1, count - 1, high - low, low + high];
+          explanation = `The integers strictly between ${low} and ${high} are ${low + 1} through ${high - 1}, for ${count} integers.`;
+        } else if (mode === 3) {
+          const rhs = a * x + b;
+          stem = `If ${a}x + ${b} >= ${rhs}, which inequality must x satisfy?`;
+          correct = `x >= ${x}`;
+          distractors = [`x <= ${x}`, `x > ${x + 1}`, `x < ${x}`, `x = ${rhs}`];
+          explanation = `Subtract ${b} and divide by positive ${a}: x >= ${x}.`;
+        } else {
+          const rhs = b - a * x;
+          stem = `If ${b} - ${a}x > ${rhs}, which inequality must x satisfy?`;
+          correct = `x < ${x}`;
+          distractors = [`x > ${x}`, `x <= ${x - 1}`, `x >= ${x}`, `x = ${rhs}`];
+          explanation = `Subtract ${b}: -${a}x > -${a * x}. Divide by -${a} and reverse the inequality to get x < ${x}.`;
+        }
+        add(numericQuestion({
+          id: `exp-q-ineq-${index}`,
+          section: "Quant",
+          topic: "Inequalities",
+          stem,
+          correct,
+          distractors,
+          explanation,
+          difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+        }));
+      }
+
+      const crIndustries = ["grocery chain", "software vendor", "clinic", "logistics firm", "university", "bank", "publisher", "manufacturer", "streaming service", "restaurant group", "hotel", "insurer"];
+      const crActions = ["introduced self-checkout", "changed its onboarding emails", "expanded evening appointments", "revised delivery routes", "added short online modules", "tightened fraud screening", "moved articles behind a paywall", "automated quality checks", "recommended shorter videos", "changed menu pricing", "added mobile room keys", "changed renewal reminders"];
+      const crOutcomes = ["customer wait times fell", "trial conversions increased", "missed appointments declined", "fuel costs fell", "course completion rose", "fraud losses declined", "subscription revenue rose", "defect reports fell", "viewer retention improved", "average order value rose", "check-in time fell", "renewal rates rose"];
+      const crTasks = ["flaw", "assumption", "weaken", "strengthen", "evaluate"];
+      for (let index = 0; index < 180; index += 1) {
+        const industry = crIndustries[index % crIndustries.length];
+        const action = crActions[(index * 5) % crActions.length];
+        const outcome = crOutcomes[(index * 7) % crOutcomes.length];
+        const sample = 40 + index;
+        const period = 3 + (index % 8);
+        const task = crTasks[index % crTasks.length];
+        let stem;
+        let correct;
+        let explanation;
+        if (task === "flaw") {
+          stem = `A ${industry} ${action}. During the next ${period} weeks, ${outcome}. The manager concluded that the change caused the improvement. Which choice identifies the main flaw in the manager's reasoning?`;
+          correct = "The manager treats a change over time as proof of causation without ruling out other changes during the same period.";
+          explanation = "The evidence shows timing, not causation. A GMAT flaw answer should name the gap between the evidence and the conclusion.";
+        } else if (task === "assumption") {
+          stem = `A ${industry} tested a new policy with ${sample} customers and found that ${outcome}. It therefore plans to apply the policy broadly. Which assumption is required?`;
+          correct = "The test customers are similar in relevant ways to the customers who would experience the broader policy.";
+          explanation = "The broader recommendation depends on whether the pilot group is representative of the wider group.";
+        } else if (task === "weaken") {
+          stem = `After a ${industry} ${action}, ${outcome}. Which finding would most weaken the claim that the action caused the improvement?`;
+          correct = "A comparison group that did not experience the action improved by about the same amount over the same period.";
+          explanation = "If a similar group improved without the action, the action is less likely to be the cause.";
+        } else if (task === "strengthen") {
+          stem = `A ${industry} argues that because it ${action}, ${outcome}. Which evidence most strengthens the argument?`;
+          correct = "The improvement was largest among customers or cases directly affected by the action and smallest among those not affected.";
+          explanation = "This creates a tighter link between the cause and the effect.";
+        } else {
+          stem = `A ${industry} is deciding whether to keep a policy after it ${action} and ${outcome}. Which question would be most useful to answer?`;
+          correct = "Whether the value of the improvement is greater than the full cost and side effects of the policy.";
+          explanation = "A plan evaluation question should test the trade-off that determines whether the policy is worth keeping.";
+        }
+        const packed = packChoices(correct, [
+          `Whether the ${industry} has used the same logo for more than five years.`,
+          "Whether some employees prefer policies that are easier to explain.",
+          "Whether the policy was announced in a meeting before it was tested.",
+          "Whether competitors use different policies in unrelated markets."
+        ], `exp-v-cr-${index}`);
+        add({
+          id: `exp-v-cr-${index}`,
+          section: "Verbal",
+          topic: "Critical Reasoning",
+          stem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      const rcThemes = [
+        ["dynamic pricing", "it can match demand more precisely", "customers may view frequent price changes as unfair", "pricing tools need transparent rules as well as accurate forecasts"],
+        ["workplace analytics", "it can reveal hidden bottlenecks", "it may encourage employees to optimize measured activity rather than valuable work", "measurement systems can change behavior as well as describe it"],
+        ["vertical farming", "it reduces transport distance and weather risk", "energy costs can erase some of the operational benefit", "production method should be judged by the full cost structure"],
+        ["open-source software", "it accelerates experimentation", "maintenance work can be underfunded", "innovation depends on governance as much as access"],
+        ["micro-credentials", "they let workers document narrow skills quickly", "employers may struggle to compare many small credentials", "credential value depends on interpretation by the market"],
+        ["predictive policing tools", "they can allocate scarce resources", "historical data can reproduce old biases", "prediction quality depends on the data-generating process"]
+      ];
+      for (let index = 0; index < 120; index += 1) {
+        const [subject, benefit, limit, thesis] = rcThemes[index % rcThemes.length];
+        const kind = index % 4;
+        const context = `Analysts studying ${subject} often focus on one visible advantage: ${benefit}. But that advantage does not by itself settle whether the practice should expand. In several implementations, ${limit}. The strongest evaluations therefore compare the direct benefit with the secondary effects that appear only after the practice is used at scale. The passage's central point is that ${thesis}.`;
+        const stems = [
+          "Which choice best states the main idea of the passage?",
+          "The passage implies that a decision maker evaluating the practice should",
+          "The author mentions secondary effects primarily to",
+          "The author's attitude toward the practice is best described as"
+        ];
+        const corrects = [
+          thesis.charAt(0).toUpperCase() + thesis.slice(1) + ".",
+          "compare the visible advantage with costs or distortions that emerge during implementation",
+          "show why the obvious benefit is not enough to justify a broad conclusion",
+          "cautiously analytical"
+        ];
+        const packed = packChoices(corrects[kind], [
+          `reject ${subject} because all new practices create risks`,
+          "focus only on whether the first measured result improves",
+          "assume that a technical improvement always produces a managerial benefit",
+          "argue that secondary effects are impossible to measure"
+        ], `exp-v-rc-${index}`);
+        add({
+          id: `exp-v-rc-${index}`,
+          section: "Verbal",
+          topic: "Reading Comprehension",
+          context,
+          stem: stems[kind],
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation: "The passage has a qualified structure: it grants a benefit, introduces a limitation, and concludes that broader evaluation is needed.",
+          difficulty: clamp(2 + kind, 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 100; index += 1) {
+        const n = 8 + index;
+        const sum = 38 + index * 3;
+        const diff = 4 + (index % 11);
+        const factor = [3, 5, 7, 9, 11][index % 5];
+        const type = index % 5;
+        let stem;
+        let answer;
+        let explanation;
+        if (type === 0) {
+          stem = `What is the value of x?\n(1) x + y = ${sum}\n(2) x - y = ${diff}`;
+          answer = 2;
+          explanation = "Neither statement alone fixes x, but together the sum and difference determine unique values for x and y.";
+        } else if (type === 1) {
+          stem = `Is integer n divisible by ${2 * factor}?\n(1) n is divisible by ${factor}\n(2) n is divisible by 2`;
+          answer = 2;
+          explanation = `A number must have both factor ${factor} and factor 2 to be divisible by ${2 * factor}; together the statements provide both.`;
+        } else if (type === 2) {
+          stem = `Is x greater than y?\n(1) x - y = ${diff}\n(2) x + y = ${sum}`;
+          answer = 0;
+          explanation = "Statement (1) directly says x exceeds y by a positive amount. Statement (2) alone gives no comparison.";
+        } else if (type === 3) {
+          stem = `What is the average of ${n} numbers?\n(1) The sum of the numbers is ${sum * n}\n(2) The median of the numbers is ${sum}`;
+          answer = 0;
+          explanation = "The average is total divided by count, so statement (1) is sufficient. The median alone does not determine the average.";
+        } else {
+          stem = `Is xy positive?\n(1) x and y have the same sign\n(2) x is positive`;
+          answer = 0;
+          explanation = "If x and y have the same sign, their product is positive. Knowing only that x is positive leaves y unknown.";
+        }
+        add({
+          id: `exp-d-ds-${index}`,
+          section: "DI",
+          topic: "Data Sufficiency",
+          stem,
+          choices: dsChoices,
+          answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 180; index += 1) {
+        const months = ["Jan", "Feb", "Mar", "Apr"];
+        const values = months.map((_, monthIndex) => 70 + ((index * 11 + monthIndex * 17) % 80));
+        const costs = months.map((_, monthIndex) => 35 + ((index * 7 + monthIndex * 13) % 45));
+        const profits = values.map((value, monthIndex) => value - costs[monthIndex]);
+        const mode = index % 5;
+        let stem;
+        let metric;
+        let explanationLabel;
+        if (mode === 0) {
+          stem = "In the chart, which month has the highest revenue?";
+          metric = (_, monthIndex) => values[monthIndex];
+          explanationLabel = "revenue";
+        } else if (mode === 1) {
+          stem = "In the chart, which month has the greatest profit?";
+          metric = (_, monthIndex) => profits[monthIndex];
+          explanationLabel = "revenue minus cost";
+        } else if (mode === 2) {
+          stem = "In the chart, which month has the lowest cost?";
+          metric = (_, monthIndex) => -costs[monthIndex];
+          explanationLabel = "negative cost, so the lowest cost wins";
+        } else if (mode === 3) {
+          stem = "In the chart, which month has the greatest revenue-to-cost ratio?";
+          metric = (_, monthIndex) => values[monthIndex] / costs[monthIndex];
+          explanationLabel = "revenue divided by cost";
+        } else {
+          stem = "In the chart, which month has revenue closest to 100?";
+          metric = (_, monthIndex) => -Math.abs(values[monthIndex] - 100);
+          explanationLabel = "closeness to 100";
+        }
+        const scores = months.map(metric);
+        const answer = comparisonWinner(scores);
+        add({
+          id: `exp-d-graphics-${index}`,
+          section: "DI",
+          topic: "Graphics Interpretation",
+          context: `Bar chart data, in thousands of dollars\nMonth | Revenue | Cost\n${months.map((month, monthIndex) => `${month} | ${values[monthIndex]} | ${costs[monthIndex]}`).join("\n")}`,
+          stem,
+          choices: [...months, "Cannot be determined from the chart"],
+          answer,
+          explanation: `Calculate ${explanationLabel} for each month. The comparison selects ${months[answer]}.`,
+          difficulty: clamp(2 + Math.floor(index / 45), 2, 5)
+        });
+      }
+
+      for (let index = 0; index < 160; index += 1) {
+        const basicPrice = 12 + (index % 7);
+        const premiumPrice = basicPrice + 6 + (index % 5);
+        const basic = 20 + ((index * 3) % 50);
+        const premium = 12 + ((index * 5) % 45);
+        const total = basic + premium;
+        const revenue = basic * basicPrice + premium * premiumPrice;
+        const mode = index % 4;
+        let stem;
+        let correct;
+        let distractors;
+        let explanation;
+        if (mode === 0) {
+          stem = `A store sold Basic and Premium plans. Basic costs $${basicPrice}, Premium costs $${premiumPrice}, ${total} plans were sold, and revenue was $${revenue}. Which pair gives the number of Basic plans and Premium plans?`;
+          correct = `Basic ${basic}; Premium ${premium}`;
+          distractors = [`Basic ${premium}; Premium ${basic}`, `Basic ${basic + 5}; Premium ${Math.max(0, premium - 5)}`, `Basic ${basic - 4}; Premium ${premium + 4}`, `Basic ${total}; Premium 0`];
+          explanation = `Let p be Premium plans. Then ${premiumPrice}p + ${basicPrice}(${total} - p) = ${revenue}, so p = ${premium} and Basic = ${basic}.`;
+        } else if (mode === 1) {
+          const hoursA = 2 + (index % 6);
+          const hoursB = 3 + ((index * 2) % 7);
+          const unitsA = 4 + (index % 5);
+          const unitsB = 5 + ((index * 3) % 6);
+          const output = hoursA * unitsA + hoursB * unitsB;
+          stem = `Team A makes ${unitsA} units per hour and Team B makes ${unitsB} units per hour. Together they worked ${hoursA + hoursB} total hours and made ${output} units. Which pair gives Team A hours and Team B hours?`;
+          correct = `A ${hoursA}; B ${hoursB}`;
+          distractors = [`A ${hoursB}; B ${hoursA}`, `A ${hoursA + 1}; B ${Math.max(0, hoursB - 1)}`, `A ${Math.max(0, hoursA - 1)}; B ${hoursB + 1}`, `A ${hoursA + hoursB}; B 0`];
+          explanation = `Use two equations: A + B = ${hoursA + hoursB} and ${unitsA}A + ${unitsB}B = ${output}. Solving gives A = ${hoursA}, B = ${hoursB}.`;
+        } else if (mode === 2) {
+          const x = 3 + (index % 10);
+          const y = x + 2 + (index % 8);
+          const sum = x + y;
+          const diff = y - x;
+          stem = `Two quantities have sum ${sum} and differ by ${diff}. Which pair gives the smaller quantity and the larger quantity?`;
+          correct = `Smaller ${x}; Larger ${y}`;
+          distractors = [`Smaller ${diff}; Larger ${sum}`, `Smaller ${x + 1}; Larger ${y - 1}`, `Smaller ${Math.max(0, x - 1)}; Larger ${y + 1}`, `Smaller ${y}; Larger ${x}`];
+          explanation = `If the smaller is s, then the larger is s + ${diff}. So 2s + ${diff} = ${sum}, giving s = ${x} and larger = ${y}.`;
+        } else {
+          const rate1 = 2 + (index % 5);
+          const rate2 = rate1 + 2 + (index % 5);
+          const time1 = 3 + (index % 6);
+          const time2 = 2 + ((index * 3) % 6);
+          const totalWork = rate1 * time1 + rate2 * time2;
+          stem = `Process X produces ${rate1} items per hour and Process Y produces ${rate2} items per hour. If X runs ${time1} hours and Y runs ${time2} hours, which pair gives X output and Y output?`;
+          correct = `X ${rate1 * time1}; Y ${rate2 * time2}`;
+          distractors = [`X ${rate1 + time1}; Y ${rate2 + time2}`, `X ${rate1 * time2}; Y ${rate2 * time1}`, `X ${totalWork}; Y 0`, `X ${rate1 * time1 + rate2}; Y ${rate2 * time2 - rate2}`];
+          explanation = `Output equals rate times time. X produces ${rate1} x ${time1} = ${rate1 * time1}; Y produces ${rate2} x ${time2} = ${rate2 * time2}.`;
+        }
+        const packed = packChoices(correct, distractors, `exp-d-two-${index}`);
+        add({
+          id: `exp-d-two-${index}`,
+          section: "DI",
+          topic: "Two-Part Analysis",
+          stem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation,
+          difficulty: clamp(2 + (index % 4), 2, 5)
+        });
+      }
+
+      return questions;
+    }
+
+    BANK.splice(0, BANK.length, ...buildStandardsAlignedBank(), ...buildExpansionBank());
     diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
@@ -5456,10 +5964,13 @@
       Averages: "Means and weighted averages",
       Rates: "Work, distance, and unit rates",
       Functions: "Function notation",
+      Ratios: "Ratio scaling and part-whole relationships",
+      Inequalities: "Inequality solving and integer bounds",
       Remainders: "Modular arithmetic",
       Fractions: "Fraction relationships",
       "Word Problems": "Translation to equations",
       Combinatorics: "Counting without overcounting",
+      Probability: "Favorable outcomes over total outcomes",
       "Critical Reasoning": "Argument structure",
       "Reading Comprehension": "Passage inference and role",
       "Table Analysis": "Table comparisons",
