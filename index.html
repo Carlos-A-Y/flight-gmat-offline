@@ -881,6 +881,110 @@
       line-height: 1.2;
     }
 
+    .score-estimate {
+      display: grid;
+      gap: 9px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid var(--line);
+      background:
+        repeating-linear-gradient(90deg, rgba(8, 122, 117, 0.05) 0 1px, transparent 1px 46px),
+        linear-gradient(180deg, #ffffff 0%, #f3f9f8 100%);
+    }
+
+    .estimate-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .estimate-head > div {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .estimate-kicker {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .estimate-value {
+      color: var(--ink);
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 860;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .confidence-pill {
+      flex: 0 0 auto;
+      min-width: 70px;
+      padding: 5px 8px;
+      border: 1px solid #c8d9dc;
+      border-radius: 999px;
+      color: #25545d;
+      background: #ffffff;
+      font-size: 11px;
+      font-weight: 780;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .estimate-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.42;
+      font-weight: 560;
+    }
+
+    .section-estimates {
+      display: grid;
+      gap: 7px;
+    }
+
+    .section-estimate-row {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 64px;
+      align-items: center;
+      gap: 8px;
+      min-height: 23px;
+    }
+
+    .section-estimate-label,
+    .section-estimate-score {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .section-estimate-score {
+      color: var(--ink);
+      text-align: right;
+    }
+
+    .section-meter {
+      position: relative;
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dce7e9;
+    }
+
+    .section-meter > span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--meter, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--teal), var(--amber));
+    }
+
     .error-list {
       display: grid;
       gap: 7px;
@@ -1255,6 +1359,17 @@
             <div class="stat"><strong id="doneStat">0</strong><span>answered</span></div>
             <div class="stat"><strong id="rightStat">0%</strong><span>accuracy</span></div>
             <div class="stat"><strong id="flagStat">L2</strong><span>level</span></div>
+          </div>
+          <div class="score-estimate" id="scoreEstimate">
+            <div class="estimate-head">
+              <div>
+                <span class="estimate-kicker">Estimated level</span>
+                <strong class="estimate-value" id="estimateValue">Calibrating</strong>
+              </div>
+              <span class="confidence-pill" id="estimateConfidence">early</span>
+            </div>
+            <p class="estimate-note" id="estimateNote">Answer a few questions to unlock a difficulty-weighted score signal.</p>
+            <div class="section-estimates" id="sectionEstimates" aria-label="Section score estimates"></div>
           </div>
         </section>
 
@@ -3595,6 +3710,12 @@
     const STORAGE_KEY = "flight-gmat-state-v2";
     const LETTERS = ["A", "B", "C", "D", "E"];
     const sections = ["Quant", "Verbal", "DI"];
+    const SECTION_SCORE_MIN = 60;
+    const SECTION_SCORE_MAX = 90;
+    const TOTAL_SCORE_MIN = 205;
+    const TOTAL_SCORE_MAX = 805;
+    const SECTION_ESTIMATE_MIN = 8;
+    const TOTAL_ESTIMATE_MIN = 8;
     const questionById = new Map(BANK.map((question) => [question.id, question]));
     const $ = (selector) => document.querySelector(selector);
 
@@ -3739,6 +3860,149 @@
       return { answered, correct, flagged, wrong, total: list.length, accuracy };
     }
 
+    function sectionShortName(section) {
+      return section === "Quant" ? "Q" : section === "Verbal" ? "V" : "DI";
+    }
+
+    function sectionToTotalScore(sectionAverage) {
+      const position = (sectionAverage - SECTION_SCORE_MIN) / (SECTION_SCORE_MAX - SECTION_SCORE_MIN);
+      return TOTAL_SCORE_MIN + position * (TOTAL_SCORE_MAX - TOTAL_SCORE_MIN);
+    }
+
+    function roundTotalScore(score) {
+      return clamp(TOTAL_SCORE_MIN + Math.round((score - TOTAL_SCORE_MIN) / 10) * 10, TOTAL_SCORE_MIN, TOTAL_SCORE_MAX);
+    }
+
+    function answeredRecords(section) {
+      return bySection(section)
+        .filter((question) => state.answers[question.id])
+        .map((question) => ({ question, answer: state.answers[question.id] }));
+    }
+
+    function scoreDifficultyLocation(difficulty) {
+      return (clamp(difficulty || 3, 1, 5) - 3) * 0.95;
+    }
+
+    function responseProbability(theta, difficulty) {
+      const exponent = -1.25 * (theta - scoreDifficultyLocation(difficulty));
+      return clamp(1 / (1 + Math.exp(exponent)), 0.03, 0.97);
+    }
+
+    function estimateTheta(records) {
+      let bestTheta = 0;
+      let bestLogLikelihood = -Infinity;
+      for (let step = -320; step <= 320; step += 2) {
+        const theta = step / 100;
+        let logLikelihood = -0.5 * Math.pow(theta / 2.35, 2);
+        records.forEach(({ question, answer }) => {
+          const probability = responseProbability(theta, question.difficulty);
+          logLikelihood += answer.correct ? Math.log(probability) : Math.log(1 - probability);
+        });
+        if (logLikelihood > bestLogLikelihood) {
+          bestLogLikelihood = logLikelihood;
+          bestTheta = theta;
+        }
+      }
+      return bestTheta;
+    }
+
+    function sectionBandWidth(answered, topicCount) {
+      const base = answered < SECTION_ESTIMATE_MIN ? 9 : answered < 15 ? 7 : answered < 30 ? 5 : 4;
+      return base + (topicCount < 3 ? 1 : 0);
+    }
+
+    function estimateSectionScore(section) {
+      const records = answeredRecords(section);
+      const answered = records.length;
+      if (!answered) {
+        return { section, answered, ready: false, score: null, low: null, high: null, meter: 0 };
+      }
+      const theta = estimateTheta(records);
+      const rawScore = 75 + theta * 5.6;
+      const score = clamp(Math.round(rawScore), SECTION_SCORE_MIN, SECTION_SCORE_MAX);
+      const topicCount = new Set(records.map(({ question }) => question.topic)).size;
+      const width = sectionBandWidth(answered, topicCount);
+      return {
+        section,
+        answered,
+        ready: answered >= SECTION_ESTIMATE_MIN,
+        score,
+        low: clamp(score - width, SECTION_SCORE_MIN, SECTION_SCORE_MAX),
+        high: clamp(score + width, SECTION_SCORE_MIN, SECTION_SCORE_MAX),
+        meter: Math.round(((score - SECTION_SCORE_MIN) / (SECTION_SCORE_MAX - SECTION_SCORE_MIN)) * 100)
+      };
+    }
+
+    function estimateTotalScore(sectionEstimates) {
+      if (!sectionEstimates.every((estimate) => estimate.ready)) return null;
+      const average = (values, field) => values.reduce((sum, value) => sum + value[field], 0) / values.length;
+      return {
+        score: roundTotalScore(sectionToTotalScore(average(sectionEstimates, "score"))),
+        low: roundTotalScore(sectionToTotalScore(average(sectionEstimates, "low"))),
+        high: roundTotalScore(sectionToTotalScore(average(sectionEstimates, "high"))),
+        answered: sectionEstimates.reduce((sum, estimate) => sum + estimate.answered, 0)
+      };
+    }
+
+    function estimateConfidence(sectionEstimates, totalEstimate) {
+      const answered = sectionEstimates.map((estimate) => estimate.answered);
+      const minimum = Math.min(...answered);
+      if (totalEstimate && minimum >= 25) return "strong";
+      if (totalEstimate && minimum >= 15) return "usable";
+      if (totalEstimate) return "wide";
+      if (sectionEstimates.some((estimate) => estimate.ready)) return "section";
+      return "early";
+    }
+
+    function renderSectionEstimateRows(sectionEstimates) {
+      const container = $("#sectionEstimates");
+      container.innerHTML = "";
+      sectionEstimates.forEach((estimate) => {
+        const row = document.createElement("div");
+        row.className = "section-estimate-row";
+        const enoughForBand = estimate.answered >= 4;
+        const scoreText = enoughForBand ? `${estimate.low}-${estimate.high}` : `${estimate.answered}/${SECTION_ESTIMATE_MIN}`;
+        const meter = enoughForBand ? estimate.meter : Math.round((estimate.answered / SECTION_ESTIMATE_MIN) * 100);
+        row.innerHTML = `
+          <span class="section-estimate-label">${sectionShortName(estimate.section)}</span>
+          <span class="section-meter" aria-hidden="true"><span style="--meter: ${clamp(meter, 0, 100)}%"></span></span>
+          <span class="section-estimate-score">${scoreText}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderScoreEstimate() {
+      const sectionEstimates = sections.map(estimateSectionScore);
+      const current = sectionEstimates.find((estimate) => estimate.section === state.section);
+      const totalEstimate = estimateTotalScore(sectionEstimates);
+      const confidence = estimateConfidence(sectionEstimates, totalEstimate);
+      const missingSections = sectionEstimates
+        .filter((estimate) => estimate.answered < TOTAL_ESTIMATE_MIN)
+        .map((estimate) => `${sectionShortName(estimate.section)} ${TOTAL_ESTIMATE_MIN - estimate.answered}`);
+
+      let value = "Calibrating";
+      let note = `Answer ${SECTION_ESTIMATE_MIN} questions in a section for a section band. Total unlocks after ${TOTAL_ESTIMATE_MIN} in each section.`;
+
+      if (totalEstimate) {
+        value = `${totalEstimate.low}-${totalEstimate.high}`;
+        note = `Estimated total GMAT level from ${totalEstimate.answered} answers. Treat this as a study signal, not an official score.`;
+      } else if (current?.answered >= 4) {
+        value = `${sectionShortName(current.section)} ${current.low}-${current.high}`;
+        note = current.ready
+          ? `Current section band is usable. Total estimate still needs ${missingSections.join(", ")} more answered.`
+          : `Early ${sectionShortName(current.section)} signal from ${current.answered} answers. Add ${SECTION_ESTIMATE_MIN - current.answered} more here to make it usable.`;
+      } else if (current?.answered > 0) {
+        value = `${current.answered}/${SECTION_ESTIMATE_MIN}`;
+        note = `A few more answers are needed before the app can separate luck from skill.`;
+      }
+
+      $("#estimateValue").textContent = value;
+      $("#estimateConfidence").textContent = confidence;
+      $("#estimateNote").textContent = note;
+      renderSectionEstimateRows(sectionEstimates);
+    }
+
     function formatTime(seconds) {
       const value = Math.max(0, seconds);
       const minutes = Math.floor(value / 60);
@@ -3881,6 +4145,7 @@
       $("#reviewMissedButton").textContent = stats.wrong ? `Missed ${stats.wrong}` : "Missed";
       $("#reviewMissedButton").hidden = !stats.wrong;
       $("#clearLogButton").hidden = !stats.wrong;
+      renderScoreEstimate();
     }
 
     function render() {
