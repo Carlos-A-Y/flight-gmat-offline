@@ -6,6 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Flight GMAT">
   <meta name="theme-color" content="#071515">
+  <link rel="icon" href="data:,">
   <title>Flight GMAT</title>
   <style>
     :root {
@@ -283,7 +284,7 @@
     .text-button:active,
     .choice:active,
     .segment:active,
-    .mode-button:active {
+    .session-button:active {
       transform: translateY(1px);
     }
 
@@ -373,7 +374,7 @@
     }
 
     .segment,
-    .mode-button {
+    .session-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -381,12 +382,12 @@
     }
 
     .segment svg,
-    .mode-button svg {
+    .session-button svg {
       flex: 0 0 auto;
     }
 
     .segment span,
-    .mode-button span {
+    .session-button span {
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -399,7 +400,7 @@
       box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.25);
     }
 
-    .modes {
+    .session-lengths {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0;
@@ -410,7 +411,7 @@
       background: #ffffff;
     }
 
-    .mode-button {
+    .session-button {
       min-width: 0;
       min-height: 46px;
       border-right: 1px solid var(--line);
@@ -421,11 +422,11 @@
       font-weight: 760;
     }
 
-    .mode-button:last-child {
+    .session-button:last-child {
       border-right: 0;
     }
 
-    .mode-button[aria-selected="true"] {
+    .session-button[aria-selected="true"] {
       border-color: var(--line);
       color: #774600;
       background: linear-gradient(180deg, var(--amber-soft) 0%, #ffffff 100%);
@@ -941,7 +942,7 @@
     .notes:focus,
     .choice:focus-visible,
     .segment:focus-visible,
-    .mode-button:focus-visible,
+    .session-button:focus-visible,
     .text-button:focus-visible,
     .icon-button:focus-visible,
     .dot:focus-visible,
@@ -1071,7 +1072,7 @@
       }
 
       .segment,
-      .mode-button {
+      .session-button {
         gap: 5px;
         font-size: 12px;
       }
@@ -1125,7 +1126,7 @@
     @media (prefers-reduced-motion: no-preference) {
       .choice,
       .segment,
-      .mode-button,
+      .session-button,
       .text-button,
       .icon-button,
       .error-item {
@@ -1147,7 +1148,7 @@
         </span>
         <div class="brand-title">
           <h1>Flight <strong>GMAT</strong></h1>
-          <span class="micro" id="saveState">1,054-question bank</span>
+          <span class="micro" id="saveState">1,010-question bank</span>
         </div>
       </div>
       <span class="offline" aria-label="Offline ready">
@@ -1162,7 +1163,7 @@
           <summary class="plan-summary">
             <span class="plan-copy">
               <span class="timer-label">Flight plan</span>
-              <strong id="planSummary">Quant - Adaptive</strong>
+              <strong id="planSummary">Quant - 90 min</strong>
             </span>
             <span class="timer-value" id="timerValue">24:00 <span>left</span></span>
             <span class="summary-chevron" aria-hidden="true">
@@ -1192,18 +1193,18 @@
               </button>
             </nav>
 
-            <nav class="modes" aria-label="Practice mode">
-              <button class="mode-button" data-mode="Adaptive" aria-selected="true">
+            <nav class="session-lengths" aria-label="Session length">
+              <button class="session-button" data-session="Quick" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 7v5l3 2M7 3h10M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>5 min</span>
+              </button>
+              <button class="session-button" data-session="Focus" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h4m8 0h4M12 4v4m0 8v4m-4-8a4 4 0 1 0 8 0 4 4 0 0 0-8 0Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>30 min</span>
+              </button>
+              <button class="session-button" data-session="Full" aria-selected="true">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 16l5-5 4 4 7-8M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span>Adaptive</span>
-              </button>
-              <button class="mode-button" data-mode="Marathon" aria-selected="false">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="13" r="7" stroke="currentColor" stroke-width="2"/><path d="M12 13V9m0-6h4M8 3h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                <span>Marathon</span>
-              </button>
-              <button class="mode-button" data-mode="Review" aria-selected="false">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10v16H7V4Zm3 5h4m-4 4h4m-4 4h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                <span>Review</span>
+                <span>90 min</span>
               </button>
             </nav>
           </div>
@@ -3588,17 +3589,18 @@
     diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
-    const SECTION_SECONDS = 90 * 60;
+    const SESSION_PRESETS = { Quick: 5 * 60, Focus: 30 * 60, Full: 90 * 60 };
+    const DEFAULT_SESSION = "Full";
+    const SECTION_SECONDS = SESSION_PRESETS[DEFAULT_SESSION];
     const STORAGE_KEY = "flight-gmat-state-v2";
     const LETTERS = ["A", "B", "C", "D", "E"];
     const sections = ["Quant", "Verbal", "DI"];
-    const modes = ["Adaptive", "Marathon", "Review"];
     const questionById = new Map(BANK.map((question) => [question.id, question]));
     const $ = (selector) => document.querySelector(selector);
 
     const defaultState = () => ({
       section: "Quant",
-      mode: "Adaptive",
+      sessionPreset: DEFAULT_SESSION,
       indexBySection: { Quant: 0, Verbal: 0, DI: 0 },
       queueBySection: { Quant: [], Verbal: [], DI: [] },
       targetDifficulty: { Quant: 2, Verbal: 2, DI: 2 },
@@ -3612,6 +3614,14 @@
       timers: { Quant: SECTION_SECONDS, Verbal: SECTION_SECONDS, DI: SECTION_SECONDS }
     });
 
+    function sessionSeconds() {
+      return SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION];
+    }
+
+    function sessionLabel() {
+      return state.sessionPreset === "Quick" ? "5 min" : state.sessionPreset === "Focus" ? "30 min" : "90 min";
+    }
+
     let state = loadState();
     let tickHandle = null;
 
@@ -3620,7 +3630,7 @@
         const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
         const base = defaultState();
         return Object.assign(base, stored || {}, {
-          mode: modes.includes(stored?.mode) ? stored.mode : "Adaptive",
+          sessionPreset: SESSION_PRESETS[stored?.sessionPreset] ? stored.sessionPreset : DEFAULT_SESSION,
           indexBySection: Object.assign(base.indexBySection, stored?.indexBySection || {}),
           queueBySection: Object.assign(base.queueBySection, stored?.queueBySection || {}),
           targetDifficulty: Object.assign(base.targetDifficulty, stored?.targetDifficulty || {}),
@@ -3698,12 +3708,7 @@
     }
 
     function currentList() {
-      if (state.mode === "Adaptive") return ensureAdaptiveQueue();
-      if (state.mode === "Review") {
-        const reviewList = bySection().filter((q) => state.flagged[q.id] || (state.answers[q.id] && !state.answers[q.id].correct));
-        return reviewList.length ? reviewList : bySection().filter((q) => state.answers[q.id]).slice(0, 24).concat(bySection().slice(0, 1)).slice(0, 24);
-      }
-      return bySection();
+      return ensureAdaptiveQueue();
     }
 
     function currentQuestion() {
@@ -3744,11 +3749,11 @@
     function renderTimer() {
       const remaining = state.timers[state.section] ?? SECTION_SECONDS;
       $("#timerValue").innerHTML = `${formatTime(remaining)} <span>left</span>`;
-      $("#timerProgress").style.transform = `scaleX(${Math.max(0, remaining / SECTION_SECONDS)})`;
+      $("#timerProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, remaining / sessionSeconds()))})`;
       $("#pauseButton").innerHTML = `${state.paused ? icon.play : icon.pause} ${state.paused ? "Resume" : "Pause"}`;
       $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
       $("#resetButton").innerHTML = `${icon.reset} Reset`;
-      $("#planSummary").textContent = `${sectionLabel[state.section] || state.section} - ${state.mode}`;
+      $("#planSummary").textContent = `${sectionLabel[state.section] || state.section} - ${sessionLabel()}`;
     }
 
     function renderSegments() {
@@ -3757,9 +3762,9 @@
       });
     }
 
-    function renderModes() {
-      document.querySelectorAll(".mode-button").forEach((button) => {
-        button.setAttribute("aria-selected", String(button.dataset.mode === state.mode));
+    function renderSessionLengths() {
+      document.querySelectorAll(".session-button").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.session === state.sessionPreset));
       });
     }
 
@@ -3853,9 +3858,9 @@
           </span>
         `;
         button.addEventListener("click", () => {
-          state.mode = "Review";
-          const reviewIndex = currentList().findIndex((q) => q.id === question.id);
-          state.indexBySection[state.section] = Math.max(0, reviewIndex);
+          const queue = cleanQueue();
+          if (!queue.includes(question.id)) queue.push(question.id);
+          state.indexBySection[state.section] = Math.max(0, queue.indexOf(question.id));
           state.showExplanation[question.id] = true;
           saveState();
           render();
@@ -3874,6 +3879,8 @@
       $("#difficultyChip").textContent = `Target L${target}`;
       $("#scoreChip").textContent = `${stats.correct}/${stats.answered || 0}`;
       $("#reviewMissedButton").textContent = stats.wrong ? `Missed ${stats.wrong}` : "Missed";
+      $("#reviewMissedButton").hidden = !stats.wrong;
+      $("#clearLogButton").hidden = !stats.wrong;
     }
 
     function render() {
@@ -3884,11 +3891,11 @@
 
       renderTimer();
       renderSegments();
-      renderModes();
+      renderSessionLengths();
       renderProgress(list);
       renderStats();
 
-      $("#questionCount").textContent = state.mode === "Adaptive" ? `Question ${index + 1} - Level ${state.targetDifficulty[state.section] || 2}` : `Question ${index + 1} of ${list.length}`;
+      $("#questionCount").textContent = `Question ${index + 1} - Level ${state.targetDifficulty[state.section] || 2}`;
       $("#questionTopic").textContent = `${question.topic} - L${question.difficulty}`;
       $("#questionStem").textContent = question.stem;
       $("#questionContext").hidden = !question.context;
@@ -3901,7 +3908,7 @@
       renderErrorLog();
 
       $("#previousButton").disabled = index === 0;
-      $("#nextButton").textContent = state.mode === "Adaptive" || index < list.length - 1 ? "Next" : "Finish";
+      $("#nextButton").textContent = "Next";
       $("#notes").value = state.notes || "";
 
       if (answer && !state.showExplanation[question.id]) {
@@ -3977,7 +3984,7 @@
       state.queueBySection[state.section] = [];
       state.targetDifficulty[state.section] = 2;
       state.streakBySection[state.section] = 0;
-      state.timers[state.section] = SECTION_SECONDS;
+      state.timers[state.section] = sessionSeconds();
       state.paused = false;
       saveState();
       render();
@@ -3985,26 +3992,36 @@
     }
 
     function jumpToMissed() {
-      const previousMode = state.mode;
-      state.mode = "Review";
-      const list = currentList();
-      const index = list.findIndex((q) => state.answers[q.id] && !state.answers[q.id].correct);
-      if (index >= 0) {
-        state.indexBySection[state.section] = index;
-        state.showExplanation[list[index].id] = true;
+      const missed = bySection().find((q) => state.answers[q.id] && !state.answers[q.id].correct);
+      if (missed) {
+        const queue = cleanQueue();
+        if (!queue.includes(missed.id)) queue.push(missed.id);
+        state.indexBySection[state.section] = Math.max(0, queue.indexOf(missed.id));
+        state.showExplanation[missed.id] = true;
         saveState();
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        state.mode = previousMode;
         saveState();
         render();
       }
     }
 
+    function changeSessionLength(preset) {
+      if (!SESSION_PRESETS[preset]) return;
+      state.sessionPreset = preset;
+      state.timers[state.section] = SESSION_PRESETS[preset];
+      state.paused = false;
+      saveState();
+      render();
+    }
+
     document.querySelectorAll(".segment").forEach((button) => {
       button.addEventListener("click", () => {
         state.section = button.dataset.section;
+        if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
+          state.timers[state.section] = sessionSeconds();
+        }
         const list = currentList();
         state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
         saveState();
@@ -4013,14 +4030,9 @@
       });
     });
 
-    document.querySelectorAll(".mode-button").forEach((button) => {
+    document.querySelectorAll(".session-button").forEach((button) => {
       button.addEventListener("click", () => {
-        state.mode = button.dataset.mode;
-        const list = currentList();
-        state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
-        saveState();
-        render();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        changeSessionLength(button.dataset.session);
       });
     });
 
@@ -4045,7 +4057,7 @@
     $("#previousButton").addEventListener("click", () => setIndex(currentIndex() - 1));
     $("#nextButton").addEventListener("click", () => {
       const list = currentList();
-      if (state.mode === "Adaptive" && currentIndex() === list.length - 1) {
+      if (currentIndex() === list.length - 1) {
         const next = pickAdaptiveQuestion();
         if (next) {
           state.queueBySection[state.section].push(next.id);
@@ -4054,13 +4066,6 @@
           render();
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
-        return;
-      }
-      if (currentIndex() === list.length - 1) {
-        state.paused = true;
-        saveState();
-        render();
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
         return;
       }
       setIndex(currentIndex() + 1);
