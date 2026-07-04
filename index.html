@@ -810,6 +810,7 @@
       font-size: 15px;
       line-height: 1.5;
       font-weight: 500;
+      white-space: pre-line;
     }
 
     .review-panel {
@@ -2114,7 +2115,7 @@
         }));
       }
 
-      for (let index = 0; index < 70; index += 1) {
+      for (let index = 0; index < 80; index += 1) {
         const original = 80 + (index % 13) * 10;
         const increase = 5 + ((index * 7) % 55);
         const decrease = 5 + ((index * 11) % 45);
@@ -2137,7 +2138,7 @@
         }));
       }
 
-      for (let index = 0; index < 60; index += 1) {
+      for (let index = 0; index < 80; index += 1) {
         const n1 = 3 + (index % 5);
         const n2 = 4 + ((index * 2) % 7);
         const avg1 = 12 + ((index * 3) % 18);
@@ -2479,6 +2480,7 @@
         .replace(/\bA insurance firm\b/g, "An insurance firm")
         .replace(/\ba insurance firm\b/g, "an insurance firm")
         .replace(/\busing using\b/g, "using")
+        .replace(/\bBefore using ([a-z]+ing\b)/g, "Before $1")
         .replace(/obstacle to raise profit/g, "obstacle to raising profit")
         .replace(/obstacle to reduce/g, "obstacle to reducing")
         .replace(/obstacle to increase/g, "obstacle to increasing")
@@ -2819,6 +2821,222 @@
       }
     }
 
+    function answerLabel(question) {
+      const letter = "ABCDE"[question.answer] || "?";
+      return `${letter}. ${question.choices?.[question.answer] || ""}`;
+    }
+
+    function sectionSkill(question) {
+      if (question.section === "Quant") {
+        return "Quantitative Reasoning on the current GMAT is Problem Solving: arithmetic, algebra, and quantitative logic with five answer choices. The goal is not advanced math; it is choosing the cleanest setup and avoiding trap arithmetic.";
+      }
+      if (question.section === "Verbal") {
+        return "Verbal Reasoning on the current GMAT tests Reading Comprehension and Critical Reasoning. The goal is to choose the answer that is supported by the text or that performs the exact logical job requested.";
+      }
+      return "Data Insights asks you to decide what data is relevant, compare information from tables or sources, and make a supported decision. The important skill is translating the prompt into the right calculation or sufficiency test.";
+    }
+
+    function strategyForQuestion(question) {
+      const stem = String(question.stem || "");
+      if (question.section === "Quant") {
+        if (question.topic === "Algebra") {
+          return "Treat both sides of the equation as balanced scales. Move all x-terms to one side and all number terms to the other side. Whatever you do to one side, do to the other. Once the equation looks like ax = b, divide both sides by a. In similar questions, write each business phrase as an expression first, then solve the equation.";
+        }
+        if (question.topic === "Percents") {
+          return "Convert each percent change into a multiplier. An increase of p% means multiply by 1 + p/100; a decrease of p% means multiply by 1 - p/100. Successive percent changes are multiplied, not added. For example, up 20% then down 20% is 1.20 x 0.80 = 0.96, or 96% of the original.";
+        }
+        if (question.topic === "Averages") {
+          return "Use the relationship average = total / count. That means total = average x count. For combined groups, find each group total first, add the totals, and then divide by the combined count. Do not average the two averages unless the groups have the same size.";
+        }
+        if (question.topic === "Rates") {
+          return "Use the rate triangle: work = rate x time, time = work / rate, and rate = work / time. If two machines or people work at the same time on the same job, add their rates before finding time. Keep the units consistent, such as hours with units per hour.";
+        }
+        if (question.topic === "Number Properties" || question.topic === "Remainders") {
+          return "Translate remainders into the form number = divisor x whole number + remainder. A remainder of 3 when divided by 7 means n = 7k + 3. To solve similar questions, list candidates from one condition and test the other condition, or use modular arithmetic if you know it.";
+        }
+        if (question.topic === "Counting" || question.topic === "Combinatorics") {
+          return "This is a combinations question because order does not matter. The formula is n choose r = n! / (r!(n-r)!). For choosing 2, it becomes n(n-1)/2. Example: 23 choose 2 = 23 x 22 / 2 = 253. We divide by 2 because choosing Ana then Ben is the same group as choosing Ben then Ana.";
+        }
+        if (question.topic === "Word Problems") {
+          return "Translate the words into a small set of formulas before calculating. Revenue = selling price x units. Variable cost = cost per unit x units. Profit = revenue - variable cost - fixed cost. Break-even means profit is 0, so fixed cost must be covered by contribution per unit.";
+        }
+        return "Name the unknown, write down the relationship in symbols, and check units. GMAT Quant rewards a clean setup more than long computation.";
+      }
+
+      if (question.topic === "Critical Reasoning") {
+        if (/assumption/i.test(stem)) {
+          return "Find the conclusion first, then find the evidence. An assumption is an unstated bridge that must be true for the evidence to support the conclusion. A good test is the negation test: if denying the answer would make the argument fall apart, it is probably required.";
+        }
+        if (/weaken/i.test(stem)) {
+          return "A weaken answer does not have to prove the conclusion false. It only has to make the conclusion less likely. Look for an alternate cause, missing comparison, selection bias, hidden cost, or evidence that the plan does not address the real cause.";
+        }
+        if (/strengthen/i.test(stem)) {
+          return "A strengthen answer makes the argument more believable. The strongest answers usually connect the plan to the result, rule out an alternate cause, or show that the sample is representative.";
+        }
+        if (/evaluate|want answered/i.test(stem)) {
+          return "An evaluate answer identifies the question whose answer would most affect whether the argument is good. Ask: if the answer is yes, does the plan look stronger, and if the answer is no, does it look weaker? If both directions matter, it is a strong evaluation question.";
+        }
+        if (/explain|resolve/i.test(stem)) {
+          return "For explain-the-result questions, accept both facts as true and look for a choice that makes them fit together. The correct answer often separates two metrics, two groups, or two time periods.";
+        }
+        return "For any Critical Reasoning question, label the conclusion, evidence, and gap. Then choose the answer that performs the exact task in the stem rather than an answer that merely sounds reasonable.";
+      }
+
+      if (question.topic === "Reading Comprehension") {
+        if (/main point|central claim|mainly|summarizes|captures/i.test(stem)) {
+          return "For a main-idea question, do not choose a detail just because it appears in the passage. The correct answer should cover the author's overall claim and preserve the qualification or contrast in the passage.";
+        }
+        if (/implies|suggests|infer|advise/i.test(stem)) {
+          return "For an inference question, the answer must be supported by the passage even if it is not stated word-for-word. Avoid choices that are extreme, introduce outside facts, or go beyond what the passage proves.";
+        }
+        if (/serves|role|reference|phrase|mentions|warning/i.test(stem)) {
+          return "For a role question, ask why the author included that sentence or phrase. Usually it supports, qualifies, contrasts with, or limits another claim. The answer should describe the function, not just repeat the content.";
+        }
+        return "Read for structure: what problem is introduced, what evidence is given, and what conclusion or qualification the author draws. A GMAT RC answer must match both the text and the author's scope.";
+      }
+
+      if (question.topic === "Data Sufficiency") {
+        return "Data Sufficiency is not asking you to calculate a final value unless you need it to judge sufficiency. Test statement (1) alone, then statement (2) alone, and only then test them together. The answer choices always follow the same pattern: (A) statement 1 only, (B) statement 2 only, (C) together only, (D) each alone, (E) not enough even together.";
+      }
+      if (question.topic === "Table Analysis") {
+        return "For Table Analysis, identify the exact metric before touching the numbers. If the prompt asks for an increase, calculate ending value minus starting value. If it asks for a ratio or percent increase, divide by the starting value. Compare all rows using the same metric and watch for ties.";
+      }
+      if (question.topic === "Multi-Source Reasoning") {
+        return "For Multi-Source Reasoning, pull only the facts needed from each source. Here that usually means matching the passenger forecast from one source with fare and cost from another source. Write the metric for each route in the same format, then compare.";
+      }
+      return "For Data Insights, slow down at the setup stage. Decide what each number represents, choose the right metric, and compare consistently.";
+    }
+
+    function trapNoteForQuestion(question) {
+      if (question.section === "Quant") {
+        if (question.topic === "Counting" || question.topic === "Combinatorics") {
+          return "Common trap: multiplying n x r counts ordered slots or repeated choices; combinations count groups, so divide out the duplicate orders.";
+        }
+        if (question.topic === "Percents") {
+          return "Common trap: adding percent changes. A 20% decrease after an increase is taken from the new larger amount, not from the original amount.";
+        }
+        if (question.topic === "Averages") {
+          return "Common trap: averaging the averages. That works only when the groups have equal size.";
+        }
+        if (question.topic === "Rates") {
+          return "Common trap: averaging the rates or dividing by the wrong rate. Always ask whether the machines are working alone or together.";
+        }
+        return "Common trap: rushing to the answer choices before setting up the relationship. Write one clean equation or formula first.";
+      }
+      if (question.section === "Verbal") {
+        return "Common trap: choosing an answer that is true-sounding but does not answer the exact question. The correct choice must match the requested logical role or be directly supported by the passage.";
+      }
+      if (question.topic === "Data Sufficiency") {
+        return "Common trap: combining the statements too early. You must decide whether each statement works by itself before using them together.";
+      }
+      return "Common trap: comparing the wrong metric, such as total instead of percent, revenue instead of margin, or a single source instead of the combined information.";
+    }
+
+    function displayNumber(value) {
+      return Number.isFinite(value) ? compactNumber(value) : value;
+    }
+
+    function tableMetricForStem(stem) {
+      if (/greatest absolute increase/.test(stem)) return { label: "2026 units minus 2025 units", metric: (row) => row.end - row.start };
+      if (/smallest absolute increase/.test(stem)) return { label: "negative of the absolute increase, so the smallest increase gets the highest score", metric: (row) => -(row.end - row.start) };
+      if (/greatest percent increase/.test(stem)) return { label: "(2026 units - 2025 units) / 2025 units", metric: (row) => (row.end - row.start) / row.start };
+      if (/highest 2026 unit total/.test(stem)) return { label: "2026 unit total", metric: (row) => row.end };
+      if (/began the period with the fewest/.test(stem)) return { label: "negative of the 2025 unit total, so the fewest units get the highest score", metric: (row) => -row.start };
+      if (/greatest average/.test(stem)) return { label: "(2025 units + 2026 units) / 2", metric: (row) => (row.start + row.end) / 2 };
+      if (/exceeded its 2025 total by the greatest ratio/.test(stem)) return { label: "2026 units / 2025 units", metric: (row) => row.end / row.start };
+      if (/ended the period with the fewest/.test(stem)) return { label: "negative of the 2026 unit total, so the fewest units get the highest score", metric: (row) => -row.end };
+      if (/greatest combined/.test(stem)) return { label: "2025 units + 2026 units", metric: (row) => row.start + row.end };
+      if (/greatest difference between its two listed/.test(stem)) return { label: "absolute value of 2026 units minus 2025 units", metric: (row) => Math.abs(row.end - row.start) };
+      if (/began the period with the most/.test(stem)) return { label: "2025 unit total", metric: (row) => row.start };
+      if (/increase was closest to 20/.test(stem)) return { label: "negative of the distance from a 20-unit increase, so closest to 20 gets the highest score", metric: (row) => -Math.abs((row.end - row.start) - 20) };
+      if (/lowest 2026-to-2025 ratio/.test(stem)) return { label: "negative of 2026 units / 2025 units, so the lowest ratio gets the highest score", metric: (row) => -(row.end / row.start) };
+      if (/2026 total was closest to its 2025/.test(stem)) return { label: "negative of the absolute difference between 2026 and 2025", metric: (row) => -Math.abs(row.end - row.start) };
+      if (/smallest combined/.test(stem)) return { label: "negative of the combined total, so the smallest total gets the highest score", metric: (row) => -(row.start + row.end) };
+      if (/greatest increase as a share of its two-year/.test(stem)) return { label: "(2026 units - 2025 units) / (2025 units + 2026 units)", metric: (row) => (row.end - row.start) / (row.start + row.end) };
+      if (/smallest increase as a share of its 2025/.test(stem)) return { label: "negative of (increase / 2025 units), so the smallest share gets the highest score", metric: (row) => -((row.end - row.start) / row.start) };
+      if (/largest share of all 2026/.test(stem)) return { label: "2026 unit total, because the largest total is the largest share", metric: (row) => row.end };
+      if (/smallest share of all 2025/.test(stem)) return { label: "negative of 2025 unit total, because the smallest total is the smallest share", metric: (row) => -row.start };
+      if (/largest increase relative to its 2026/.test(stem)) return { label: "(2026 units - 2025 units) / 2026 units", metric: (row) => (row.end - row.start) / row.end };
+      return null;
+    }
+
+    function msrMetricForStem(stem) {
+      if (/highest expected margin\?/.test(stem)) return { label: "fare x passengers - operating cost", metric: (row) => row.fare * row.passengers - row.cost };
+      if (/highest expected revenue/.test(stem)) return { label: "fare x passengers", metric: (row) => row.fare * row.passengers };
+      if (/lowest operating cost/.test(stem)) return { label: "negative operating cost, so the lowest cost gets the highest score", metric: (row) => -row.cost };
+      if (/highest forecast passenger/.test(stem)) return { label: "forecast passengers", metric: (row) => row.passengers };
+      if (/highest fare per passenger/.test(stem)) return { label: "fare per passenger", metric: (row) => row.fare };
+      if (/lowest cost per forecast passenger/.test(stem)) return { label: "negative of cost / passengers, so the lowest cost per passenger gets the highest score", metric: (row) => -(row.cost / row.passengers) };
+      if (/highest expected margin per forecast/.test(stem)) return { label: "(fare x passengers - cost) / passengers", metric: (row) => (row.fare * row.passengers - row.cost) / row.passengers };
+      if (/smallest gap between expected revenue/.test(stem)) return { label: "negative of the absolute gap between expected revenue and cost", metric: (row) => -Math.abs(row.fare * row.passengers - row.cost) };
+      if (/greatest difference between fare and cost/.test(stem)) return { label: "fare - cost per passenger", metric: (row) => row.fare - row.cost / row.passengers };
+      if (/highest ratio of expected revenue/.test(stem)) return { label: "expected revenue / operating cost", metric: (row) => row.fare * row.passengers / row.cost };
+      if (/lowest expected margin\?/.test(stem)) return { label: "negative expected margin, so the lowest margin gets the highest score", metric: (row) => -(row.fare * row.passengers - row.cost) };
+      if (/lowest expected revenue/.test(stem)) return { label: "negative expected revenue, so the lowest revenue gets the highest score", metric: (row) => -(row.fare * row.passengers) };
+      if (/highest operating cost/.test(stem)) return { label: "operating cost", metric: (row) => row.cost };
+      if (/lowest forecast passenger/.test(stem)) return { label: "negative forecast passengers, so the lowest passenger count gets the highest score", metric: (row) => -row.passengers };
+      if (/lowest fare per passenger/.test(stem)) return { label: "negative fare, so the lowest fare gets the highest score", metric: (row) => -row.fare };
+      if (/highest cost per forecast passenger/.test(stem)) return { label: "operating cost / passengers", metric: (row) => row.cost / row.passengers };
+      if (/lowest expected margin per forecast/.test(stem)) return { label: "negative margin per passenger, so the lowest margin per passenger gets the highest score", metric: (row) => -((row.fare * row.passengers - row.cost) / row.passengers) };
+      if (/largest gap between expected revenue/.test(stem)) return { label: "absolute gap between expected revenue and operating cost", metric: (row) => Math.abs(row.fare * row.passengers - row.cost) };
+      if (/smallest difference between fare and cost/.test(stem)) return { label: "negative of fare minus cost per passenger, so the smallest difference gets the highest score", metric: (row) => -(row.fare - row.cost / row.passengers) };
+      if (/lowest ratio of expected revenue/.test(stem)) return { label: "negative expected revenue / operating cost, so the lowest ratio gets the highest score", metric: (row) => -(row.fare * row.passengers / row.cost) };
+      return null;
+    }
+
+    function comparisonWinner(scores) {
+      const best = Math.max(...scores);
+      const winners = scores.map((score, index) => score === best ? index : -1).filter((index) => index >= 0);
+      return winners.length === 1 ? winners[0] : 4;
+    }
+
+    function expandedStepWork(question, core) {
+      if (question.topic === "Table Analysis" && question.context) {
+        const rows = String(question.context).split("\n").slice(1).map((line) => line.split("|").map((part) => part.trim()));
+        const values = rows.map((row) => ({ label: row[0], start: Number(row[1]), end: Number(row[2]) }));
+        const config = tableMetricForStem(question.stem);
+        if (config && values.length === 4) {
+          const scores = values.map(config.metric);
+          const scoreText = values.map((row, index) => `${row.label}: ${displayNumber(scores[index])}`).join(", ");
+          const winner = comparisonWinner(scores);
+          return `${core} Metric to calculate: ${config.label}. Scores are ${scoreText}. The highest comparison score points to ${question.choices[winner]}.`;
+        }
+      }
+      if (question.topic === "Multi-Source Reasoning" && question.context) {
+        const passengerMatches = [...String(question.context).matchAll(/Route ([ABCD]): (\d+)(?! fare)/g)].slice(0, 4);
+        const fareMatches = [...String(question.context).matchAll(/Route ([ABCD]): \$(\d+) fare, \$(\d+) cost/g)].slice(0, 4);
+        const values = fareMatches.map((match, index) => ({
+          label: `Route ${match[1]}`,
+          passengers: Number(passengerMatches[index][2]),
+          fare: Number(match[2]),
+          cost: Number(match[3])
+        }));
+        const config = msrMetricForStem(question.stem);
+        if (config && values.length === 4) {
+          const scores = values.map(config.metric);
+          const scoreText = values.map((row, index) => `${row.label}: ${displayNumber(scores[index])}`).join(", ");
+          const winner = comparisonWinner(scores);
+          return `${core} Metric to calculate: ${config.label}. Scores are ${scoreText}. The highest comparison score points to ${question.choices[winner]}.`;
+        }
+      }
+      if (question.section === "Verbal") {
+        return `${core} The selected answer is "${question.choices[question.answer]}". It is correct because it performs the exact job asked for in the stem without adding outside assumptions or making the claim too broad.`;
+      }
+      return core;
+    }
+
+    function buildTeachingExplanation(question) {
+      const core = cleanGeneratedText(question.explanation);
+      return [
+        `Correct answer: ${answerLabel(question)}`,
+        `What this is testing: ${sectionSkill(question)}`,
+        `Step-by-step work: ${expandedStepWork(question, core)}`,
+        `Why this works: ${strategyForQuestion(question)}`,
+        `Avoid this trap: ${trapNoteForQuestion(question)}`,
+        "How to tackle similar questions: restate the task in your own words, write the needed formula or logical role, solve or evaluate one step at a time, and then check that the selected answer actually answers the question asked."
+      ].join("\n\n");
+    }
+
     function diversifyQuestionBank(bank) {
       bank.forEach((question) => {
         const idNumber = Number((question.id.match(/-(\d+)$/) || [])[1] || 0);
@@ -3032,6 +3250,7 @@
         question.context = cleanGeneratedText(question.context);
         question.explanation = cleanGeneratedText(question.explanation);
         question.choices = question.choices.map(cleanGeneratedText);
+        question.explanation = buildTeachingExplanation(question);
       });
       return bank;
     }
@@ -3047,7 +3266,7 @@
         "Statements (1) and (2) together are not sufficient."
       ];
 
-      for (let index = 0; index < 70; index += 1) {
+      for (let index = 0; index < 80; index += 1) {
         const x = 4 + index;
         const a = 3 + (index % 7);
         const c = 1 + (index % 2);
@@ -3065,7 +3284,7 @@
         }));
       }
 
-      for (let index = 0; index < 60; index += 1) {
+      for (let index = 0; index < 80; index += 1) {
         const original = 80 + index * 7;
         const increase = 8 + ((index * 7) % 37);
         const decrease = 6 + ((index * 11) % 31);
@@ -3082,7 +3301,7 @@
         }));
       }
 
-      for (let index = 0; index < 55; index += 1) {
+      for (let index = 0; index < 60; index += 1) {
         const n1 = 3 + (index % 8);
         const n2 = 4 + ((index * 3) % 9);
         const avg1 = 12 + ((index * 4) % 23);
@@ -3100,7 +3319,7 @@
         }));
       }
 
-      for (let index = 0; index < 55; index += 1) {
+      for (let index = 0; index < 60; index += 1) {
         const rateA = 4 + (index % 11);
         const rateB = 7 + ((index * 2) % 13);
         const hours = 2 + (index % 5);
@@ -3117,7 +3336,7 @@
         }));
       }
 
-      for (let index = 0; index < 55; index += 1) {
+      for (let index = 0; index < 60; index += 1) {
         const divisorA = 4 + (index % 9);
         const divisorB = 7 + ((index * 2) % 11);
         const remA = 1 + (index % (divisorA - 1));
@@ -3365,12 +3584,7 @@
       return questions;
     }
 
-    BANK.forEach((question, index) => {
-      question.difficulty = question.difficulty || clamp(1 + Math.floor((index % 12) / 3), 1, 5);
-      question.source = "seed";
-    });
-    BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
-    BANK.push(...buildStandardsAlignedBank());
+    BANK.splice(0, BANK.length, ...buildStandardsAlignedBank());
     diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
