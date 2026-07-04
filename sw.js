@@ -1,4 +1,4 @@
-const CACHE_NAME = "flight-gmat-offline-v11";
+const CACHE_NAME = "clearprep-offline-v12";
 const APP_SHELL = ["./", "./index.html"];
 
 self.addEventListener("install", (event) => {
