@@ -1669,7 +1669,8 @@
       let nudge = 1;
       while (values.length < 5) {
         const numeric = Number.parseFloat(String(correct).replace(/[^\d.-]/g, ""));
-        values.push(Number.isFinite(numeric) ? String(numeric + nudge * 3) : `Choice ${values.length + 1}`);
+        const candidate = Number.isFinite(numeric) ? String(numeric + nudge * 3) : `Choice ${values.length + 1}`;
+        if (!values.includes(candidate)) values.push(candidate);
         nudge += 1;
       }
       const trimmed = values.slice(0, 5);
@@ -2465,6 +2466,576 @@
       });
     }
 
+    function refreshPackedChoices(question, correct, distractors, seed) {
+      const packed = packChoices(correct, distractors, seed);
+      question.choices = packed.choices;
+      question.answer = packed.answer;
+    }
+
+    function cleanGeneratedText(text) {
+      return String(text || "")
+        .replace(/\bA airline\b/g, "An airline")
+        .replace(/\ba airline\b/g, "an airline")
+        .replace(/\bA insurance firm\b/g, "An insurance firm")
+        .replace(/\ba insurance firm\b/g, "an insurance firm")
+        .replace(/\busing using\b/g, "using")
+        .replace(/obstacle to raise profit/g, "obstacle to raising profit")
+        .replace(/obstacle to reduce/g, "obstacle to reducing")
+        .replace(/obstacle to increase/g, "obstacle to increasing")
+        .replace(/obstacle to improve/g, "obstacle to improving")
+        .replace(/obstacle to lower/g, "obstacle to lowering")
+        .replace(/obstacle to speed/g, "obstacle to speeding");
+    }
+
+    function withScenario(question, scenarios) {
+      const idNumber = Number((question.id.match(/-(\d+)$/) || [])[1] || 0);
+      const scenario = scenarios[idNumber % scenarios.length];
+      question.stem = `${scenario}: ${question.stem.charAt(0).toLowerCase()}${question.stem.slice(1)}`;
+    }
+
+    function winningIndex(rows, metric) {
+      const metrics = rows.map(metric);
+      const best = Math.max(...metrics);
+      const winners = metrics.map((value, index) => value === best ? index : -1).filter((index) => index >= 0);
+      return { answer: winners.length === 1 ? winners[0] : 4, metrics };
+    }
+
+    function rewriteDataSufficiencyQuestion(question, idNumber) {
+      const dsChoices = [
+        "Statement (1) alone is sufficient, but statement (2) alone is not sufficient.",
+        "Statement (2) alone is sufficient, but statement (1) alone is not sufficient.",
+        "Both statements together are sufficient, but neither alone is sufficient.",
+        "Each statement alone is sufficient.",
+        "Statements (1) and (2) together are not sufficient."
+      ];
+      const n = 8 + idNumber;
+      const sum = 30 + idNumber * 2;
+      const diff = 3 + (idNumber % 9);
+      const divisor = [3, 5, 7, 9, 11][idNumber % 5];
+      const type = idNumber % 20;
+      const patterns = [
+        [`What is the average of x, y, and z?\n(1) x + y + z = ${sum}\n(2) x = y`, 0, "Statement (1) gives the total of the three values, so the average is determined. Statement (2) gives only a relationship."],
+        [`Is x greater than ${n}?\n(1) x is positive\n(2) x > ${n + 3}`, 1, `Statement (1) allows positive values below or above ${n}. Statement (2) directly answers the question.`],
+        [`Is integer n divisible by ${2 * divisor}?\n(1) n is divisible by ${divisor}\n(2) n is even`, 2, `Neither statement alone guarantees all factors needed for divisibility by ${2 * divisor}. Together they do.`],
+        ["Is integer n odd?\n(1) n + 1 is even\n(2) 3n is odd", 3, "Each statement alone implies that n is odd."],
+        [`What is the value of x?\n(1) x + y = ${sum}\n(2) y + z = ${sum - diff}`, 4, "Even together, the statements leave z unrestricted and do not determine a unique value of x."],
+        [`What is the mean of a, b, c, and d?\n(1) a + b + c + d = ${sum}\n(2) a = b = c = d`, 0, "Statement (1) gives the total of the four values, which determines the mean. Equal values without a numerical value are not enough."],
+        [`Is y positive?\n(1) y > z\n(2) z > ${diff}`, 2, "Statement (1) alone does not locate z. Statement (2) alone says nothing about y. Together, y is greater than a positive number."],
+        ["Is xy negative?\n(1) x is positive\n(2) y is negative", 2, "Either sign alone leaves the product unknown. Together, a positive number times a negative number is negative."],
+        [`What is x - y?\n(1) x - y = ${diff}\n(2) x + y = ${sum}`, 0, "Statement (1) gives the requested value directly. Statement (2) alone gives only a sum."],
+        [`What is x?\n(1) 2x + 3 = ${2 * n + 3}\n(2) x - y = ${diff}`, 0, "Statement (1) is a single linear equation in x. Statement (2) includes another unknown and is not sufficient."],
+        ["Is integer n a multiple of 6?\n(1) n is a multiple of 3\n(2) n is even", 2, "A multiple of 6 must be both a multiple of 3 and even. Neither condition alone is enough."],
+        [`Is x less than y?\n(1) x - y = -${diff}\n(2) x + y = ${sum}`, 0, "Statement (1) directly implies x is less than y. Statement (2) alone does not compare them."],
+        [`What is the average of four scores?\n(1) The sum of the four scores is ${sum}\n(2) The four scores are equal`, 0, "The average is determined by the sum and the number of scores. Equal scores without a value are not enough."],
+        ["Is integer n even?\n(1) n^2 is even\n(2) n + 1 is odd", 3, "For an integer, each statement alone implies that n is even."],
+        ["Is x equal to 0?\n(1) xy = 0\n(2) y is not equal to 0", 2, "Statement (1) allows either x or y to be zero. Statement (2) rules out y = 0, so together x must be zero."],
+        [`Is x greater than y?\n(1) x - y = ${diff}\n(2) x + y = ${sum}`, 0, "Statement (1) directly gives a positive difference. Statement (2) alone does not compare x and y."],
+        [`What is the value of integer n?\n(1) ${n} < n < ${n + 2}\n(2) n is odd`, 0, `Statement (1) makes n the only integer between ${n} and ${n + 2}. Statement (2) alone gives many possible values.`],
+        ["Is integer n divisible by 4?\n(1) n is divisible by 8\n(2) n is even", 0, "Every multiple of 8 is divisible by 4. Evenness alone is not enough."],
+        [`What is x + y?\n(1) x + y = ${sum}\n(2) x - y = ${diff}`, 0, "Statement (1) gives the requested sum directly. Statement (2) alone does not determine the sum."],
+        ["Is x an integer?\n(1) 2x is an integer\n(2) x/2 is an integer", 1, "Statement (1) allows half-integers. Statement (2) means x is twice an integer, so x is an integer."]
+      ];
+      const [stem, answer, explanation] = patterns[type];
+      question.stem = stem;
+      question.choices = dsChoices;
+      question.answer = answer;
+      question.explanation = explanation;
+    }
+
+    function compactNumber(value) {
+      const rounded = Number(Number(value).toFixed(1));
+      return Number.isInteger(rounded) ? rounded : rounded;
+    }
+
+    function rewriteQuantQuestion(question, idNumber) {
+      if (question.id.startsWith("std-q-alg-")) {
+        const x = 4 + idNumber;
+        const a = 3 + (idNumber % 7);
+        const c = 1 + (idNumber % 2);
+        const b = 5 + ((idNumber * 5) % 31);
+        const d = (a - c) * x + b;
+        const mode = idNumber % 10;
+        const stems = [
+          `If ${a}x + ${b} = ${c}x + ${d}, what is the value of x?`,
+          `Plan A costs $${b} plus $${a} per unit, and Plan B costs $${d} plus $${c} per unit. For how many units are the two total costs equal?`,
+          `At what value of x do the expressions ${a}x + ${b} and ${c}x + ${d} have the same value?`,
+          `If a score is computed two ways, ${a}x + ${b} and ${c}x + ${d}, for what value of x do the two scores match?`,
+          `For what value of x is ${a - c}x equal to ${d - b}?`,
+          `A quantity multiplied by ${a} and then increased by ${b} equals the same quantity multiplied by ${c} and then increased by ${d}. What is the quantity?`,
+          `The difference between ${a}x + ${b} and ${c}x + ${d} is 0. What is x?`,
+          `A contract pays a base amount of $${b} plus $${a} per case. Another pays $${d} plus $${c} per case. At how many cases are the payments equal?`,
+          `If ${d - b} = ${a - c}x, what is the value of x?`,
+          `For which value of x do ${c}x + ${d} and ${a}x + ${b} give equal results?`
+        ];
+        question.stem = stems[mode];
+        refreshPackedChoices(question, x, [x - 2, x - 1, x + 1, x + 3], `${question.id}-alg-${mode}`);
+        question.explanation = `Rearrange the equality to get ${a - c}x = ${d - b}, so x = ${x}.`;
+      } else if (question.id.startsWith("std-q-pct-")) {
+        const original = 80 + idNumber * 7;
+        const increase = 8 + ((idNumber * 7) % 37);
+        const decrease = 6 + ((idNumber * 11) % 31);
+        const multiplier = (1 + increase / 100) * (1 - decrease / 100);
+        const finalPercent = compactNumber(100 * multiplier);
+        const finalValue = compactNumber(original * multiplier);
+        const afterIncrease = compactNumber(original * (1 + increase / 100));
+        const net = compactNumber(finalPercent - 100);
+        const mode = idNumber % 10;
+        if (mode === 0) {
+          question.stem = `A value is increased by ${increase}% and then decreased by ${decrease}%. The final value is what percent of the original value?`;
+          refreshPackedChoices(question, `${finalPercent}%`, [`${100 + increase - decrease}%`, `${100 - decrease}%`, `${100 + increase}%`, `${Math.max(1, 100 - increase + decrease)}%`], `${question.id}-pct-final`);
+          question.explanation = `Successive percent changes multiply: 100 x ${1 + increase / 100} x ${1 - decrease / 100} = ${finalPercent}%.`;
+        } else if (mode === 1) {
+          const label = net >= 0 ? `an increase of ${net}%` : `a decrease of ${Math.abs(net)}%`;
+          question.stem = `A quantity first rises by ${increase}% and then falls by ${decrease}%. What is the net percent change from the original quantity?`;
+          refreshPackedChoices(question, label, [`an increase of ${increase - decrease}%`, `a decrease of ${Math.abs(increase - decrease)}%`, `an increase of ${increase}%`, `a decrease of ${decrease}%`], `${question.id}-pct-net`);
+          question.explanation = `The final percent of the original is ${finalPercent}%, so the net change is ${net}% relative to the original.`;
+        } else if (mode === 2) {
+          question.stem = `An index starts at ${original}, rises by ${increase}%, and then falls by ${decrease}%. What is the final index value?`;
+          refreshPackedChoices(question, finalValue, [compactNumber(original * (1 + (increase - decrease) / 100)), compactNumber(original * (1 + increase / 100)), compactNumber(original * (1 - decrease / 100)), compactNumber(finalValue + original * 0.1)], `${question.id}-pct-value`);
+          question.explanation = `Apply both multipliers: ${original} x ${1 + increase / 100} x ${1 - decrease / 100} = ${finalValue}.`;
+        } else if (mode === 3) {
+          question.stem = `A price of $${original} is marked up by ${increase}% and then discounted by ${decrease}%. What dollar amount is removed by the discount?`;
+          refreshPackedChoices(question, compactNumber(afterIncrease * decrease / 100), [compactNumber(original * decrease / 100), compactNumber(original * increase / 100), compactNumber(afterIncrease - finalValue + 5), compactNumber(afterIncrease - finalValue - 5)], `${question.id}-pct-discount`);
+          question.explanation = `After the markup the price is ${afterIncrease}. The discount removes ${decrease}% of that amount, or ${compactNumber(afterIncrease * decrease / 100)}.`;
+        } else if (mode === 4) {
+          question.stem = `After a ${increase}% increase and then a ${decrease}% decrease, what multiplier should be applied to the original value to get the final value?`;
+          refreshPackedChoices(question, compactNumber(multiplier), [compactNumber(1 + (increase - decrease) / 100), compactNumber(1 + increase / 100), compactNumber(1 - decrease / 100), compactNumber(multiplier + 0.1)], `${question.id}-pct-multiplier`);
+          question.explanation = `The combined multiplier is ${1 + increase / 100} x ${1 - decrease / 100} = ${compactNumber(multiplier)}.`;
+        } else if (mode === 5) {
+          question.stem = `A value begins at ${original} and ends at ${finalValue} after a ${increase}% rise followed by a ${decrease}% fall. By how much did the value change?`;
+          refreshPackedChoices(question, compactNumber(finalValue - original), [compactNumber(original - finalValue), compactNumber(afterIncrease - original), compactNumber(afterIncrease - finalValue), compactNumber(finalValue - original + 10)], `${question.id}-pct-change-amount`);
+          question.explanation = `The final value is ${finalValue}, so the change from the original is ${finalValue} - ${original} = ${compactNumber(finalValue - original)}.`;
+        } else if (mode === 6) {
+          question.stem = `A value of ${original} is increased by ${increase}%. What is the value immediately before a later ${decrease}% decrease is applied?`;
+          refreshPackedChoices(question, afterIncrease, [finalValue, compactNumber(original * (1 - decrease / 100)), compactNumber(afterIncrease - original), compactNumber(afterIncrease + decrease)], `${question.id}-pct-after-increase`);
+          question.explanation = `Before the decrease, the value is ${original} x ${1 + increase / 100} = ${afterIncrease}.`;
+        } else if (mode === 7) {
+          question.stem = `The final value after a ${increase}% increase and a ${decrease}% decrease is ${finalValue}. What was the value after the increase but before the decrease?`;
+          refreshPackedChoices(question, afterIncrease, [original, compactNumber(finalValue / (1 + increase / 100)), compactNumber(finalValue * (1 + decrease / 100)), compactNumber(afterIncrease - decrease)], `${question.id}-pct-undo-discount`);
+          question.explanation = `The final value is ${decrease}% less than the value after the increase, so that intermediate value is ${afterIncrease}.`;
+        } else if (mode === 8) {
+          question.stem = `A marked-up price of $${afterIncrease} is reduced by ${decrease}%. What price remains after the reduction?`;
+          refreshPackedChoices(question, finalValue, [original, compactNumber(afterIncrease - decrease), compactNumber(afterIncrease * decrease / 100), compactNumber(finalValue + decrease)], `${question.id}-pct-after-decrease`);
+          question.explanation = `Reducing ${afterIncrease} by ${decrease}% gives ${afterIncrease} x ${1 - decrease / 100} = ${finalValue}.`;
+        } else {
+          question.stem = `A value is first multiplied by ${1 + increase / 100} and then by ${1 - decrease / 100}. What percent of the original value remains?`;
+          refreshPackedChoices(question, `${finalPercent}%`, [`${compactNumber(100 * (1 + (increase - decrease) / 100))}%`, `${100 + increase}%`, `${100 - decrease}%`, `${compactNumber(finalPercent + 5)}%`], `${question.id}-pct-remains`);
+          question.explanation = `The remaining percent is 100 x ${1 + increase / 100} x ${1 - decrease / 100} = ${finalPercent}%.`;
+        }
+      } else if (question.id.startsWith("std-q-avg-")) {
+        const n1 = 3 + (idNumber % 8);
+        const n2 = 4 + ((idNumber * 3) % 9);
+        const avg1 = 12 + ((idNumber * 4) % 23);
+        const avg2 = 19 + ((idNumber * 5) % 27);
+        const total1 = n1 * avg1;
+        const total2 = n2 * avg2;
+        const total = total1 + total2;
+        const combined = compactNumber(total / (n1 + n2));
+        const mode = idNumber % 10;
+        if (mode === 0) {
+          question.stem = `A group of ${n1} numbers has an average of ${avg1}. A second group of ${n2} numbers has an average of ${avg2}. What is the average of all ${n1 + n2} numbers?`;
+          refreshPackedChoices(question, combined, [compactNumber((avg1 + avg2) / 2), avg1 + avg2, compactNumber(combined + 2.4), Math.max(1, compactNumber(combined - 2.2))], `${question.id}-avg-combined`);
+          question.explanation = `Use a weighted average: (${n1} x ${avg1} + ${n2} x ${avg2}) / ${n1 + n2} = ${combined}.`;
+        } else if (mode === 1) {
+          question.stem = `A set of ${n1} observations averages ${avg1}, and another set of ${n2} observations averages ${avg2}. What is the total of all observations in the two sets?`;
+          refreshPackedChoices(question, total, [total1, total2, compactNumber((avg1 + avg2) * (n1 + n2)), compactNumber(total + n1 + n2)], `${question.id}-avg-total`);
+          question.explanation = `The combined total is ${n1} x ${avg1} + ${n2} x ${avg2} = ${total}.`;
+        } else if (mode === 2) {
+          question.stem = `${n1} shipments average ${avg1} pounds each, and ${n2} shipments average ${avg2} pounds each. How much greater is the total weight of the second group than the first?`;
+          refreshPackedChoices(question, total2 - total1, [Math.abs(total2 - total1), total2 + total1, compactNumber(avg2 - avg1), compactNumber((n2 - n1) * (avg2 - avg1))], `${question.id}-avg-diff`);
+          question.explanation = `The totals are ${total1} and ${total2}, so the requested difference is ${total2 - total1}.`;
+        } else if (mode === 3) {
+          question.stem = `The combined average of ${n1 + n2} values is ${combined}. If ${n1} of the values average ${avg1}, what is the average of the remaining ${n2} values?`;
+          refreshPackedChoices(question, avg2, [compactNumber((combined + avg1) / 2), compactNumber(avg2 + 2), Math.max(1, compactNumber(avg2 - 2)), compactNumber(combined * 2 - avg1)], `${question.id}-avg-missing`);
+          question.explanation = `The total is ${combined} x ${n1 + n2} = ${total}. Subtract ${n1} x ${avg1} to get ${total2}, then divide by ${n2} to get ${avg2}.`;
+        } else if (mode === 4) {
+          question.stem = `Two departments have ${n1} and ${n2} employees with average scores of ${avg1} and ${avg2}. What fraction of the combined score total came from the first department?`;
+          const share = `${compactNumber(100 * total1 / total)}%`;
+          refreshPackedChoices(question, share, [`${compactNumber(100 * n1 / (n1 + n2))}%`, `${compactNumber(100 * avg1 / (avg1 + avg2))}%`, `${compactNumber(100 * total2 / total)}%`, `${compactNumber(100 * (total1 + n1) / total)}%`], `${question.id}-avg-share`);
+          question.explanation = `The first department contributes ${total1} points out of ${total}, or ${share}.`;
+        } else if (mode === 5) {
+          question.stem = `A class has ${n1} scores with average ${avg1}. What is the sum of those ${n1} scores?`;
+          refreshPackedChoices(question, total1, [total2, total, avg1 + n1, avg1 * n2], `${question.id}-avg-first-total`);
+          question.explanation = `The sum is count times average: ${n1} x ${avg1} = ${total1}.`;
+        } else if (mode === 6) {
+          question.stem = `Two groups contain ${n1} and ${n2} items. What percent of the combined item count is in the second group?`;
+          const countShare = `${compactNumber(100 * n2 / (n1 + n2))}%`;
+          refreshPackedChoices(question, countShare, [`${compactNumber(100 * n1 / (n1 + n2))}%`, `${compactNumber(100 * total2 / total)}%`, `${compactNumber(100 * avg2 / (avg1 + avg2))}%`, `${compactNumber(100 * (n2 + 1) / (n1 + n2))}%`], `${question.id}-avg-count-share`);
+          question.explanation = `The second group has ${n2} of ${n1 + n2} items, or ${countShare}.`;
+        } else if (mode === 7) {
+          question.stem = `The first of two groups has total ${total1} across ${n1} values. What is that group's average?`;
+          refreshPackedChoices(question, avg1, [avg2, combined, compactNumber(total1 / n2), compactNumber(total / (n1 + n2))], `${question.id}-avg-first-average`);
+          question.explanation = `Average equals total divided by count: ${total1} / ${n1} = ${avg1}.`;
+        } else if (mode === 8) {
+          question.stem = `A combined set has total ${total} and ${n1 + n2} values. What is its average?`;
+          refreshPackedChoices(question, combined, [avg1, avg2, compactNumber(total / n1), compactNumber(total / n2)], `${question.id}-avg-combined-total`);
+          question.explanation = `The average of the combined set is ${total} / ${n1 + n2} = ${combined}.`;
+        } else {
+          question.stem = `The average of ${n1} values is ${avg1}. If ${n2} values with average ${avg2} are added, by how much does the overall average change?`;
+          const change = compactNumber(combined - avg1);
+          refreshPackedChoices(question, change, [compactNumber(avg2 - avg1), compactNumber((avg2 - avg1) / 2), compactNumber(change + 1), compactNumber(change - 1)], `${question.id}-avg-change`);
+          question.explanation = `The new weighted average is ${combined}, so the change from ${avg1} is ${change}.`;
+        }
+      } else if (question.id.startsWith("std-q-rate-")) {
+        const rateA = 4 + (idNumber % 11);
+        const rateB = 7 + ((idNumber * 2) % 13);
+        const hours = 2 + (idNumber % 5);
+        const work = (rateA + rateB) * hours;
+        const mode = idNumber % 10;
+        if (mode === 0) {
+          question.stem = `Machine A completes ${rateA} units per hour and Machine B completes ${rateB} units per hour. Working together, how many hours do they need to complete ${work} units?`;
+          refreshPackedChoices(question, hours, [compactNumber(work / rateA), compactNumber(work / rateB), hours + 1, Math.max(1, hours - 1)], `${question.id}-rate-time`);
+          question.explanation = `Together the machines complete ${rateA + rateB} units per hour. Time = ${work} / ${rateA + rateB} = ${hours} hours.`;
+        } else if (mode === 1) {
+          question.stem = `Two production lines complete ${rateA} and ${rateB} units per hour. What is their combined hourly production rate?`;
+          refreshPackedChoices(question, rateA + rateB, [Math.abs(rateB - rateA), rateA * rateB, compactNumber((rateA + rateB) / 2), rateA + rateB + hours], `${question.id}-rate-combined`);
+          question.explanation = `For simultaneous work, add the rates: ${rateA} + ${rateB} = ${rateA + rateB} units per hour.`;
+        } else if (mode === 2) {
+          question.stem = `Machine A completes ${rateA} units per hour and Machine B completes ${rateB} units per hour. How many units can they complete together in ${hours} hours?`;
+          refreshPackedChoices(question, work, [rateA * hours, rateB * hours, (rateA + rateB) * (hours + 1), Math.max(1, work - rateA)], `${question.id}-rate-work`);
+          question.explanation = `Their combined rate is ${rateA + rateB} units per hour, so in ${hours} hours they complete ${work} units.`;
+        } else if (mode === 3) {
+          const alone = compactNumber(work / rateA);
+          question.stem = `Machine A completes ${rateA} units per hour. How many hours would Machine A alone need to complete ${work} units?`;
+          refreshPackedChoices(question, alone, [hours, compactNumber(work / rateB), compactNumber(alone + 1), Math.max(0.5, compactNumber(alone - 1))], `${question.id}-rate-alone-a`);
+          question.explanation = `Time equals work divided by rate: ${work} / ${rateA} = ${alone} hours.`;
+        } else if (mode === 4) {
+          const share = `${compactNumber(100 * rateA / (rateA + rateB))}%`;
+          question.stem = `Machines A and B work together at ${rateA} and ${rateB} units per hour. What percent of the combined output is produced by Machine A?`;
+          refreshPackedChoices(question, share, [`${compactNumber(100 * rateB / (rateA + rateB))}%`, `${compactNumber(100 * rateA / rateB)}%`, `${compactNumber(100 * (rateA + rateB) / rateA)}%`, `${compactNumber(100 / (rateA + rateB))}%`], `${question.id}-rate-share`);
+          question.explanation = `Machine A's share of the combined rate is ${rateA} / ${rateA + rateB} = ${share}.`;
+        } else if (mode === 5) {
+          const aloneB = compactNumber(work / rateB);
+          question.stem = `Machine B completes ${rateB} units per hour. How many hours would Machine B alone need to complete ${work} units?`;
+          refreshPackedChoices(question, aloneB, [hours, compactNumber(work / rateA), compactNumber(aloneB + 1), Math.max(0.5, compactNumber(aloneB - 1))], `${question.id}-rate-alone-b`);
+          question.explanation = `Time equals work divided by rate: ${work} / ${rateB} = ${aloneB} hours.`;
+        } else if (mode === 6) {
+          const outputA = rateA * hours;
+          question.stem = `Machine A works for ${hours} hours at ${rateA} units per hour. How many units does it complete?`;
+          refreshPackedChoices(question, outputA, [work, rateB * hours, outputA + rateB, Math.max(1, outputA - rateA)], `${question.id}-rate-output-a`);
+          question.explanation = `Output equals rate times time: ${rateA} x ${hours} = ${outputA}.`;
+        } else if (mode === 7) {
+          const outputB = rateB * hours;
+          question.stem = `Machine B works for ${hours} hours and completes ${outputB} units. What is Machine B's hourly rate?`;
+          refreshPackedChoices(question, rateB, [rateA, rateA + rateB, compactNumber(outputB / (hours + 1)), outputB], `${question.id}-rate-find-b`);
+          question.explanation = `Rate equals output divided by time: ${outputB} / ${hours} = ${rateB} units per hour.`;
+        } else if (mode === 8) {
+          const extra = compactNumber(work / rateA - hours);
+          question.stem = `Machine A alone would need ${compactNumber(work / rateA)} hours for a job. A and B together need ${hours} hours. How many hours are saved by working together?`;
+          refreshPackedChoices(question, extra, [hours, compactNumber(work / rateB - hours), compactNumber(extra + 1), Math.max(0.5, compactNumber(extra - 1))], `${question.id}-rate-saved`);
+          question.explanation = `The time saved is ${compactNumber(work / rateA)} - ${hours} = ${extra} hours.`;
+        } else {
+          const ratio = `${rateA}:${rateB}`;
+          question.stem = `Machine A and Machine B produce at rates of ${rateA} and ${rateB} units per hour. What is the ratio of A's output to B's output over the same amount of time?`;
+          refreshPackedChoices(question, ratio, [`${rateB}:${rateA}`, `${rateA + rateB}:${rateB}`, `${rateA}:${rateA + rateB}`, `${hours}:${work}`], `${question.id}-rate-ratio`);
+          question.explanation = `Over the same time, output is proportional to rate, so the ratio is ${rateA}:${rateB}.`;
+        }
+      } else if (question.id.startsWith("std-q-rem-")) {
+        const divisorA = 4 + (idNumber % 9);
+        const divisorB = 7 + ((idNumber * 2) % 11);
+        const remA = 1 + (idNumber % (divisorA - 1));
+        const remB = 1 + ((idNumber * 3) % (divisorB - 1));
+        let answer = remA;
+        let guard = 0;
+        while (answer % divisorB !== remB && guard < 200) {
+          answer += divisorA;
+          guard += 1;
+        }
+        if (guard >= 200) answer = remA + divisorA * divisorB;
+        const stems = [
+          `What is the smallest positive integer n that leaves a remainder of ${remA} when divided by ${divisorA} and a remainder of ${remB} when divided by ${divisorB}?`,
+          `A shipment count leaves ${remA} items over when packed in groups of ${divisorA} and ${remB} items over when packed in groups of ${divisorB}. What is the least possible positive shipment count?`,
+          `What is the least positive value of n if n = ${divisorA}k + ${remA} and n also leaves a remainder of ${remB} when divided by ${divisorB}?`,
+          `A repeating schedule occurs ${remA} days after a ${divisorA}-day cycle and ${remB} days after a ${divisorB}-day cycle. What is the smallest positive day number that fits both descriptions?`,
+          `Which smallest positive integer has residue ${remA} modulo ${divisorA} and residue ${remB} modulo ${divisorB}?`,
+          `A code number is ${remA} more than a multiple of ${divisorA} and ${remB} more than a multiple of ${divisorB}. What is the least possible positive code number?`,
+          `If n - ${remA} is divisible by ${divisorA} and n - ${remB} is divisible by ${divisorB}, what is the least positive value of n?`,
+          `A batch count has remainder ${remA} after division by ${divisorA} and remainder ${remB} after division by ${divisorB}. Which is the smallest possible count?`,
+          `What is the first positive term common to the sequences ${remA}, ${remA + divisorA}, ${remA + 2 * divisorA}, ... and ${remB}, ${remB + divisorB}, ${remB + 2 * divisorB}, ...?`,
+          `A number fits both forms ${divisorA}a + ${remA} and ${divisorB}b + ${remB}. What is the smallest positive value it can have?`
+        ];
+        question.stem = stems[idNumber % stems.length];
+        refreshPackedChoices(question, answer, [answer + divisorA, answer + divisorB, Math.max(1, answer - divisorA), answer + divisorA + divisorB], `${question.id}-rem`);
+        question.explanation = `Check numbers congruent to ${remA} modulo ${divisorA}. The first one with remainder ${remB} modulo ${divisorB} is ${answer}.`;
+      } else if (question.id.startsWith("std-q-count-")) {
+        const total = 7 + idNumber;
+        const chosen = idNumber % 3 === 0 ? 3 : 2;
+        const combinations = chosen === 2 ? total * (total - 1) / 2 : total * (total - 1) * (total - 2) / 6;
+        const stems = [
+          `From ${total} distinct applications, how many groups of ${chosen} can be selected if order does not matter?`,
+          `A committee of ${chosen} people is chosen from ${total} candidates. How many different committees are possible?`,
+          `How many unordered selections of ${chosen} projects can be made from ${total} distinct projects?`,
+          `A reviewer will choose ${chosen} cases from ${total} cases, with order irrelevant. How many choices are possible?`,
+          `How many distinct ${chosen}-member teams can be formed from ${total} available people?`,
+          `A portfolio will include ${chosen} of ${total} available investments. If order is irrelevant, how many portfolios are possible?`,
+          `How many ways can ${chosen} finalists be selected from ${total} nominees?`,
+          `A manager picks ${chosen} tasks from a list of ${total}. How many different unordered picks are possible?`,
+          `How many subsets of size ${chosen} can be formed from a set of ${total} distinct objects?`,
+          `A panel uses ${chosen} of ${total} experts. How many different panels can be assembled?`
+        ];
+        question.stem = stems[idNumber % stems.length];
+        refreshPackedChoices(question, combinations, [total * chosen, Math.max(1, combinations - total), combinations + total, total * (total - 1)], `${question.id}-count`);
+        question.explanation = `Because order does not matter, use combinations: ${total} choose ${chosen} = ${combinations}.`;
+      } else if (question.id.startsWith("std-q-profit-")) {
+        const fixed = 120 + idNumber * 15;
+        const price = 14 + (idNumber % 9);
+        const cost = 5 + ((idNumber * 2) % 6);
+        const units = Math.ceil(fixed / (price - cost)) + 4 + (idNumber % 5);
+        const revenue = units * price;
+        const variableCost = units * cost;
+        const contribution = units * (price - cost);
+        const profit = contribution - fixed;
+        const breakEven = Math.ceil(fixed / (price - cost));
+        const mode = idNumber % 7;
+        if (mode === 0) {
+          question.stem = `A seller has fixed costs of $${fixed}. Each unit sells for $${price} and costs $${cost} to make. What is the profit from selling ${units} units?`;
+          refreshPackedChoices(question, profit, [revenue, variableCost, contribution, Math.max(0, profit - (price - cost))], `${question.id}-profit`);
+          question.explanation = `Profit = ${units}(${price} - ${cost}) - ${fixed} = ${profit}.`;
+        } else if (mode === 1) {
+          question.stem = `A product sells for $${price} per unit. How much revenue is generated by selling ${units} units?`;
+          refreshPackedChoices(question, revenue, [variableCost, contribution, profit, revenue + fixed], `${question.id}-revenue`);
+          question.explanation = `Revenue is price times units: ${price} x ${units} = ${revenue}.`;
+        } else if (mode === 2) {
+          question.stem = `Each unit costs $${cost} to make. What is the total variable cost of making ${units} units?`;
+          refreshPackedChoices(question, variableCost, [revenue, contribution, fixed, variableCost + fixed], `${question.id}-var-cost`);
+          question.explanation = `Variable cost is ${cost} x ${units} = ${variableCost}.`;
+        } else if (mode === 3) {
+          question.stem = `A unit sells for $${price} and costs $${cost} to make. What is the contribution before fixed costs from ${units} units?`;
+          refreshPackedChoices(question, contribution, [revenue, variableCost, profit, contribution + fixed], `${question.id}-contribution`);
+          question.explanation = `Contribution before fixed costs is ${units}(${price} - ${cost}) = ${contribution}.`;
+        } else if (mode === 4) {
+          question.stem = `Fixed costs are $${fixed}, and each unit contributes $${price - cost} after variable cost. What is the least number of units needed to break even?`;
+          refreshPackedChoices(question, breakEven, [Math.floor(fixed / (price - cost)), breakEven + 1, Math.max(1, breakEven - 2), units], `${question.id}-break-even`);
+          question.explanation = `Break-even units equal fixed cost divided by unit contribution, rounded up: ${fixed} / ${price - cost} = ${compactNumber(fixed / (price - cost))}, so ${breakEven} units are needed.`;
+        } else if (mode === 5) {
+          question.stem = `A unit sells for $${price} and has variable cost $${cost}. What is the contribution margin per unit before fixed costs?`;
+          refreshPackedChoices(question, price - cost, [price, cost, price + cost, fixed / units], `${question.id}-unit-margin`);
+          question.explanation = `Contribution margin per unit is selling price minus variable cost: ${price} - ${cost} = ${price - cost}.`;
+        } else {
+          question.stem = `After selling ${units} units, a seller has revenue of $${revenue}, variable cost of $${variableCost}, and fixed cost of $${fixed}. What is the profit?`;
+          refreshPackedChoices(question, profit, [revenue - variableCost, revenue - fixed, variableCost + fixed, Math.max(0, profit + price - cost)], `${question.id}-profit-summary`);
+          question.explanation = `Profit = revenue - variable cost - fixed cost = ${revenue} - ${variableCost} - ${fixed} = ${profit}.`;
+        }
+      }
+    }
+
+    function diversifyQuestionBank(bank) {
+      bank.forEach((question) => {
+        const idNumber = Number((question.id.match(/-(\d+)$/) || [])[1] || 0);
+        if (question.id.startsWith("std-q-")) {
+          rewriteQuantQuestion(question, idNumber);
+        }
+
+        if (question.id.startsWith("std-d-ds-")) {
+          rewriteDataSufficiencyQuestion(question, idNumber);
+        }
+
+        if (question.id.startsWith("std-d-table-")) {
+          const rows = String(question.context).split("\n").slice(1).map((line) => line.split("|").map((part) => part.trim()));
+          const values = rows.map((row) => ({ start: Number(row[1]), end: Number(row[2]) }));
+          const modes = [
+            ["Which region had the greatest absolute increase in units?", (row) => row.end - row.start, "absolute increase"],
+            ["Which region had the smallest absolute increase in units?", (row) => -(row.end - row.start), "smallest absolute increase"],
+            ["Which region had the greatest percent increase in units?", (row) => (row.end - row.start) / row.start, "percent increase"],
+            ["Which region had the highest 2026 unit total?", (row) => row.end, "2026 unit total"],
+            ["Which region began the period with the fewest units?", (row) => -row.start, "lowest 2025 unit total"],
+            ["Which region had the greatest average of its 2025 and 2026 unit totals?", (row) => (row.start + row.end) / 2, "two-year average"],
+            ["Which region's 2026 total exceeded its 2025 total by the greatest ratio?", (row) => row.end / row.start, "2026-to-2025 ratio"],
+            ["Which region ended the period with the fewest units?", (row) => -row.end, "lowest 2026 unit total"],
+            ["Which region had the greatest combined 2025 and 2026 unit total?", (row) => row.start + row.end, "combined total"],
+            ["Which region had the greatest difference between its two listed unit totals?", (row) => Math.abs(row.end - row.start), "difference between listed totals"],
+            ["Which region began the period with the most units?", (row) => row.start, "2025 unit total"],
+            ["Which region's increase was closest to 20 units?", (row) => -Math.abs((row.end - row.start) - 20), "closeness of increase to 20 units"],
+            ["Which region had the lowest 2026-to-2025 ratio?", (row) => -(row.end / row.start), "lowest 2026-to-2025 ratio"],
+            ["Which region's 2026 total was closest to its 2025 total?", (row) => -Math.abs(row.end - row.start), "smallest difference between listed totals"],
+            ["Which region had the smallest combined 2025 and 2026 unit total?", (row) => -(row.start + row.end), "smallest combined total"],
+            ["Which region had the greatest increase as a share of its two-year total?", (row) => (row.end - row.start) / (row.start + row.end), "increase as a share of two-year total"],
+            ["Which region had the smallest increase as a share of its 2025 total?", (row) => -((row.end - row.start) / row.start), "smallest increase as a share of 2025 total"],
+            ["Which region accounted for the largest share of all 2026 units shown?", (row) => row.end, "share of all 2026 units"],
+            ["Which region accounted for the smallest share of all 2025 units shown?", (row) => -row.start, "share of all 2025 units"],
+            ["Which region had the largest increase relative to its 2026 total?", (row) => (row.end - row.start) / row.end, "increase relative to 2026 total"]
+          ];
+          const [stem, metric, label] = modes[idNumber % modes.length];
+          const result = winningIndex(values, metric);
+          question.stem = stem;
+          question.choices = ["Region A", "Region B", "Region C", "Region D", "Tie among regions"];
+          question.answer = result.answer;
+          question.explanation = `Compute the ${label} for each region. The correct choice is ${question.choices[question.answer]}.`;
+        }
+
+        if (question.id.startsWith("std-d-msr-")) {
+          const passengerMatches = [...String(question.context).matchAll(/Route ([ABCD]): (\d+)(?! fare)/g)].slice(0, 4);
+          const fareMatches = [...String(question.context).matchAll(/Route ([ABCD]): \$(\d+) fare, \$(\d+) cost/g)].slice(0, 4);
+          const values = fareMatches.map((match, index) => ({
+            passengers: Number(passengerMatches[index][2]),
+            fare: Number(match[2]),
+            cost: Number(match[3])
+          }));
+          const modes = [
+            ["If expected margin equals fare times forecast passengers minus operating cost, which route has the highest expected margin?", (row) => row.fare * row.passengers - row.cost, "expected margin"],
+            ["Which route has the highest expected revenue before operating cost?", (row) => row.fare * row.passengers, "expected revenue"],
+            ["Which route has the lowest operating cost?", (row) => -row.cost, "lowest operating cost"],
+            ["Which route has the highest forecast passenger count?", (row) => row.passengers, "forecast passengers"],
+            ["Which route has the highest fare per passenger?", (row) => row.fare, "fare per passenger"],
+            ["Which route has the lowest cost per forecast passenger?", (row) => -(row.cost / row.passengers), "cost per passenger"],
+            ["Which route has the highest expected margin per forecast passenger?", (row) => (row.fare * row.passengers - row.cost) / row.passengers, "margin per passenger"],
+            ["Which route has the smallest gap between expected revenue and operating cost?", (row) => -Math.abs(row.fare * row.passengers - row.cost), "revenue-cost gap"],
+            ["Which route has the greatest difference between fare and cost per forecast passenger?", (row) => row.fare - row.cost / row.passengers, "fare minus cost per passenger"],
+            ["Which route has the highest ratio of expected revenue to operating cost?", (row) => row.fare * row.passengers / row.cost, "revenue-to-cost ratio"],
+            ["Which route has the lowest expected margin?", (row) => -(row.fare * row.passengers - row.cost), "lowest expected margin"],
+            ["Which route has the lowest expected revenue before operating cost?", (row) => -(row.fare * row.passengers), "lowest expected revenue"],
+            ["Which route has the highest operating cost?", (row) => row.cost, "highest operating cost"],
+            ["Which route has the lowest forecast passenger count?", (row) => -row.passengers, "lowest forecast passengers"],
+            ["Which route has the lowest fare per passenger?", (row) => -row.fare, "lowest fare per passenger"],
+            ["Which route has the highest cost per forecast passenger?", (row) => row.cost / row.passengers, "highest cost per passenger"],
+            ["Which route has the lowest expected margin per forecast passenger?", (row) => -((row.fare * row.passengers - row.cost) / row.passengers), "lowest margin per passenger"],
+            ["Which route has the largest gap between expected revenue and operating cost?", (row) => Math.abs(row.fare * row.passengers - row.cost), "largest revenue-cost gap"],
+            ["Which route has the smallest difference between fare and cost per forecast passenger?", (row) => -(row.fare - row.cost / row.passengers), "smallest fare minus cost per passenger"],
+            ["Which route has the lowest ratio of expected revenue to operating cost?", (row) => -(row.fare * row.passengers / row.cost), "lowest revenue-to-cost ratio"]
+          ];
+          const [stem, metric, label] = modes[idNumber % modes.length];
+          const result = winningIndex(values, metric);
+          question.stem = stem;
+          question.choices = ["Route A", "Route B", "Route C", "Route D", "Tie among routes"];
+          question.answer = result.answer;
+          question.explanation = `Compute the ${label} for each route. The correct choice is ${question.choices[question.answer]}.`;
+        }
+
+        if (question.id.startsWith("std-v-cr-")) {
+          const actor = (question.stem.match(/\b(?:a|an) ([a-z -]+?) (?:found|predicts|argues|expected)/i) || [null, "company"])[1];
+          const variant = idNumber % 6;
+          if (/Which fact most weakens the conclusion\?/.test(question.stem)) {
+            const corrects = [
+              `During the same period, the ${actor} made another change that directly affected the same target metric.`,
+              `The target metric had already been improving before the plan began.`,
+              `The pilot group consisted mostly of customers already likely to improve on the target metric.`,
+              `The metric was measured only among users who completed the process, excluding users who abandoned it.`,
+              `Similar improvement occurred in comparable cases that were not exposed to the plan.`,
+              `A seasonal shift during the pilot period would have improved the metric even without the plan.`
+            ];
+            refreshPackedChoices(question, corrects[variant], [
+              `The ${actor} recently changed its logo.`,
+              "The plan was described in a short internal memo.",
+              "Competitors use a different approach in another market.",
+              "Some employees preferred the previous process for unrelated reasons."
+            ], `${question.id}-cr-weaken`);
+            question.explanation = "The correct choice weakens the causal conclusion by showing that the observed improvement may not have been caused by the plan.";
+          } else if (/Which evidence most strengthens the prediction\?/.test(question.stem)) {
+            const corrects = [
+              `A comparable group exposed to the plan improved more than a similar group that was not exposed to it.`,
+              `The metric improved only after users began using the plan, not during the comparable period before launch.`,
+              `Cases with the highest exposure to the plan showed the largest improvement in the target outcome.`,
+              `The same improvement appeared in a larger follow-up test using the same plan.`,
+              `Comparable locations that did not use the plan showed little or no improvement on the target metric.`,
+              `The users affected by the plan were the users whose behavior most strongly influenced the target result.`
+            ];
+            refreshPackedChoices(question, corrects[variant], [
+              `The ${actor} has used unrelated process changes before.`,
+              "The plan has a name that employees find easy to remember.",
+              "A competitor announced a different initiative.",
+              "The pilot report included several charts."
+            ], `${question.id}-cr-strengthen`);
+            question.explanation = "The correct choice strengthens the prediction by tying the plan, rather than an unrelated factor, to the intended result.";
+          } else if (/Which fact best explains the result\?/.test(question.stem)) {
+            const corrects = [
+              "The plan increased use by low-margin customers while reducing purchases by higher-margin customers.",
+              "The target metric counted activity but did not account for the discounts needed to generate that activity.",
+              "The change improved one stage of the process while creating a more expensive bottleneck later.",
+              "The plan shifted demand toward transactions with unusually high service costs.",
+              "The metric improved among new users whose support costs exceeded the revenue they generated.",
+              "The plan reduced visible delays but required costly extra staffing to do so."
+            ];
+            refreshPackedChoices(question, corrects[variant], [
+              `The ${actor} recently updated its office directory.`,
+              "The metric was discussed at a meeting after the pilot ended.",
+              "A different market uses a different naming convention.",
+              "Some employees found the old process familiar."
+            ], `${question.id}-cr-explain`);
+            question.explanation = "The correct choice resolves the apparent discrepancy by showing how one metric can improve while profit falls.";
+          } else if (/what question should .* most want answered\?/.test(question.stem)) {
+            const corrects = [
+              "Whether the plan addresses the constraint that most directly prevents the target improvement.",
+              "Whether the expected benefit of the plan is large enough to exceed its implementation and operating costs.",
+              "Whether the users affected by the plan are the users whose behavior most strongly drives the target metric.",
+              "Whether the pilot cases are representative of the cases in which the plan would be used broadly.",
+              "Whether the plan solves the cause of the problem rather than only changing how the problem is measured.",
+              "Whether a less costly change would achieve the same target result."
+            ];
+            refreshPackedChoices(question, corrects[variant], [
+              `Whether the ${actor} has recently changed its logo.`,
+              "Whether every employee prefers the same wording for the plan.",
+              "Whether a competitor uses a different approach in another market.",
+              "Whether the plan can be summarized in fewer than ten words."
+            ], `${question.id}-cr-evaluate`);
+            question.explanation = "The strongest evaluation question tests whether the plan is aimed at the real constraint and whether its benefits justify its costs.";
+          }
+        }
+
+        if (question.id.startsWith("std-v-rc-")) {
+          const subject = (question.context.match(/study of (.*?) compared/) || [null, "the change"])[1];
+          const kind = idNumber % 3;
+          if (kind === 0) {
+            const stems = [
+              `Which choice best captures the author's conclusion about ${subject}?`,
+              `The central claim of the passage about ${subject} is that`,
+              `The passage is mainly concerned with showing that ${subject}`,
+              `Which statement best summarizes the passage's view of ${subject}?`,
+              `The passage's main point about ${subject} is that`
+            ];
+            const correct = `${subject} should be evaluated by weighing both measured benefits and operational trade-offs`;
+            question.stem = stems[idNumber % stems.length];
+            refreshPackedChoices(question, correct, [
+              `${subject} produced only negative results and should be abandoned`,
+              "one favorable metric is enough to justify the entire change",
+              "implementation details are irrelevant when a headline metric improves",
+              "the passage is primarily a technical description of how the change works"
+            ], `${question.id}-rc-main`);
+            question.explanation = `The passage gives a qualified conclusion about ${subject}: it reports a benefit, a limitation, and the need to judge the change with more than one measure.`;
+          } else if (kind === 1) {
+            const stems = [
+              "The passage most strongly implies that managers should",
+              `The authors would most likely advise managers evaluating ${subject} to`,
+              `The passage suggests that decision makers considering ${subject} should`,
+              "The passage implies that managers reviewing a single positive result should",
+              `According to the passage, a practical assessment of ${subject} should`
+            ];
+            const correct = `weigh the benefits of ${subject} against the operational trade-offs`;
+            question.stem = stems[idNumber % stems.length];
+            refreshPackedChoices(question, correct, [
+              `reject all uses of ${subject.split(" ")[0]} technology`,
+              "focus only on the fastest-changing metric",
+              "assume that any improvement in one metric guarantees a profit increase",
+              "ignore implementation details because the broad trend is enough"
+            ], `${question.id}-rc-imply`);
+            question.explanation = `The passage argues that ${subject} has both benefits and limitations, so the correct inference preserves that trade-off.`;
+          } else if (kind === 2) {
+            const stems = [
+              "The reference to a single headline result primarily serves to",
+              "The phrase about a single headline result is used mainly to",
+              `The discussion of one headline metric in the passage about ${subject} serves to`,
+              "The author mentions a single headline result in order to",
+              "In context, the warning about one result primarily serves to"
+            ];
+            const correct = `show why one metric is insufficient for judging ${subject}`;
+            question.stem = stems[idNumber % stems.length];
+            refreshPackedChoices(question, correct, [
+              `prove that ${subject} should never be used`,
+              "show that all measurements are unreliable",
+              "argue that managers should ignore implementation costs",
+              "suggest that the fastest metric is always the most important"
+            ], `${question.id}-rc-role`);
+            question.explanation = `The reference limits overinterpretation: one metric can miss trade-offs that matter to the overall evaluation.`;
+          }
+        }
+
+        question.stem = cleanGeneratedText(question.stem);
+        question.context = cleanGeneratedText(question.context);
+        question.explanation = cleanGeneratedText(question.explanation);
+        question.choices = question.choices.map(cleanGeneratedText);
+      });
+      return bank;
+    }
+
     function buildStandardsAlignedBank() {
       const questions = [];
       const add = (question) => questions.push(question);
@@ -2800,6 +3371,7 @@
     });
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
     BANK.push(...buildStandardsAlignedBank());
+    diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
     const SECTION_SECONDS = 90 * 60;
