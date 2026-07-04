@@ -441,6 +441,7 @@
 
     .question-panel,
     .review-panel,
+    .coach-panel,
     .stats-panel {
       min-width: 0;
       border: 1px solid var(--line);
@@ -820,6 +821,14 @@
       padding: 14px;
     }
 
+    .coach-panel {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      background:
+        linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
+    }
+
     .stats-panel {
       display: grid;
       gap: 0;
@@ -950,6 +959,161 @@
       font-weight: 560;
     }
 
+    .calibration-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .calibration-row input {
+      min-width: 0;
+      min-height: 40px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: #ffffff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 680;
+    }
+
+    .calibration-row input:focus {
+      outline: 3px solid rgba(8, 118, 109, 0.18);
+      border-color: var(--teal);
+    }
+
+    .coach-card {
+      display: grid;
+      gap: 9px;
+      padding: 12px;
+      border: 1px solid #c8d9dc;
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .coach-kicker {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 780;
+      text-transform: uppercase;
+    }
+
+    .coach-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.25;
+      font-weight: 820;
+    }
+
+    .coach-text,
+    .method-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.42;
+      font-weight: 560;
+    }
+
+    .coach-metrics,
+    .method-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .metric-pill {
+      display: grid;
+      gap: 3px;
+      min-height: 48px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fbfb;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.1;
+      font-weight: 720;
+    }
+
+    .metric-pill strong {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 820;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .answer-coach {
+      display: none;
+      gap: 9px;
+      padding: 10px;
+      border: 1px solid #d7e4e6;
+      border-radius: var(--radius);
+      background: #f8fbfb;
+    }
+
+    .answer-coach.is-visible {
+      display: grid;
+    }
+
+    .coach-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .reason-chip {
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid #c9d9dc;
+      border-radius: 999px;
+      color: #27535c;
+      background: #ffffff;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .reason-chip[aria-pressed="true"] {
+      border-color: var(--teal);
+      color: #ffffff;
+      background: var(--teal);
+    }
+
+    .method-panel {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .method-panel > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 12px;
+      cursor: pointer;
+      list-style: none;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .method-panel > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .method-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 12px 12px;
+      border-top: 1px solid var(--line);
+    }
+
     .section-estimates {
       display: grid;
       gap: 7px;
@@ -1006,16 +1170,24 @@
       gap: 7px;
     }
 
+    .error-card {
+      display: grid;
+      gap: 7px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
     .error-item {
       display: grid;
       grid-template-columns: 30px minmax(0, 1fr) auto;
       align-items: center;
       gap: 9px;
-      min-height: 48px;
-      padding: 8px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: #ffffff;
+      min-height: 42px;
+      padding: 0;
+      border: 0;
+      background: transparent;
       text-align: left;
     }
 
@@ -1052,6 +1224,7 @@
     .text-button:focus-visible,
     .icon-button:focus-visible,
     .dot:focus-visible,
+    .reason-chip:focus-visible,
     .error-item:focus-visible {
       outline: 3px solid rgba(8, 118, 109, 0.24);
       outline-offset: 2px;
@@ -1348,6 +1521,7 @@
                 <span id="correctAnswer"></span>
               </div>
               <p id="explanationText"></p>
+              <div class="answer-coach" id="answerCoach"></div>
             </section>
           </div>
         </section>
@@ -1373,7 +1547,19 @@
             </div>
             <p class="estimate-note" id="estimateNote">Section scores run 60-90; total scores run 205-805.</p>
             <div class="section-estimates" id="sectionEstimates" aria-label="Section score estimates"></div>
+            <div class="calibration-row">
+              <input id="officialScoreInput" inputmode="numeric" pattern="[0-9]*" placeholder="Official practice score">
+              <button class="text-button" id="saveOfficialScoreButton">Calibrate</button>
+            </div>
           </div>
+        </section>
+
+        <section class="coach-panel" aria-label="Study Coach">
+          <div class="panel-head">
+            <h2 class="panel-title">Coach</h2>
+            <button class="text-button" id="startPlanButton">Start</button>
+          </div>
+          <div id="coachBody"></div>
         </section>
 
         <section class="review-panel" aria-label="Error Log">
@@ -1382,6 +1568,25 @@
             <button class="text-button" id="clearLogButton" hidden>Clear</button>
           </div>
           <div class="error-list" id="errorList"></div>
+        </section>
+
+        <section class="review-panel" aria-label="Trust and Methodology">
+          <details class="method-panel">
+            <summary>
+              <span>Trust & methodology</span>
+              <span class="tiny-icon" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+            </summary>
+            <div class="method-body">
+              <p class="method-copy" id="methodCopy"></p>
+              <div class="method-metrics" id="methodMetrics"></div>
+              <div class="coach-chip-row">
+                <button class="reason-chip" id="reportQuestionButton">Report current question</button>
+                <button class="reason-chip" id="clearFeedbackButton">Clear reports</button>
+              </div>
+            </div>
+          </details>
         </section>
       </main>
     </div>
@@ -3711,6 +3916,28 @@
     const TOTAL_SCORE_MAX = 805;
     const SECTION_ESTIMATE_MIN = 8;
     const TOTAL_ESTIMATE_MIN = 8;
+    const MISS_REASONS = ["Concept", "Careless", "Timing", "Misread", "Trap"];
+    const CONFIDENCE_REASONS = ["Solid", "Guess"];
+    const SUBSKILL_BY_TOPIC = {
+      Algebra: "Equations and expressions",
+      Percents: "Successive change and ratios",
+      "Number Properties": "Divisibility and remainders",
+      Averages: "Means and weighted averages",
+      Rates: "Work, distance, and unit rates",
+      Functions: "Function notation",
+      Remainders: "Modular arithmetic",
+      Fractions: "Fraction relationships",
+      "Word Problems": "Translation to equations",
+      Combinatorics: "Counting without overcounting",
+      "Critical Reasoning": "Argument structure",
+      "Reading Comprehension": "Passage inference and role",
+      "Table Analysis": "Table comparisons",
+      "Data Sufficiency": "Sufficiency logic",
+      "Graphics Interpretation": "Chart interpretation",
+      "Two-Part Analysis": "Linked constraints",
+      "Multi-Source Reasoning": "Cross-source calculation",
+      Sets: "Overlapping groups"
+    };
     const TOTAL_PERCENTILES = {
       805: 100, 795: 100, 785: 100, 775: 100, 765: 99.9, 755: 99.9, 745: 99.7, 735: 99.6, 725: 99.2, 715: 99,
       705: 98.2, 695: 97.7, 685: 96.2, 675: 95.3, 665: 92.9, 655: 91.3, 645: 87.7, 635: 83.1, 625: 80.5,
@@ -3737,6 +3964,24 @@
         70: 21, 69: 17, 68: 14, 67: 12, 66: 10, 65: 8, 64: 7, 63: 6, 62: 5, 61: 4, 60: 4
       }
     };
+
+    function enrichQuestionBank(questions) {
+      questions.forEach((question) => {
+        const difficulty = clamp(question.difficulty || 2, 1, 5);
+        question.subskill = SUBSKILL_BY_TOPIC[question.topic] || question.topic || "General reasoning";
+        question.expectedSeconds = question.section === "Verbal"
+          ? 115 + difficulty * 15
+          : question.section === "DI"
+            ? 125 + difficulty * 18
+            : 85 + difficulty * 12;
+        question.scoreLevel = 60 + difficulty * 6;
+        question.auditStatus = "Algorithmic format check";
+        question.reviewStatus = "Expert review required before paid launch";
+        question.sourceType = "Original practice item";
+      });
+    }
+
+    enrichQuestionBank(BANK);
     const questionById = new Map(BANK.map((question) => [question.id, question]));
     const $ = (selector) => document.querySelector(selector);
 
@@ -3751,6 +3996,11 @@
       answers: {},
       flagged: {},
       showExplanation: {},
+      missReasons: {},
+      confidenceTags: {},
+      feedbackReports: {},
+      officialScore: "",
+      lastAdjustment: { Quant: null, Verbal: null, DI: null },
       paused: false,
       timers: { Quant: SECTION_SECONDS, Verbal: SECTION_SECONDS, DI: SECTION_SECONDS }
     });
@@ -3780,6 +4030,11 @@
           answers: stored?.answers || {},
           flagged: stored?.flagged || {},
           showExplanation: stored?.showExplanation || {},
+          missReasons: stored?.missReasons || {},
+          confidenceTags: stored?.confidenceTags || {},
+          feedbackReports: stored?.feedbackReports || {},
+          officialScore: stored?.officialScore || "",
+          lastAdjustment: Object.assign(base.lastAdjustment, stored?.lastAdjustment || {}),
           timers: Object.assign(base.timers, stored?.timers || {})
         });
       } catch (_) {
@@ -3822,15 +4077,17 @@
       const pool = (unanswered.length ? unanswered : all).filter((question) => question.id !== lastId);
       const candidates = pool.length ? pool : all;
       const target = state.targetDifficulty[section] || 2;
+      const recentTopics = queue.slice(-3).map((id) => questionById.get(id)?.topic).filter(Boolean);
       return candidates
         .map((question) => {
           const answeredPenalty = state.answers[question.id] ? 42 : 0;
           const queuePenalty = queue.includes(question.id) ? 18 : 0;
+          const recentTopicPenalty = recentTopics.includes(question.topic) ? 10 : 0;
           const weakTopicBonus = topicWeakness(question.topic) * 8;
           const jitter = hashText(`${question.id}-${queue.length}`) % 7;
           return {
             question,
-            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + jitter - weakTopicBonus
+            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + recentTopicPenalty + jitter - weakTopicBonus
           };
         })
         .sort((a, b) => a.score - b.score || a.question.id.localeCompare(b.question.id))[0]?.question;
@@ -4007,12 +4264,33 @@
       };
     }
 
+    function officialScoreValue() {
+      const value = Number.parseInt(state.officialScore, 10);
+      return Number.isFinite(value) && value >= TOTAL_SCORE_MIN && value <= TOTAL_SCORE_MAX ? value : null;
+    }
+
+    function applyOfficialCalibration(totalEstimate) {
+      const official = officialScoreValue();
+      if (!totalEstimate || !official) return totalEstimate;
+      const blendedScore = roundTotalScore(totalEstimate.score * 0.6 + official * 0.4);
+      const halfWidth = Math.max(30, Math.round((totalEstimate.high - totalEstimate.low) * 0.36 / 10) * 10);
+      return {
+        score: blendedScore,
+        low: clamp(blendedScore - halfWidth, TOTAL_SCORE_MIN, TOTAL_SCORE_MAX),
+        high: clamp(blendedScore + halfWidth, TOTAL_SCORE_MIN, TOTAL_SCORE_MAX),
+        answered: totalEstimate.answered,
+        calibrated: true,
+        official
+      };
+    }
+
     function estimateConfidence(sectionEstimates, totalEstimate) {
       const answered = sectionEstimates.map((estimate) => estimate.answered);
       const minimum = Math.min(...answered);
+      if (totalEstimate?.calibrated && minimum >= 15) return "anchored";
       if (totalEstimate && minimum >= 25) return "strong";
       if (totalEstimate && minimum >= 15) return "usable";
-      if (totalEstimate) return "wide";
+      if (totalEstimate) return totalEstimate.calibrated ? "anchored" : "wide";
       if (sectionEstimates.some((estimate) => estimate.ready)) return "section";
       return "early";
     }
@@ -4040,7 +4318,8 @@
     function renderScoreEstimate() {
       const sectionEstimates = sections.map(estimateSectionScore);
       const current = sectionEstimates.find((estimate) => estimate.section === state.section);
-      const totalEstimate = estimateTotalScore(sectionEstimates);
+      const rawTotalEstimate = estimateTotalScore(sectionEstimates);
+      const totalEstimate = applyOfficialCalibration(rawTotalEstimate);
       const confidence = estimateConfidence(sectionEstimates, totalEstimate);
       const missingSections = sectionEstimates
         .filter((estimate) => estimate.answered < TOTAL_ESTIMATE_MIN)
@@ -4053,7 +4332,8 @@
       if (totalEstimate) {
         value = `${totalEstimate.low}-${totalEstimate.high}`;
         percentileText = percentileBand(totalEstimate.low, totalEstimate.high, TOTAL_PERCENTILES, "percentile");
-        note = `${percentileSentence(percentileText)} Total score is the main admissions-facing number; this is still an estimate from ${totalEstimate.answered} answers.`;
+        const calibrationText = totalEstimate.calibrated ? ` Blended with official practice score ${totalEstimate.official}.` : "";
+        note = `${percentileSentence(percentileText)} Total score is the main admissions-facing number; this is still an estimate from ${totalEstimate.answered} answers.${calibrationText}`;
       } else if (current?.answered >= 4) {
         value = `${sectionShortName(current.section)} ${current.low}-${current.high}`;
         percentileText = percentileBand(current.low, current.high, SECTION_PERCENTILES[current.section] || {}, "percentile");
@@ -4069,7 +4349,159 @@
       $("#estimatePercentile").textContent = percentileText;
       $("#estimateConfidence").textContent = confidence;
       $("#estimateNote").textContent = note;
+      $("#officialScoreInput").value = state.officialScore || "";
       renderSectionEstimateRows(sectionEstimates);
+    }
+
+    function sectionTopicStats(section) {
+      const topics = new Map();
+      bySection(section).forEach((question) => {
+        const answer = state.answers[question.id];
+        if (!topics.has(question.topic)) {
+          topics.set(question.topic, { topic: question.topic, subskill: question.subskill, answered: 0, correct: 0, wrong: 0 });
+        }
+        if (answer) {
+          const item = topics.get(question.topic);
+          item.answered += 1;
+          if (answer.correct) item.correct += 1;
+          else item.wrong += 1;
+        }
+      });
+      return [...topics.values()].map((item) => ({
+        ...item,
+        accuracy: item.answered ? item.correct / item.answered : 0,
+        weakness: item.wrong * 2 + Math.max(0, 0.72 - item.accuracy) * Math.max(1, item.answered)
+      }));
+    }
+
+    function masteryLabel(item) {
+      if (!item || item.answered < 3) return "Unseen";
+      if (item.accuracy >= 0.85 && item.wrong === 0) return "Mastered";
+      if (item.accuracy >= 0.7) return "Improving";
+      if (item.wrong >= 2 || item.accuracy < 0.55) return "Weak";
+      return "Unstable";
+    }
+
+    function weakestTopic(section = state.section) {
+      const topics = sectionTopicStats(section).filter((item) => item.answered > 0);
+      if (!topics.length) {
+        const first = currentQuestion();
+        return { topic: first.topic, subskill: first.subskill, answered: 0, correct: 0, wrong: 0, accuracy: 0, weakness: 0 };
+      }
+      return topics.sort((a, b) => b.weakness - a.weakness || b.wrong - a.wrong || a.topic.localeCompare(b.topic))[0];
+    }
+
+    function missedQuestions(section = state.section) {
+      return bySection(section).filter((question) => state.answers[question.id] && !state.answers[question.id].correct);
+    }
+
+    function recommendedSection() {
+      return sections
+        .map((section) => {
+          const stats = statsFor(section);
+          const weak = weakestTopic(section);
+          return {
+            section,
+            score: (stats.wrong * 5) + (weak.weakness || 0) + Math.max(0, TOTAL_ESTIMATE_MIN - stats.answered) * 1.5
+          };
+        })
+        .sort((a, b) => b.score - a.score || sections.indexOf(a.section) - sections.indexOf(b.section))[0]?.section || state.section;
+    }
+
+    function buildStudyPlan() {
+      const section = recommendedSection();
+      const weak = weakestTopic(section);
+      const misses = missedQuestions(section);
+      const target = state.targetDifficulty[section] || 2;
+      const stats = statsFor(section);
+      const sectionName = sectionLabel[section] || section;
+      const nextAction = misses.length
+        ? `Redo ${Math.min(5, misses.length)} missed ${sectionName} question${Math.min(5, misses.length) === 1 ? "" : "s"}, then drill ${weak.topic}.`
+        : `Drill ${weak.topic} at target Level ${target}.`;
+      const session = state.sessionPreset === "Quick"
+        ? "5-minute sprint"
+        : state.sessionPreset === "Focus"
+          ? "30-minute focus block"
+          : "90-minute full block";
+      return {
+        section,
+        sectionName,
+        weak,
+        misses,
+        target,
+        stats,
+        session,
+        nextAction,
+        mastery: masteryLabel(weak)
+      };
+    }
+
+    function renderCoach() {
+      const plan = buildStudyPlan();
+      $("#startPlanButton").textContent = plan.misses.length ? "Redo" : "Start";
+      $("#coachBody").innerHTML = `
+        <div class="coach-card">
+          <span class="coach-kicker">${plan.session}</span>
+          <h3 class="coach-title">${plan.nextAction}</h3>
+          <p class="coach-text">Focus area: ${plan.weak.subskill || plan.weak.topic}. This is based on missed questions, accuracy, and current target difficulty.</p>
+          <div class="coach-metrics">
+            <span class="metric-pill"><strong>${plan.mastery}</strong>${plan.weak.topic}</span>
+            <span class="metric-pill"><strong>${plan.misses.length}</strong>missed due</span>
+            <span class="metric-pill"><strong>L${plan.target}</strong>target level</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function setAnswerTag(questionId, tag, correct) {
+      if (correct) {
+        state.confidenceTags[questionId] = tag;
+      } else {
+        state.missReasons[questionId] = tag;
+      }
+      saveState();
+      render();
+    }
+
+    function renderAnswerCoach(question) {
+      const answer = state.answers[question.id];
+      const container = $("#answerCoach");
+      if (!answer) {
+        container.classList.remove("is-visible");
+        container.innerHTML = "";
+        return;
+      }
+      const adjustment = state.lastAdjustment[question.section];
+      const tags = answer.correct ? CONFIDENCE_REASONS : MISS_REASONS;
+      const selected = answer.correct ? state.confidenceTags[question.id] : state.missReasons[question.id];
+      const label = answer.correct ? "Confidence" : "Miss reason";
+      const buttons = tags.map((tag) => `
+        <button class="reason-chip" type="button" data-answer-tag="${tag}" aria-pressed="${String(selected === tag)}">${tag}</button>
+      `).join("");
+      container.classList.add("is-visible");
+      container.innerHTML = `
+        <p class="coach-text">${adjustment?.message || "Difficulty will adjust after each first attempt."}</p>
+        <p class="coach-text">${question.subskill}. Expected solve time: about ${Math.round(question.expectedSeconds / 5) * 5} seconds.</p>
+        <div>
+          <span class="coach-kicker">${label}</span>
+          <div class="coach-chip-row">${buttons}</div>
+        </div>
+      `;
+      container.querySelectorAll("[data-answer-tag]").forEach((button) => {
+        button.addEventListener("click", () => setAnswerTag(question.id, button.dataset.answerTag, answer.correct));
+      });
+    }
+
+    function renderMethodology() {
+      const reported = Object.keys(state.feedbackReports || {}).length;
+      const expertReviewed = BANK.filter((question) => question.reviewStatus === "Expert reviewed").length;
+      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, and teaching explanations. This build does not claim GMAC affiliation or official scoring; expert review is still required before a real paid launch.";
+      $("#methodMetrics").innerHTML = `
+        <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
+        <span class="metric-pill"><strong>${expertReviewed}</strong>expert reviewed</span>
+        <span class="metric-pill"><strong>${reported}</strong>reported</span>
+      `;
+      $("#clearFeedbackButton").hidden = reported === 0;
     }
 
     function formatTime(seconds) {
@@ -4153,6 +4585,7 @@
         $("#resultLabel").textContent = "";
         $("#correctAnswer").textContent = "";
         $("#explanationText").textContent = "";
+        renderAnswerCoach(question);
         return;
       }
       if (answer?.correct) {
@@ -4164,6 +4597,7 @@
       }
       $("#correctAnswer").textContent = `Answer: ${LETTERS[question.answer]}`;
       $("#explanationText").textContent = question.explanation;
+      renderAnswerCoach(question);
     }
 
     function renderErrorLog() {
@@ -4174,18 +4608,21 @@
       if (!missed.length) {
         const empty = document.createElement("p");
         empty.className = "empty";
-        empty.textContent = "Missed questions will appear here as you practice.";
+        empty.textContent = "Missed questions will appear here with reason tags and redo prompts.";
         container.appendChild(empty);
         return;
       }
       missed.forEach((question) => {
+        const card = document.createElement("div");
+        card.className = "error-card";
         const button = document.createElement("button");
         button.type = "button";
         button.className = "error-item";
         const index = list.findIndex((q) => q.id === question.id);
+        const reason = state.missReasons[question.id] || "Untagged";
         button.innerHTML = `
           <span class="tiny-icon" style="color: var(--red)">${icon.x}</span>
-          <span><strong>Q${index + 1} - ${question.topic}</strong><span>${question.stem}</span></span>
+          <span><strong>Q${index + 1} - ${question.topic}</strong><span>${reason} - ${question.subskill}</span></span>
           <span class="tiny-icon" aria-hidden="true">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
@@ -4199,7 +4636,20 @@
           render();
           window.scrollTo({ top: 0, behavior: "smooth" });
         });
-        container.appendChild(button);
+        const chips = document.createElement("div");
+        chips.className = "coach-chip-row";
+        MISS_REASONS.forEach((tag) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "reason-chip";
+          chip.textContent = tag;
+          chip.setAttribute("aria-pressed", String(state.missReasons[question.id] === tag));
+          chip.addEventListener("click", () => setAnswerTag(question.id, tag, false));
+          chips.appendChild(chip);
+        });
+        card.appendChild(button);
+        card.appendChild(chips);
+        container.appendChild(card);
       });
     }
 
@@ -4240,6 +4690,8 @@
       renderChoices(question);
       renderExplanation(question);
       renderErrorLog();
+      renderCoach();
+      renderMethodology();
 
       $("#previousButton").disabled = index === 0;
       $("#nextButton").textContent = "Next";
@@ -4280,9 +4732,25 @@
         state.streakBySection[section] = (state.streakBySection[section] || 0) + 1;
         const shouldRaise = state.streakBySection[section] >= 2 || question.difficulty > previousTarget;
         state.targetDifficulty[section] = clamp(previousTarget + (shouldRaise ? 1 : 0), 1, 5);
+        const newTarget = state.targetDifficulty[section];
+        state.lastAdjustment[section] = {
+          previousTarget,
+          newTarget,
+          message: newTarget > previousTarget
+            ? `Difficulty moved from L${previousTarget} to L${newTarget} because you are handling this level.`
+            : `Difficulty stayed at L${newTarget}; one more strong answer can move the target up.`
+        };
       } else {
         state.streakBySection[section] = 0;
         state.targetDifficulty[section] = clamp(previousTarget - 1, 1, 5);
+        const newTarget = state.targetDifficulty[section];
+        state.lastAdjustment[section] = {
+          previousTarget,
+          newTarget,
+          message: newTarget < previousTarget
+            ? `Difficulty moved from L${previousTarget} to L${newTarget} after a miss in ${question.topic}.`
+            : `Difficulty stayed at L${newTarget}; review the miss before pushing harder.`
+        };
       }
     }
 
@@ -4312,6 +4780,8 @@
         delete state.answers[question.id];
         delete state.flagged[question.id];
         delete state.showExplanation[question.id];
+        delete state.missReasons[question.id];
+        delete state.confidenceTags[question.id];
       });
       state.indexBySection[state.section] = 0;
       state.queueBySection[state.section] = [];
@@ -4349,6 +4819,47 @@
       render();
     }
 
+    function startRecommendedPlan() {
+      const plan = buildStudyPlan();
+      state.section = plan.section;
+      const queue = cleanQueue(plan.section);
+      const targetQuestion = plan.misses[0] || pickAdaptiveQuestion(plan.section);
+      if (targetQuestion && !queue.includes(targetQuestion.id)) queue.push(targetQuestion.id);
+      if (targetQuestion) {
+        state.indexBySection[plan.section] = Math.max(0, queue.indexOf(targetQuestion.id));
+        if (plan.misses[0]) state.showExplanation[targetQuestion.id] = false;
+      }
+      if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
+        state.timers[state.section] = sessionSeconds();
+      }
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function saveOfficialScore() {
+      const value = Number.parseInt($("#officialScoreInput").value, 10);
+      if (Number.isFinite(value) && value >= TOTAL_SCORE_MIN && value <= TOTAL_SCORE_MAX) {
+        state.officialScore = String(value);
+      } else {
+        state.officialScore = "";
+      }
+      saveState();
+      render();
+    }
+
+    function reportCurrentQuestion() {
+      const question = currentQuestion();
+      state.feedbackReports[question.id] = {
+        at: Date.now(),
+        section: question.section,
+        topic: question.topic,
+        status: "Needs review"
+      };
+      saveState();
+      render();
+    }
+
     document.querySelectorAll(".segment").forEach((button) => {
       button.addEventListener("click", () => {
         state.section = button.dataset.section;
@@ -4378,6 +4889,17 @@
     $("#resetButton").addEventListener("click", resetSection);
     $("#flagButton").addEventListener("click", toggleFlag);
     $("#reviewButton").addEventListener("click", toggleFlag);
+    $("#startPlanButton").addEventListener("click", startRecommendedPlan);
+    $("#saveOfficialScoreButton").addEventListener("click", saveOfficialScore);
+    $("#officialScoreInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") saveOfficialScore();
+    });
+    $("#reportQuestionButton").addEventListener("click", reportCurrentQuestion);
+    $("#clearFeedbackButton").addEventListener("click", () => {
+      state.feedbackReports = {};
+      saveState();
+      render();
+    });
 
     $("#explainButton").addEventListener("click", () => {
       const question = currentQuestion();
@@ -4411,6 +4933,7 @@
         if (state.answers[question.id] && !state.answers[question.id].correct) {
           delete state.answers[question.id];
           delete state.showExplanation[question.id];
+          delete state.missReasons[question.id];
         }
       });
       saveState();
