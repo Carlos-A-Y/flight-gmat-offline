@@ -343,11 +343,12 @@
       transform-origin: left center;
     }
 
+    .exam-switch,
     .segments {
       position: relative;
       z-index: 1;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--segment-count, 3), minmax(0, 1fr));
       gap: 0;
       margin: 0;
       padding: 0;
@@ -358,6 +359,7 @@
       backdrop-filter: blur(18px);
     }
 
+    .exam-button,
     .segment {
       min-width: 0;
       min-height: 54px;
@@ -370,10 +372,12 @@
       white-space: nowrap;
     }
 
+    .exam-button:last-child,
     .segment:last-child {
       border-right: 0;
     }
 
+    .exam-button,
     .segment,
     .session-button,
     .mode-button {
@@ -383,12 +387,14 @@
       gap: 7px;
     }
 
+    .exam-button svg,
     .segment svg,
     .session-button svg,
     .mode-button svg {
       flex: 0 0 auto;
     }
 
+    .exam-button span,
     .segment span,
     .session-button span,
     .mode-button span {
@@ -424,6 +430,10 @@
       border-radius: var(--radius);
       overflow: hidden;
       background: #ffffff;
+    }
+
+    .exam-switch {
+      --segment-count: 2;
     }
 
     .drill-focus {
@@ -529,6 +539,7 @@
       border-radius: 6px;
     }
 
+    .exam-button,
     .session-button,
     .mode-button {
       min-width: 0;
@@ -541,11 +552,13 @@
       font-weight: 760;
     }
 
+    .exam-button:last-child,
     .session-button:last-child,
     .mode-button:last-child {
       border-right: 0;
     }
 
+    .exam-button[aria-selected="true"],
     .session-button[aria-selected="true"],
     .mode-button[aria-selected="true"] {
       border-color: var(--line);
@@ -839,6 +852,40 @@
     .choice.is-wrong .choice-letter {
       border-color: var(--red);
       color: var(--red);
+    }
+
+    .numeric-response,
+    .essay-response {
+      display: grid;
+      gap: 10px;
+      padding: 12px 0 0;
+    }
+
+    .numeric-response {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .numeric-response input,
+    .essay-response textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+      color: var(--text);
+      font: inherit;
+    }
+
+    .numeric-response input {
+      min-height: 46px;
+      padding: 0 12px;
+    }
+
+    .essay-response textarea {
+      min-height: 220px;
+      padding: 12px;
+      resize: vertical;
+      line-height: 1.45;
     }
 
     .actions-row {
@@ -1740,6 +1787,7 @@
       padding-top: 0;
     }
 
+    .exam-switch,
     .segments,
     .session-lengths,
     .mode-switch,
@@ -1748,6 +1796,7 @@
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
     }
 
+    .exam-button,
     .segment,
     .session-button,
     .mode-button {
@@ -1765,6 +1814,7 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
     }
 
+    .exam-button[aria-selected="true"],
     .session-button[aria-selected="true"],
     .mode-button[aria-selected="true"] {
       color: #7c4700;
@@ -2478,6 +2528,7 @@
       display: none;
     }
 
+    .exam-switch,
     .segments,
     .session-lengths,
     .mode-switch,
@@ -2487,6 +2538,7 @@
       box-shadow: none;
     }
 
+    .exam-button,
     .segment,
     .session-button,
     .mode-button {
@@ -2499,6 +2551,7 @@
       text-transform: none;
     }
 
+    .exam-button[aria-selected="true"],
     .segment[aria-selected="true"],
     .session-button[aria-selected="true"],
     .mode-button[aria-selected="true"] {
@@ -3121,6 +3174,14 @@
               <button class="text-button" id="pauseButton" aria-label="Pause timer"></button>
               <button class="text-button" id="resetButton" aria-label="Reset section"></button>
             </div>
+            <nav class="exam-switch" aria-label="Exam">
+              <button class="exam-button" data-exam="GMAT" aria-selected="true">
+                <span>GMAT</span>
+              </button>
+              <button class="exam-button" data-exam="GRE" aria-selected="false">
+                <span>GRE</span>
+              </button>
+            </nav>
             <nav class="mode-switch" aria-label="Practice mode">
               <button class="mode-button" data-mode="Official" aria-selected="false">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4h12v16H6V4Zm3 5h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -3131,7 +3192,7 @@
                 <span>Section drill</span>
               </button>
             </nav>
-            <nav class="segments" aria-label="GMAT section">
+            <nav class="segments" id="sectionSegments" aria-label="GMAT section">
               <button class="segment" data-section="Quant" aria-selected="true">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v14H5V5Zm4 0v14M5 9h14M5 14h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 <span>Quant</span>
@@ -3296,10 +3357,46 @@
     const sectionLabel = {
       Quant: "Quant",
       Verbal: "Verbal",
-      DI: "Data Insights"
+      DI: "Data Insights",
+      GREWriting: "Analytical Writing",
+      GREVerbal: "Verbal Reasoning",
+      GREQuant: "Quantitative Reasoning",
+      GREWritingOfficial: "Analytical Writing",
+      GREVerbal1: "Verbal 1",
+      GREQuant1: "Quant 1",
+      GREVerbal2: "Verbal 2",
+      GREQuant2: "Quant 2"
     };
 
     const sections = ["Quant", "Verbal", "DI"];
+    const GRE_DRILL_SECTIONS = ["GREVerbal", "GREQuant", "GREWriting"];
+    const GRE_OFFICIAL_SECTIONS = ["GREWritingOfficial", "GREVerbal1", "GREQuant1", "GREVerbal2", "GREQuant2"];
+    const ALL_SECTIONS = [...sections, ...GRE_DRILL_SECTIONS, ...GRE_OFFICIAL_SECTIONS];
+    const SECTION_POOL = {
+      GREWritingOfficial: "GREWriting",
+      GREVerbal1: "GREVerbal",
+      GREVerbal2: "GREVerbal",
+      GREQuant1: "GREQuant",
+      GREQuant2: "GREQuant"
+    };
+    const EXAM_CONFIG = {
+      GMAT: {
+        label: "GMAT",
+        defaultSection: "Quant",
+        drillSections: sections,
+        officialSections: sections,
+        scoredSections: sections,
+        tagline: "GMAT practice offline"
+      },
+      GRE: {
+        label: "GRE",
+        defaultSection: "GREVerbal",
+        drillSections: GRE_DRILL_SECTIONS,
+        officialSections: GRE_OFFICIAL_SECTIONS,
+        scoredSections: ["GREVerbal", "GREQuant", "GREWriting"],
+        tagline: "GRE practice offline"
+      }
+    };
     const OFFICIAL_GMAT_BLUEPRINT = {
       Quant: {
         officialName: "Quantitative Reasoning",
@@ -3336,6 +3433,42 @@
         scoreReportQuestionTypes: ["Data Sufficiency", "Multi-Source Reasoning", "Table Analysis", "Graphics Interpretation", "Two-Part Analysis"],
         fundamentalSkills: ["Sufficiency logic", "Multi-source synthesis", "Table/graphic interpretation", "Two-part analysis"],
         publicSkills: ["Data interpretation", "Data sufficiency", "Multi-source synthesis", "Quantitative and verbal analysis"]
+      },
+      GREWriting: {
+        officialName: "Analytical Writing",
+        shortName: "AW",
+        questions: 1,
+        minutes: 30,
+        calculator: false,
+        questionTypes: ["Analyze an Issue"],
+        contentDomains: ["Issue Task"],
+        scoreReportQuestionTypes: ["Analyze an Issue"],
+        fundamentalSkills: ["Develop a position", "Support with reasons and examples", "Organization and control of language"],
+        publicSkills: ["Articulate complex ideas", "Support ideas with reasons and examples", "Sustain a focused discussion", "Control written English"]
+      },
+      GREVerbal: {
+        officialName: "Verbal Reasoning",
+        shortName: "V",
+        questions: 27,
+        minutes: 41,
+        calculator: false,
+        questionTypes: ["Reading Comprehension", "Text Completion", "Sentence Equivalence"],
+        contentDomains: ["Reading Comprehension", "Text Completion", "Sentence Equivalence"],
+        scoreReportQuestionTypes: ["Reading Comprehension", "Text Completion", "Sentence Equivalence"],
+        fundamentalSkills: ["Passage analysis", "Inference and function", "Vocabulary in context", "Sentence logic and equivalence"],
+        publicSkills: ["Analyze written material", "Synthesize information", "Analyze sentence relationships", "Recognize word and concept relationships"]
+      },
+      GREQuant: {
+        officialName: "Quantitative Reasoning",
+        shortName: "Q",
+        questions: 27,
+        minutes: 47,
+        calculator: true,
+        questionTypes: ["Quantitative Comparison", "Multiple-choice: Select One", "Multiple-choice: Select One or More", "Numeric Entry", "Data Interpretation Set"],
+        contentDomains: ["Arithmetic", "Algebra", "Geometry", "Data Analysis"],
+        scoreReportQuestionTypes: ["Quantitative Comparison", "Multiple-choice: Select One", "Multiple-choice: Select One or More", "Numeric Entry", "Data Interpretation Set"],
+        fundamentalSkills: ["Number properties and arithmetic", "Algebra and functions", "Geometry and measurement", "Statistics, probability, and data interpretation"],
+        publicSkills: ["Understand quantitative information", "Interpret and analyze quantitative information", "Solve problems with mathematical models", "Apply arithmetic, algebra, geometry, and data analysis"]
       }
     };
 
@@ -3367,6 +3500,23 @@
         "Table Analysis": { officialType: "Table Analysis", contentDomain: "Data Insights", scoreReportQuestionType: "Table Analysis", fundamentalSkill: "Table/graphic interpretation", trainingArea: "Table Analysis", subskill: "Sorting, filtering, and table comparisons" },
         "Graphics Interpretation": { officialType: "Graphics Interpretation", contentDomain: "Data Insights", scoreReportQuestionType: "Graphics Interpretation", fundamentalSkill: "Table/graphic interpretation", trainingArea: "Graphics Interpretation", subskill: "Chart interpretation and relationship finding" },
         "Two-Part Analysis": { officialType: "Two-Part Analysis", contentDomain: "Data Insights", scoreReportQuestionType: "Two-Part Analysis", fundamentalSkill: "Two-part analysis", trainingArea: "Two-Part Analysis", subskill: "Linked constraints, tradeoffs, and paired answers" }
+      },
+      GREWriting: {
+        "Issue Task": { officialType: "Analyze an Issue", contentDomain: "Issue Task", scoreReportQuestionType: "Analyze an Issue", fundamentalSkill: "Develop a position", trainingArea: "Analytical Writing", subskill: "Position, reasons, examples, organization, and language control" }
+      },
+      GREVerbal: {
+        "Reading Comprehension": { officialType: "Reading Comprehension", contentDomain: "Reading Comprehension", scoreReportQuestionType: "Reading Comprehension", fundamentalSkill: "Passage analysis", trainingArea: "Reading Comprehension", subskill: "Main idea, inference, function, detail, and evidence" },
+        "Text Completion": { officialType: "Text Completion", contentDomain: "Text Completion", scoreReportQuestionType: "Text Completion", fundamentalSkill: "Vocabulary in context", trainingArea: "Text Completion", subskill: "Sentence logic, contrast, support, and precision" },
+        "Sentence Equivalence": { officialType: "Sentence Equivalence", contentDomain: "Sentence Equivalence", scoreReportQuestionType: "Sentence Equivalence", fundamentalSkill: "Sentence logic and equivalence", trainingArea: "Sentence Equivalence", subskill: "Two synonymous completions that preserve sentence meaning" }
+      },
+      GREQuant: {
+        Arithmetic: { officialType: "Multiple-choice: Select One", contentDomain: "Arithmetic", scoreReportQuestionType: "Multiple-choice: Select One", fundamentalSkill: "Number properties and arithmetic", trainingArea: "Arithmetic", subskill: "Integers, fractions, ratios, percents, exponents, and estimation" },
+        Algebra: { officialType: "Multiple-choice: Select One", contentDomain: "Algebra", scoreReportQuestionType: "Multiple-choice: Select One", fundamentalSkill: "Algebra and functions", trainingArea: "Algebra", subskill: "Equations, inequalities, functions, expressions, and word translations" },
+        Geometry: { officialType: "Multiple-choice: Select One", contentDomain: "Geometry", scoreReportQuestionType: "Multiple-choice: Select One", fundamentalSkill: "Geometry and measurement", trainingArea: "Geometry", subskill: "Lines, angles, triangles, circles, polygons, coordinate geometry, area, volume, and measurement" },
+        "Data Analysis": { officialType: "Data Interpretation Set", contentDomain: "Data Analysis", scoreReportQuestionType: "Data Interpretation Set", fundamentalSkill: "Statistics, probability, and data interpretation", trainingArea: "Data Analysis", subskill: "Tables, charts, descriptive statistics, probability, counting, and distributions" },
+        "Quantitative Comparison": { officialType: "Quantitative Comparison", contentDomain: "Algebra", scoreReportQuestionType: "Quantitative Comparison", fundamentalSkill: "Algebra and functions", trainingArea: "Quantitative Comparison", subskill: "Compare Quantity A and Quantity B or determine insufficiency" },
+        "Numeric Entry": { officialType: "Numeric Entry", contentDomain: "Arithmetic", scoreReportQuestionType: "Numeric Entry", fundamentalSkill: "Number properties and arithmetic", trainingArea: "Numeric Entry", subskill: "Enter exact integer, decimal, or fraction values" },
+        "Select Multiple": { officialType: "Multiple-choice: Select One or More", contentDomain: "Data Analysis", scoreReportQuestionType: "Multiple-choice: Select One or More", fundamentalSkill: "Statistics, probability, and data interpretation", trainingArea: "Select One or More", subskill: "Select every answer choice that satisfies the condition" }
       }
     };
 
@@ -4512,11 +4662,11 @@
     }
 
     function officialTypesForSection(section) {
-      return OFFICIAL_GMAT_BLUEPRINT[section]?.questionTypes || [];
+      return OFFICIAL_GMAT_BLUEPRINT[sectionBlueprintKey(section)]?.questionTypes || [];
     }
 
     function topicBlueprintForQuestion(question) {
-      return TRAINING_TOPIC_BLUEPRINT[question.section]?.[question.topic] || null;
+      return TRAINING_TOPIC_BLUEPRINT[sectionBlueprintKey(question.section)]?.[question.topic] || null;
     }
 
     function officialTypeForQuestion(question) {
@@ -4567,7 +4717,7 @@
     }
 
     function blueprintRank(section, key, value) {
-      const values = OFFICIAL_GMAT_BLUEPRINT[section]?.[key] || [];
+      const values = OFFICIAL_GMAT_BLUEPRINT[sectionBlueprintKey(section)]?.[key] || [];
       const index = values.indexOf(value);
       return index === -1 ? 99 : index;
     }
@@ -4575,7 +4725,11 @@
     function isStandardsAlignedQuestion(question) {
       const text = `${question.stem || ""} ${question.context || ""} ${question.explanation || ""}`;
       const officialType = officialTypeForQuestion(question);
-      const officialTypes = officialTypesForSection(question.section);
+      const poolSection = sectionPoolKey(question.section);
+      const officialTypes = officialTypesForSection(poolSection);
+      if (poolSection === "GREWriting" || poolSection === "GREVerbal" || poolSection === "GREQuant") {
+        return officialTypes.includes(officialType);
+      }
       if (question.section === "Quant") {
         return officialType === "Problem Solving" && !/\b(geometry|triangle|rectangle|perimeter|area|angle)s?\b/i.test(`${question.topic || ""} ${text}`);
       }
@@ -6264,14 +6418,1148 @@
       return questions;
     }
 
+    function buildGREBank() {
+      const questions = [];
+      const add = (question) => questions.push(question);
+      const qcChoices = [
+        "Quantity A is greater.",
+        "Quantity B is greater.",
+        "The two quantities are equal.",
+        "The relationship cannot be determined from the information given."
+      ];
+
+      const quantExplanation = (skill, work, trap = "Do not do extra computation after the comparison or target value is already determined.") => [
+        `What this is testing: ${skill}.`,
+        `Step-by-step work: ${work}`,
+        `Avoid this trap: ${trap}`,
+        "How to tackle similar GRE Quant questions: identify exactly what is constrained, choose the shortest valid computation, keep units and inequalities attached to the variables, and check that your final choice answers the question asked."
+      ].join("\n\n");
+      const verbalExplanation = (logic, correct, wrong = "The other choices either reverse the direction of the sentence, add an unsupported extreme, or fail to create the same meaning.") => [
+        `Core logic: ${logic}`,
+        `Why the correct answer works: ${correct}`,
+        `Why the other answers fail: ${wrong}`,
+        "How to tackle similar GRE Verbal questions: mark the pivot words, predict the missing idea before looking at choices, then choose the option or pair that matches the sentence or passage without adding information."
+      ].join("\n\n");
+      const addSingle = ({ id, section = "GREQuant", topic, stem, correct, distractors, explanation, difficulty, context }) => {
+        const packed = packChoices(correct, distractors, id);
+        add({
+          id,
+          exam: "GRE",
+          section,
+          topic,
+          responseType: "single",
+          context,
+          stem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation,
+          difficulty
+        });
+      };
+      const addNumericEntry = ({ id, topic, stem, answer, explanation, difficulty, context }) => {
+        add({
+          id,
+          exam: "GRE",
+          section: "GREQuant",
+          topic,
+          responseType: "numeric",
+          context,
+          stem,
+          answer: String(answer),
+          explanation,
+          difficulty
+        });
+      };
+      const addMulti = ({ id, section = "GREQuant", topic, stem, choices, answer, explanation, difficulty, context }) => {
+        add({
+          id,
+          exam: "GRE",
+          section,
+          topic,
+          responseType: "multi",
+          context,
+          stem,
+          choices: choices.map(String),
+          answer,
+          explanation,
+          difficulty
+        });
+      };
+
+      for (let index = 0; index < 140; index += 1) {
+        const mode = index % 14;
+        let stem;
+        let answer;
+        let explanation;
+        if (mode === 0) {
+          const a = 2 + (index % 7);
+          stem = `x is a positive number.\nQuantity A: x/${a}\nQuantity B: x/${a + 2}`;
+          answer = 0;
+          explanation = quantExplanation("Quantitative Comparison with positive variables", `Because x is positive, dividing by the smaller denominator gives the larger value. Since ${a} is less than ${a + 2}, x/${a} is greater than x/${a + 2}. Quantity A is greater.`);
+        } else if (mode === 1) {
+          const n = 4 + (index % 18);
+          stem = `n is an integer greater than ${n - 1}.\nQuantity A: n^2 + n\nQuantity B: n^2 - n`;
+          answer = 0;
+          explanation = quantExplanation("Comparing algebraic expressions", `Subtract Quantity B from Quantity A: (n^2 + n) - (n^2 - n) = 2n. Since n is greater than ${n - 1}, n is positive, so 2n is positive. Quantity A is greater.`);
+        } else if (mode === 2) {
+          stem = "x is a real number.\nQuantity A: x^2\nQuantity B: x";
+          answer = 3;
+          explanation = quantExplanation("Testing multiple possible values", "Try values allowed by the condition. If x = 2, then x^2 = 4 and Quantity A is greater. If x = 1, the quantities are equal. If x = 1/2, Quantity B is greater. Because different allowed values give different relationships, the relationship cannot be determined.", "Do not assume x is an integer or positive unless the question says so.");
+        } else if (mode === 3) {
+          const r = 2 + (index % 9);
+          stem = `A circle has radius ${r}.\nQuantity A: the circumference of the circle divided by its diameter\nQuantity B: pi`;
+          answer = 2;
+          explanation = quantExplanation("Circle formulas", `The circumference is 2pi r and the diameter is 2r. Their ratio is (2pi r)/(2r) = pi. The two quantities are equal.`);
+        } else if (mode === 4) {
+          const a = 2 + (index % 8);
+          stem = `0 < a < b.\nQuantity A: a/b\nQuantity B: b/a`;
+          answer = 1;
+          explanation = quantExplanation("Positive fractions and reciprocal comparisons", "Since 0 < a < b, the fraction a/b is less than 1, while b/a is greater than 1. Quantity B is greater.");
+        } else if (mode === 5) {
+          const c = 3 + (index % 11);
+          stem = `m is an odd integer.\nQuantity A: the remainder when m^2 is divided by 8\nQuantity B: 1`;
+          answer = 2;
+          explanation = quantExplanation("Number properties of odd squares", `Any odd integer can be written as 2k + 1. Squaring gives 4k^2 + 4k + 1 = 4k(k + 1) + 1. Since k(k + 1) is even, 4k(k + 1) is a multiple of 8, so the remainder is always 1. The extra value ${c} is irrelevant; the property holds for all odd integers.`);
+        } else if (mode === 6) {
+          stem = "x is greater than 1.\nQuantity A: x + 1/x\nQuantity B: 2";
+          answer = 0;
+          explanation = quantExplanation("Inequalities with reciprocals", "For x > 1, x is greater than 1 and 1/x is positive. Therefore x + 1/x is greater than 1 + 0 and, more specifically, is greater than 2 for every x greater than 1. Quantity A is greater.");
+        } else if (mode === 7) {
+          const p = 12 + (index % 30);
+          stem = `Quantity A: ${p}% of 100\nQuantity B: ${p}`;
+          answer = 2;
+          explanation = quantExplanation("Percent meaning", `${p}% means ${p}/100. Therefore ${p}% of 100 equals (${p}/100) x 100 = ${p}. The two quantities are equal.`);
+        } else if (mode === 8) {
+          const total = 16 + (index % 12) * 2;
+          stem = `A class has ${total} students, and exactly half are seniors.\nQuantity A: the number of seniors\nQuantity B: ${total / 2}`;
+          answer = 2;
+          explanation = quantExplanation("Translating a fractional statement", `Half of ${total} is ${total}/2 = ${total / 2}. The number of seniors is exactly ${total / 2}, so the quantities are equal.`);
+        } else if (mode === 9) {
+          const x = 5 + (index % 13);
+          stem = `x and y are positive and x < y.\nQuantity A: x - y\nQuantity B: y - x`;
+          answer = 1;
+          explanation = quantExplanation("Sign of differences", `Because x < y, x - y is negative and y - x is positive. A positive number is greater than a negative number, so Quantity B is greater. For example, x = ${x} and y = ${x + 2} gives Quantity A = -2 and Quantity B = 2.`);
+        } else if (mode === 10) {
+          const width = 3 + (index % 8);
+          const length = width + 4;
+          stem = `A rectangle has width ${width} and length ${length}.\nQuantity A: its area\nQuantity B: its perimeter`;
+          const area = width * length;
+          const perimeter = 2 * (width + length);
+          answer = area > perimeter ? 0 : area < perimeter ? 1 : 2;
+          explanation = quantExplanation("Area and perimeter comparison", `Area = ${width} x ${length} = ${area}. Perimeter = 2(${width} + ${length}) = ${perimeter}. Comparing those values gives the stated relationship.`);
+        } else if (mode === 11) {
+          stem = "x is a positive number less than 1.\nQuantity A: x\nQuantity B: x^2";
+          answer = 0;
+          explanation = quantExplanation("Fractions between 0 and 1", "When 0 < x < 1, multiplying x by another factor less than 1 makes it smaller. Therefore x^2 is less than x, and Quantity A is greater.");
+        } else if (mode === 12) {
+          const a = 2 + (index % 9);
+          const b = a + 3;
+          stem = `The average of a and b is ${((a + b) / 2).toFixed(1)}.\nQuantity A: a + b\nQuantity B: ${a + b}`;
+          answer = 2;
+          explanation = quantExplanation("Mean as total divided by count", `For two numbers, average = sum / 2. If the average is ${((a + b) / 2).toFixed(1)}, the sum is 2 x ${((a + b) / 2).toFixed(1)} = ${a + b}. The quantities are equal.`);
+        } else {
+          const n = 8 + (index % 17);
+          stem = `n is a positive integer.\nQuantity A: the number of positive divisors of ${n}\nQuantity B: 2`;
+          answer = 3;
+          explanation = quantExplanation("Divisors and insufficient information patterns", `The value of n changes the number of divisors. If n is prime, it has exactly 2 positive divisors. If n = 12, it has more than 2 positive divisors. Since both cases are allowed by the condition that n is a positive integer, the relationship cannot be determined.`);
+        }
+        add({
+          id: `gre-qc-${index}`,
+          exam: "GRE",
+          section: "GREQuant",
+          topic: "Quantitative Comparison",
+          responseType: "single",
+          stem,
+          choices: qcChoices,
+          answer,
+          explanation,
+          difficulty: clamp(1 + Math.floor(index / 32), 1, 5)
+        });
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const mode = index % 9;
+        const id = `gre-arith-${index}`;
+        if (mode === 0) {
+          const base = 80 + index;
+          const pct = 5 + (index % 31);
+          const result = Number((base * pct / 100).toFixed(2));
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `${pct}% of ${base} is equal to which of the following?`,
+            correct: result,
+            distractors: [base + pct, Number((base / pct).toFixed(2)), Number((result + 4).toFixed(2)), Number((result * 10).toFixed(2))],
+            explanation: quantExplanation("Percent calculations", `Percent means "per 100." Convert ${pct}% to ${pct}/100, then compute (${pct}/100) x ${base} = ${result}.`),
+            difficulty: clamp(1 + Math.floor(index / 22), 1, 5)
+          });
+        } else if (mode === 1) {
+          const a = 3 + (index % 8);
+          const b = a + 2 + (index % 5);
+          const scale = 4 + (index % 6);
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `The ratio of red tiles to blue tiles is ${a}:${b}. If there are ${scale * (a + b)} tiles in all, how many are blue?`,
+            correct: scale * b,
+            distractors: [scale * a, scale * (a + b), a + b, scale * b + a],
+            explanation: quantExplanation("Ratios as parts of a whole", `The ratio has ${a + b} total parts. Since the total is ${scale * (a + b)}, each part is ${scale}. Blue tiles account for ${b} parts, so the number of blue tiles is ${b} x ${scale} = ${scale * b}.`),
+            difficulty: clamp(1 + Math.floor(index / 20), 1, 5)
+          });
+        } else if (mode === 2) {
+          const n = 40 + index;
+          const divisor = 3 + (index % 7);
+          const remainder = n % divisor;
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `What is the remainder when ${n} is divided by ${divisor}?`,
+            correct: remainder,
+            distractors: [divisor, remainder + divisor, Math.max(0, remainder - 1), divisor - remainder],
+            explanation: quantExplanation("Remainders", `Divide ${n} by ${divisor}. The largest multiple of ${divisor} not exceeding ${n} is ${n - remainder}, so the remainder is ${n} - ${n - remainder} = ${remainder}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 3) {
+          const start = 24 + index;
+          const increase = 10 + (index % 16);
+          const result = Number((start * (1 + increase / 100)).toFixed(2));
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `A quantity of ${start} is increased by ${increase}%. What is the new quantity?`,
+            correct: result,
+            distractors: [start + increase, Number((start * increase / 100).toFixed(2)), Number((result - increase).toFixed(2)), Number((start * (1 - increase / 100)).toFixed(2))],
+            explanation: quantExplanation("Percent increase", `An increase of ${increase}% means multiply by 1 + ${increase}/100 = ${(1 + increase / 100).toFixed(2)}. The new quantity is ${start} x ${(1 + increase / 100).toFixed(2)} = ${result}.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else if (mode === 4) {
+          const distance = 120 + index * 3;
+          const speed = 30 + (index % 9) * 5;
+          const time = Number((distance / speed).toFixed(2));
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `At a constant speed of ${speed} miles per hour, how many hours are needed to travel ${distance} miles?`,
+            correct: time,
+            distractors: [distance * speed, Number((speed / distance).toFixed(2)), Number((time + 1).toFixed(2)), Number((time * 60).toFixed(2))],
+            explanation: quantExplanation("Rate formula", `Use distance = rate x time, so time = distance / rate. Here, time = ${distance}/${speed} = ${time} hours.`),
+            difficulty: clamp(1 + Math.floor(index / 22), 1, 5)
+          });
+        } else if (mode === 5) {
+          const a = 2 + (index % 5);
+          const exp = 2 + (index % 4);
+          const value = a ** exp;
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `For a GRE arithmetic calculation, what is the value represented by ${a}^${exp}?`,
+            correct: value,
+            distractors: [a * exp, a + exp, value + a, Math.max(1, value - a)],
+            explanation: quantExplanation("Exponents", `${a}^${exp} means ${a} multiplied by itself ${exp} times, which equals ${value}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 6) {
+          const a = 18 + (index % 20);
+          const b = a + 6 + (index % 5);
+          const c = b + 8 + (index % 7);
+          const avg = Number(((a + b + c) / 3).toFixed(1));
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `The three numbers ${a}, ${b}, and ${c} have what arithmetic mean?`,
+            correct: avg,
+            distractors: [a + b + c, b, Number((avg + 2).toFixed(1)), c - a],
+            explanation: quantExplanation("Arithmetic mean", `Add the values and divide by the number of values: (${a} + ${b} + ${c}) / 3 = ${avg}.`),
+            difficulty: clamp(1 + Math.floor(index / 20), 1, 5)
+          });
+        } else if (mode === 7) {
+          const total = 48 + index;
+          const fracN = 2 + (index % 4);
+          const fracD = fracN + 3;
+          const value = Number((total * fracN / fracD).toFixed(2));
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `A quantity is equal to ${fracN}/${fracD} of ${total}. What is the value of the quantity?`,
+            correct: value,
+            distractors: [Number((total / fracD).toFixed(2)), total + fracN + fracD, Number((value + fracD).toFixed(2)), Number((total * fracD / fracN).toFixed(2))],
+            explanation: quantExplanation("Fractions of a quantity", `The word "of" means multiply. Compute ${fracN}/${fracD} x ${total} = ${value}.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else {
+          const first = 5 + (index % 8);
+          const diff = 3 + (index % 5);
+          const term = first + 5 * diff;
+          addSingle({
+            id,
+            topic: "Arithmetic",
+            stem: `In an arithmetic sequence, the first term is ${first} and the common difference is ${diff}. What is the sixth term?`,
+            correct: term,
+            distractors: [first + 6 * diff, first * diff, 6 * diff, term - diff],
+            explanation: quantExplanation("Arithmetic sequences", `The sixth term is five common differences after the first term: ${first} + 5(${diff}) = ${term}.`),
+            difficulty: clamp(2 + Math.floor(index / 20), 2, 5)
+          });
+        }
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const mode = index % 9;
+        const id = `gre-alg-${index}`;
+        if (mode === 0) {
+          const x = 2 + (index % 21);
+          const a = 2 + (index % 6);
+          const c = 1 + (index % 3);
+          const b = 3 + ((index * 5) % 17);
+          const d = (a - c) * x + b;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If ${a}x + ${b} = ${c}x + ${d}, what is the value of x?`,
+            correct: x,
+            distractors: [x - 2, x - 1, x + 1, x + 3],
+            explanation: quantExplanation("Solving a linear equation", `Move x-terms to one side: ${a}x - ${c}x = ${d} - ${b}. That gives ${(a - c)}x = ${d - b}, so x = ${x}.`),
+            difficulty: clamp(1 + Math.floor(index / 22), 1, 5)
+          });
+        } else if (mode === 1) {
+          const x = 3 + (index % 10);
+          const y = x + 2 + (index % 6);
+          const sum = x + y;
+          const diff = y - x;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `Two numbers have sum ${sum} and differ by ${diff}. What is the smaller number?`,
+            correct: x,
+            distractors: [y, sum - diff, diff, x + 1],
+            explanation: quantExplanation("Translating two-number word problems", `Let the smaller number be s. Then the larger number is s + ${diff}. Their sum is s + s + ${diff} = ${sum}. Solve 2s = ${sum - diff}, so s = ${x}.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else if (mode === 2) {
+          const a = 2 + (index % 7);
+          const b = 5 + (index % 9);
+          const value = 3 + (index % 8);
+          const result = a * value + b;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If the function f is defined by f(x) = ${a}x + ${b}, what is the value of f(${value})?`,
+            correct: result,
+            distractors: [a + value + b, a * value, result + a, result - b],
+            explanation: quantExplanation("Function substitution", `Replace x with ${value}: f(${value}) = ${a}(${value}) + ${b} = ${a * value} + ${b} = ${result}.`),
+            difficulty: clamp(1 + Math.floor(index / 25), 1, 5)
+          });
+        } else if (mode === 3) {
+          const m = 2 + (index % 6);
+          const b = 1 + (index % 9);
+          const x = 4 + (index % 10);
+          const y = m * x + b;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `A line has equation y = ${m}x + ${b}. What is y when x = ${x}?`,
+            correct: y,
+            distractors: [m + x + b, y - m, y + b, x + b],
+            explanation: quantExplanation("Coordinate algebra", `Substitute x = ${x} into y = ${m}x + ${b}. Then y = ${m}(${x}) + ${b} = ${y}.`),
+            difficulty: clamp(1 + Math.floor(index / 23), 1, 5)
+          });
+        } else if (mode === 4) {
+          const boundary = 5 + (index % 12);
+          const addend = 3 + (index % 8);
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If x + ${addend} > ${boundary + addend}, which of the following must be true?`,
+            correct: `x > ${boundary}`,
+            distractors: [`x < ${boundary}`, `x = ${boundary}`, `x > ${boundary + addend}`, `x < ${boundary + addend}`],
+            explanation: quantExplanation("Inequalities", `Subtract ${addend} from both sides of x + ${addend} > ${boundary + addend}. The inequality becomes x > ${boundary}.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else if (mode === 5) {
+          const root1 = 2 + (index % 7);
+          const root2 = root1 + 3;
+          const sum = root1 + root2;
+          const prod = root1 * root2;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If x^2 - ${sum}x + ${prod} = 0, which of the following could be a value of x?`,
+            correct: root1,
+            distractors: [sum, prod, root1 - 1, root2 + 1],
+            explanation: quantExplanation("Factoring quadratics", `Find two numbers whose sum is ${sum} and product is ${prod}: ${root1} and ${root2}. The quadratic factors as (x - ${root1})(x - ${root2}) = 0, so x could be ${root1} or ${root2}.`),
+            difficulty: clamp(3 + Math.floor(index / 30), 3, 5)
+          });
+        } else if (mode === 6) {
+          const x = 2 + (index % 8);
+          const y = 3 + (index % 9);
+          const sum = x + y;
+          const total = 2 * x + 3 * y;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If x + y = ${sum} and 2x + 3y = ${total}, what is y?`,
+            correct: y,
+            distractors: [x, sum, total - sum, y + 2],
+            explanation: quantExplanation("Systems of linear equations", `From x + y = ${sum}, multiply by 2 to get 2x + 2y = ${2 * sum}. Subtract this from 2x + 3y = ${total}; the result is y = ${total - 2 * sum}, so y = ${y}.`),
+            difficulty: clamp(3 + Math.floor(index / 26), 3, 5)
+          });
+        } else if (mode === 7) {
+          const x = 4 + (index % 10);
+          const result = x * x - 4;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `If x has the value ${x}, what is the value of the expression x^2 - 4?`,
+            correct: result,
+            distractors: [2 * x - 4, x - 4, result + 4, result - x],
+            explanation: quantExplanation("Expression evaluation", `Substitute ${x} for x: x^2 - 4 = ${x}^2 - 4 = ${x * x} - 4 = ${result}.`),
+            difficulty: clamp(1 + Math.floor(index / 26), 1, 5)
+          });
+        } else {
+          const slope = 2 + (index % 6);
+          const x1 = 1 + (index % 5);
+          const y1 = 3 + (index % 8);
+          const x2 = x1 + 4;
+          const y2 = y1 + slope * 4;
+          addSingle({
+            id,
+            topic: "Algebra",
+            stem: `A line passes through (${x1}, ${y1}) and (${x2}, ${y2}). What is its slope?`,
+            correct: slope,
+            distractors: [slope + 1, y2 - y1, x2 - x1, Number((1 / slope).toFixed(2))],
+            explanation: quantExplanation("Slope", `Slope is change in y divided by change in x: (${y2} - ${y1}) / (${x2} - ${x1}) = ${y2 - y1}/${x2 - x1} = ${slope}.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        }
+      }
+
+      for (let index = 0; index < 80; index += 1) {
+        const mode = index % 8;
+        const id = `gre-geo-${index}`;
+        if (mode === 0) {
+          const radius = 2 + (index % 10);
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A circle has radius ${radius}. What is its circumference?`,
+            correct: `${2 * radius}pi`,
+            distractors: [`${radius}pi`, `${radius * radius}pi`, `${4 * radius}pi`, `${radius + 2}pi`],
+            explanation: quantExplanation("Circle circumference", `The circumference formula is C = 2pi r. With r = ${radius}, C = 2pi(${radius}) = ${2 * radius}pi.`),
+            difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+          });
+        } else if (mode === 1) {
+          const base = 6 + (index % 12);
+          const height = 4 + ((index * 3) % 10);
+          const area = base * height / 2;
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A triangle has base ${base} and height ${height}. What is its area?`,
+            correct: area,
+            distractors: [base * height, base + height, area + base, Math.max(1, area - height)],
+            explanation: quantExplanation("Triangle area", `Triangle area is (base x height) / 2. Therefore area = (${base} x ${height}) / 2 = ${area}.`),
+            difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+          });
+        } else if (mode === 2) {
+          const constant = 3 + (index % 8);
+          const solution = 30 - constant;
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `Two complementary angles have measures x + ${constant} and 2x + ${2 * constant}. What is the value of x?`,
+            correct: solution,
+            distractors: [solution + 5, solution - 5, constant, 45],
+            explanation: quantExplanation("Complementary angles", `Complementary angles sum to 90. Set up (x + ${constant}) + (2x + ${2 * constant}) = 90. This gives 3x + ${3 * constant} = 90, so 3x = ${90 - 3 * constant} and x = ${solution}.`),
+            difficulty: clamp(2 + Math.floor(index / 20), 2, 5)
+          });
+        } else if (mode === 3) {
+          const width = 5 + (index % 9);
+          const length = width + 4 + (index % 5);
+          const area = width * length;
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A rectangle has length ${length} and width ${width}. What is its area?`,
+            correct: area,
+            distractors: [2 * (length + width), length + width, area + length, area - width],
+            explanation: quantExplanation("Rectangle area", `Rectangle area equals length x width. Here, area = ${length} x ${width} = ${area}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 4) {
+          const sideA = 3 + (index % 7);
+          const sideB = 4 + (index % 7);
+          const hyp = Number(Math.sqrt(sideA * sideA + sideB * sideB).toFixed(2));
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A right triangle has legs of lengths ${sideA} and ${sideB}. Which value is closest to the hypotenuse?`,
+            correct: hyp,
+            distractors: [sideA + sideB, Math.abs(sideB - sideA), Number((hyp + 2).toFixed(2)), Number((hyp - 1).toFixed(2))],
+            explanation: quantExplanation("Pythagorean theorem", `For a right triangle, hypotenuse^2 = ${sideA}^2 + ${sideB}^2 = ${sideA * sideA + sideB * sideB}. The hypotenuse is the square root, about ${hyp}.`),
+            difficulty: clamp(2 + Math.floor(index / 20), 2, 5)
+          });
+        } else if (mode === 5) {
+          const side = 3 + (index % 9);
+          const volume = side ** 3;
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A cube has side length ${side}. What is its volume?`,
+            correct: volume,
+            distractors: [6 * side * side, side * side, 12 * side, volume + side],
+            explanation: quantExplanation("Volume of a cube", `Cube volume is side^3. With side length ${side}, the volume is ${side}^3 = ${volume}.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else if (mode === 6) {
+          const n = 5 + (index % 8);
+          const sumAngles = (n - 2) * 180;
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `What is the sum of the interior angle measures of a polygon with ${n} sides?`,
+            correct: sumAngles,
+            distractors: [n * 180, (n - 1) * 180, sumAngles / n, 360],
+            explanation: quantExplanation("Polygon angle sums", `The sum of interior angles of an n-sided polygon is (n - 2) x 180. For n = ${n}, the sum is (${n} - 2) x 180 = ${sumAngles}.`),
+            difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+          });
+        } else {
+          const radius = 2 + (index % 8);
+          addSingle({
+            id,
+            topic: "Geometry",
+            stem: `A circle has radius ${radius}. What is its area?`,
+            correct: `${radius * radius}pi`,
+            distractors: [`${2 * radius}pi`, `${radius}pi`, `${4 * radius}pi`, `${radius * radius * 2}pi`],
+            explanation: quantExplanation("Circle area", `Circle area is A = pi r^2. With r = ${radius}, the area is pi(${radius}^2) = ${radius * radius}pi.`),
+            difficulty: clamp(2 + Math.floor(index / 22), 2, 5)
+          });
+        }
+      }
+
+      for (let index = 0; index < 100; index += 1) {
+        const mode = index % 10;
+        const id = `gre-data-${index}`;
+        if (mode === 0) {
+          const a = 12 + (index % 20);
+          const b = 18 + ((index * 3) % 24);
+          const c = 24 + ((index * 5) % 26);
+          const mean = Number(((a + b + c) / 3).toFixed(1));
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            context: `Data set: ${a}, ${b}, ${c}`,
+            stem: "What is the arithmetic mean of the data set?",
+            correct: mean,
+            distractors: [a + b + c, Math.max(a, b, c), Math.min(a, b, c), Number((mean + 3).toFixed(1))],
+            explanation: quantExplanation("Mean", `The mean is the sum divided by the number of values: (${a} + ${b} + ${c}) / 3 = ${mean}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 1) {
+          const values = [7 + index % 9, 9 + index % 9, 12 + index % 9, 15 + index % 9, 19 + index % 9];
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            context: `Data set: ${values.join(", ")}`,
+            stem: "What is the median of the data set?",
+            correct: values[2],
+            distractors: [values[0], values[4], values.reduce((sum, value) => sum + value, 0), values[1]],
+            explanation: quantExplanation("Median", `The values are already in order. With five values, the median is the middle, or third, value: ${values[2]}.`),
+            difficulty: clamp(1 + Math.floor(index / 25), 1, 5)
+          });
+        } else if (mode === 2) {
+          const favorable = 2 + (index % 5);
+          const total = favorable + 6 + (index % 8);
+          const probability = Number((favorable / total).toFixed(3));
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            stem: `A bag contains ${favorable} red marbles and ${total - favorable} blue marbles. If one marble is selected at random, what is the probability it is red?`,
+            correct: probability,
+            distractors: [favorable, total, Number(((total - favorable) / total).toFixed(3)), Number((favorable / (total - favorable)).toFixed(3))],
+            explanation: quantExplanation("Basic probability", `Probability = favorable outcomes / total outcomes. Red outcomes = ${favorable}; total outcomes = ${total}. Probability = ${favorable}/${total} = ${probability}.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        } else if (mode === 3) {
+          const n = 5 + (index % 7);
+          const combos = n * (n - 1) / 2;
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            stem: `A committee of 2 people will be chosen from ${n} people. How many different committees are possible?`,
+            correct: combos,
+            distractors: [n * 2, n * (n - 1), combos + n, Math.max(1, combos - n)],
+            explanation: quantExplanation("Combinations", `Order does not matter for a committee. The number of 2-person committees is ${n} choose 2 = ${n}(${n} - 1) / 2 = ${combos}. This is the same idea as 23 choose 2: multiply 23 by 22, then divide by 2 because each pair was counted twice.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        } else if (mode === 4) {
+          const values = [40 + index, 52 + index, 49 + index, 61 + index];
+          const range = Math.max(...values) - Math.min(...values);
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            context: `Observed values: ${values.join(", ")}`,
+            stem: "What is the range of the observed values?",
+            correct: range,
+            distractors: [Math.max(...values), Math.min(...values), values.reduce((sum, value) => sum + value, 0) / values.length, range + 5],
+            explanation: quantExplanation("Range", `The range is maximum minus minimum. The maximum is ${Math.max(...values)} and the minimum is ${Math.min(...values)}, so the range is ${range}.`),
+            difficulty: clamp(1 + Math.floor(index / 25), 1, 5)
+          });
+        } else if (mode === 5) {
+          const start = 100 + index;
+          const end = start + 12 + (index % 20);
+          const pct = Number((((end - start) / start) * 100).toFixed(1));
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            context: `Year 1 value: ${start}\nYear 2 value: ${end}`,
+            stem: "The percent increase from Year 1 to Year 2 is closest to which value?",
+            correct: `${pct}%`,
+            distractors: [`${end - start}%`, `${Number((end / start * 100).toFixed(1))}%`, `${Number((pct + 5).toFixed(1))}%`, `${Number((pct - 4).toFixed(1))}%`],
+            explanation: quantExplanation("Percent change from data", `Percent increase = (increase / original) x 100. The increase is ${end} - ${start} = ${end - start}. Divide by ${start}: (${end - start}/${start}) x 100 = ${pct}%.`),
+            difficulty: clamp(2 + Math.floor(index / 24), 2, 5)
+          });
+        } else if (mode === 6) {
+          const groupA = 20 + (index % 12);
+          const groupB = 30 + (index % 15);
+          const avgA = 70 + (index % 10);
+          const avgB = 80 + (index % 8);
+          const weighted = Number(((groupA * avgA + groupB * avgB) / (groupA + groupB)).toFixed(1));
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            stem: `Group A has ${groupA} values with average ${avgA}. Group B has ${groupB} values with average ${avgB}. What is the combined average?`,
+            correct: weighted,
+            distractors: [Number(((avgA + avgB) / 2).toFixed(1)), groupA + groupB, Number((weighted + 3).toFixed(1)), Number((weighted - 3).toFixed(1))],
+            explanation: quantExplanation("Weighted averages", `Use total sum divided by total count. Group A contributes ${groupA} x ${avgA}; Group B contributes ${groupB} x ${avgB}. Combined average = (${groupA * avgA} + ${groupB * avgB}) / ${groupA + groupB} = ${weighted}.`),
+            difficulty: clamp(3 + Math.floor(index / 30), 3, 5)
+          });
+        } else if (mode === 7) {
+          const a = 35 + index;
+          const b = a + 10 + (index % 9);
+          const c = b + 6 + (index % 7);
+          const total = a + b + c;
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            context: `Category A: ${a}\nCategory B: ${b}\nCategory C: ${c}`,
+            stem: "Which category represents the greatest share of the total?",
+            correct: "Category C",
+            distractors: ["Category A", "Category B", "All categories are equal", `${total}`],
+            explanation: quantExplanation("Reading a simple table", `The greatest share of a total comes from the largest category value. Category C has ${c}, which is greater than ${a} and ${b}. Therefore Category C is the greatest share.`),
+            difficulty: clamp(1 + Math.floor(index / 25), 1, 5)
+          });
+        } else if (mode === 8) {
+          const n = 4 + (index % 5);
+          const perm = n * (n - 1);
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            stem: `How many ordered pairs (a, b) can be formed from ${n} distinct numbers if a and b must be different?`,
+            correct: perm,
+            distractors: [n + n, n * n, n * (n - 1) / 2, perm + n],
+            explanation: quantExplanation("Permutations", `There are ${n} choices for the first position and ${n - 1} remaining choices for the second because the values must differ. Ordered pairs count order, so the total is ${n} x ${n - 1} = ${perm}.`),
+            difficulty: clamp(3 + Math.floor(index / 30), 3, 5)
+          });
+        } else {
+          const mean = 18 + (index % 12);
+          const count = 5;
+          const fourSum = mean * count - (10 + index % 20);
+          const missing = mean * count - fourSum;
+          addSingle({
+            id,
+            topic: "Data Analysis",
+            stem: `The average of five numbers is ${mean}. Four of the numbers have sum ${fourSum}. What is the fifth number?`,
+            correct: missing,
+            distractors: [mean, fourSum / 4, missing + 5, mean * count],
+            explanation: quantExplanation("Using average to recover a missing value", `If five numbers average ${mean}, their total is 5 x ${mean} = ${mean * count}. Four numbers sum to ${fourSum}, so the fifth number is ${mean * count} - ${fourSum} = ${missing}.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        }
+      }
+
+      for (let index = 0; index < 90; index += 1) {
+        const mode = index % 9;
+        const id = `gre-num-${index}`;
+        if (mode === 0) {
+          const n = 6 + (index % 30);
+          const r = 2 + (index % 4);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `If x - ${r} = ${n}, enter the value of x.`,
+            answer: n + r,
+            explanation: quantExplanation("Numeric entry linear equations", `Add ${r} to both sides of x - ${r} = ${n}. Therefore x = ${n + r}.`),
+            difficulty: clamp(1 + Math.floor(index / 22), 1, 5)
+          });
+        } else if (mode === 1) {
+          const a = 4 + (index % 8);
+          const b = 3 + (index % 7);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `Numeric Entry: enter the value of the expression ${a}(${b} + 2).`,
+            answer: a * (b + 2),
+            explanation: quantExplanation("Order of operations", `Evaluate inside the parentheses first: ${b} + 2 = ${b + 2}. Then multiply by ${a}: ${a} x ${b + 2} = ${a * (b + 2)}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 2) {
+          const original = 50 + index;
+          const pct = 20;
+          const result = original * pct / 100;
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `Numeric Entry: enter the number that is equal to 20% of ${original}.`,
+            answer: result,
+            explanation: quantExplanation("Numeric entry percents", `20% equals 20/100 = 0.2. Compute 0.2 x ${original} = ${result}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else if (mode === 3) {
+          const side = 3 + (index % 10);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `A square has side length ${side}. Enter its perimeter.`,
+            answer: 4 * side,
+            explanation: quantExplanation("Square perimeter", `A square has four equal sides. Perimeter = 4 x ${side} = ${4 * side}.`),
+            difficulty: clamp(1 + Math.floor(index / 25), 1, 5)
+          });
+        } else if (mode === 4) {
+          const n = 6 + (index % 7);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `Enter the number of ways to choose 2 objects from ${n} distinct objects.`,
+            answer: n * (n - 1) / 2,
+            explanation: quantExplanation("Combinations in numeric entry", `Choosing 2 from ${n} is ${n} choose 2. Multiply ${n} by ${n - 1}, then divide by 2 because order does not matter: ${n}(${n - 1})/2 = ${n * (n - 1) / 2}.`),
+            difficulty: clamp(3 + Math.floor(index / 28), 3, 5)
+          });
+        } else if (mode === 5) {
+          const value = 12 + (index % 20);
+          const added = 8 + (index % 9);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `The average of two numbers is ${value}. One number is ${added}. Enter the other number.`,
+            answer: 2 * value - added,
+            explanation: quantExplanation("Average of two values", `If two numbers average ${value}, their sum is 2 x ${value} = ${2 * value}. Subtract the known number ${added}; the other number is ${2 * value - added}.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        } else if (mode === 6) {
+          const divisor = 4 + (index % 7);
+          const quotient = 5 + (index % 9);
+          const remainder = 1 + (index % (divisor - 1));
+          const n = divisor * quotient + remainder;
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `Enter the remainder when ${n} is divided by ${divisor}.`,
+            answer: remainder,
+            explanation: quantExplanation("Remainder numeric entry", `${divisor} x ${quotient} = ${divisor * quotient}. The difference ${n} - ${divisor * quotient} = ${remainder}, so the remainder is ${remainder}.`),
+            difficulty: clamp(2 + Math.floor(index / 25), 2, 5)
+          });
+        } else if (mode === 7) {
+          const x = 2 + (index % 10);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `Numeric Entry: if 3x = ${3 * x}, enter the value of x.`,
+            answer: x,
+            explanation: quantExplanation("Solving by division", `Divide both sides of 3x = ${3 * x} by 3. The result is x = ${x}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        } else {
+          const base = 7 + (index % 10);
+          const height = 6 + (index % 8);
+          addNumericEntry({
+            id,
+            topic: "Numeric Entry",
+            stem: `A rectangle has base ${base} and height ${height}. Enter its area.`,
+            answer: base * height,
+            explanation: quantExplanation("Rectangle area numeric entry", `Area = base x height = ${base} x ${height} = ${base * height}.`),
+            difficulty: clamp(1 + Math.floor(index / 24), 1, 5)
+          });
+        }
+      }
+
+      for (let index = 0; index < 80; index += 1) {
+        const mode = index % 8;
+        const id = `gre-multi-${index}`;
+        let choices;
+        let answer;
+        let stem;
+        let explanation;
+        if (mode === 0) {
+          const low = 10 + (index % 18);
+          const high = low + 8 + (index % 7);
+          choices = [low - 3, low, low + 2, high - 1, high, high + 4];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value >= low && value <= high && value % 2 === 0).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all even integers in the list that are at least ${low} and at most ${high}.`;
+          explanation = quantExplanation("Select-one-or-more with integer constraints", `Check both conditions for each choice: it must be even and must be from ${low} through ${high}, inclusive. The correct selections are ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else if (mode === 1) {
+          const divisor = 3 + (index % 5);
+          choices = [divisor, divisor + 1, divisor * 2, divisor * 3 + 1, divisor * 4, divisor * 5 + 2];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value % divisor === 0).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all numbers that are divisible by ${divisor}.`;
+          explanation = quantExplanation("Divisibility", `A number is divisible by ${divisor} if dividing by ${divisor} leaves remainder 0. Testing each choice gives ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else if (mode === 2) {
+          const threshold = 18 + (index % 10);
+          choices = [threshold - 8, threshold - 3, threshold, threshold + 1, threshold + 5, threshold + 10];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value > threshold).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all listed values that are strictly greater than ${threshold}.`;
+          explanation = quantExplanation("Inequality screening", `Compare each listed value with ${threshold}. The values strictly greater than ${threshold} are ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else if (mode === 3) {
+          const low = 4 + (index % 7);
+          const high = low + 5;
+          choices = [low - 1, low, low + 1, low + 3, high, high + 2];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value >= low && value <= high).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all integers x in the list for which ${low} <= x <= ${high}.`;
+          explanation = quantExplanation("Inclusive bounds", `The symbols <= mean the endpoints count. The values from ${low} through ${high} are ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else if (mode === 4) {
+          const offset = index % 3;
+          choices = [9, 12 + offset, 16, 20 + offset, 25, 30 + offset];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => Math.sqrt(value) % 1 === 0).map(({ choiceIndex }) => choiceIndex);
+          stem = "Select all perfect squares in the list.";
+          explanation = quantExplanation("Perfect squares", `A perfect square is an integer squared. Testing the list gives ${answer.map((i) => choices[i]).join(", ")} as the perfect square value(s).`);
+        } else if (mode === 5) {
+          const mean = 20 + (index % 8);
+          choices = [mean - 6, mean - 2, mean, mean + 1, mean + 4, mean + 9];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value >= mean).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all values that are at least ${mean}.`;
+          explanation = quantExplanation("Interpreting 'at least'", `"At least ${mean}" means greater than or equal to ${mean}. The correct selections are ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else if (mode === 6) {
+          const divisor = 2 + (index % 4);
+          choices = [divisor - 1, divisor, divisor + 2, divisor * 3, divisor * 3 + 1, divisor * 4];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value % divisor === 1).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all values that leave a remainder of 1 when divided by ${divisor}.`;
+          explanation = quantExplanation("Remainder conditions", `Divide each value by ${divisor} and keep only those with remainder 1. The correct selections are ${answer.map((i) => choices[i]).join(", ")}.`);
+        } else {
+          const min = 30 + (index % 10);
+          choices = [min - 10, min - 1, min, min + 5, min + 12, min + 18];
+          answer = choices.map((value, choiceIndex) => ({ value, choiceIndex })).filter(({ value }) => value >= min && value <= min + 12).map(({ choiceIndex }) => choiceIndex);
+          stem = `Select all values in the inclusive interval from ${min} to ${min + 12}.`;
+          explanation = quantExplanation("Interval constraints", `Inclusive interval means both endpoints are allowed. The listed values in that interval are ${answer.map((i) => choices[i]).join(", ")}.`);
+        }
+        addMulti({
+          id,
+          topic: "Select Multiple",
+          stem,
+          choices,
+          answer,
+          explanation,
+          difficulty: clamp(2 + Math.floor(index / 20), 2, 5)
+        });
+      }
+
+      const tcPatterns = [
+        ["Although the committee expected the pilot program to be costly, the first report showed that its expenses were surprisingly __________.", "modest", ["prohibitive", "irrelevant", "opaque", "ceremonial", "volatile"], "Although sets up a contrast between expected costliness and actual low expense."],
+        ["Because the witness gave the same account under repeated questioning, the investigator considered the testimony __________.", "credible", ["peripheral", "erratic", "ornamental", "premature", "hostile"], "Because introduces a reason; consistency supports credibility."],
+        ["The professor was not hostile to criticism; indeed, she regarded careful objections as __________ to better research.", "indispensable", ["detrimental", "incidental", "redundant", "opaque", "temporary"], "Indeed intensifies the first clause, so the blank should say objections are valuable."],
+        ["The mayor's speech sounded conciliatory, but the proposed policy was actually quite __________.", "inflexible", ["tentative", "evenhanded", "improvised", "decorative", "irrelevant"], "But reverses the apparent softness of the speech."],
+        ["The novelist's style is deliberately __________: every sentence is stripped of ornament so that the action moves quickly.", "austere", ["florid", "rambling", "sentimental", "verbose", "baroque"], "The colon explains a spare, stripped-down style."],
+        ["Far from being a mere summary, the appendix provides __________ evidence that changes how the main argument should be read.", "substantive", ["superficial", "extraneous", "perfunctory", "redundant", "ornamental"], "Far from rejects the idea that the appendix is minor."],
+        ["The engineer's solution was praised not for novelty but for __________; it worked reliably under ordinary constraints.", "practicality", ["audacity", "ambiguity", "elaboration", "fragility", "abstraction"], "Not for novelty but for signals a useful, workable quality."],
+        ["The policy seemed generous in principle, yet its many exceptions made its benefits __________ in practice.", "illusory", ["universal", "durable", "transparent", "measurable", "automatic"], "Yet signals that exceptions undercut the apparent generosity."],
+        ["Rather than resolve the debate, the new data made the disagreement more __________ by supporting parts of both theories.", "nuanced", ["obsolete", "trivial", "one-sided", "decorative", "unfounded"], "Supporting parts of both theories makes the debate more qualified, not settled."],
+        ["The critic admired the film's ambition but found its final act __________, with several plot turns introduced too late to be convincing.", "contrived", ["inevitable", "restrained", "lucid", "understated", "coherent"], "Late, unconvincing turns suggest artificial construction."],
+        ["Because the ancient text survives only in fragments, any translation of it must remain __________.", "provisional", ["definitive", "irrelevant", "literal", "exhaustive", "automatic"], "Fragmentary evidence means conclusions should be tentative."],
+        ["The startup's growth was not spontaneous; it was the result of a __________ campaign to reach customers in overlooked markets.", "deliberate", ["haphazard", "accidental", "peripheral", "belated", "diffuse"], "Not spontaneous points to planned action."],
+        ["The museum label avoids technical vocabulary, making the exhibit __________ to visitors without specialized training.", "accessible", ["esoteric", "impenetrable", "arcane", "exclusive", "cumbersome"], "Avoiding jargon makes the exhibit easier to understand."],
+        ["The analyst cautioned that a single month of strong sales was too __________ a basis for changing the long-term forecast.", "slender", ["robust", "decisive", "comprehensive", "conclusive", "ample"], "A single month is too thin or limited as evidence."],
+        ["The agreement was described as final, but its key terms remained __________, leaving both sides to interpret them differently.", "ambiguous", ["explicit", "binding", "punitive", "transparent", "meticulous"], "Different interpretations indicate unclear terms."],
+        ["The biographer's portrait is __________ rather than admiring; it records achievements but also lingers over failures.", "balanced", ["reverential", "dismissive", "fanciful", "evasive", "hostile"], "Achievements plus failures point to an evenhanded account."],
+        ["The software update was intended to simplify the interface, but early users found the new menus __________.", "cumbersome", ["intuitive", "streamlined", "elegant", "minimal", "helpful"], "But signals that the simplification goal was not met."],
+        ["The researcher's claim seemed bold, yet her evidence was so carefully gathered that the conclusion appeared __________.", "well-founded", ["reckless", "speculative", "incidental", "premature", "decorative"], "Careful evidence makes a bold claim justified."],
+        ["The committee rejected the proposal because its benefits were __________ while its costs were immediate and certain.", "speculative", ["guaranteed", "substantial", "documented", "concrete", "measurable"], "Contrast with immediate and certain costs requires uncertain benefits."],
+        ["The judge's opinion was unusually __________, leaving little doubt about how the statute should be applied.", "unambiguous", ["cryptic", "equivocal", "ornate", "digressive", "tentative"], "Leaving little doubt points to clarity."],
+        ["The historian resisted a simple narrative, emphasizing instead the __________ motives of the reformers.", "mixed", ["uniform", "transparent", "irrelevant", "minor", "accidental"], "Resisting simplicity points to multiple or mixed motives."],
+        ["The experiment's result was initially dismissed as anomalous, but repeated trials made that dismissal increasingly __________.", "untenable", ["plausible", "sensible", "routine", "generous", "measured"], "Repeated confirmation makes dismissal hard to defend."],
+        ["The poet's language is __________, relying on familiar words arranged with uncommon precision.", "plainspoken", ["arcane", "bombastic", "obscure", "ornamental", "grandiose"], "Familiar words point to plain diction."],
+        ["The training manual is __________: it gives step-by-step procedures but almost no explanation of the principles behind them.", "procedural", ["theoretical", "speculative", "lyrical", "polemical", "biographical"], "Step-by-step procedures define a procedural manual."],
+        ["The council delayed the vote, not out of indifference, but because the budget numbers were still __________.", "unsettled", ["irrelevant", "favorable", "historic", "redundant", "unanimous"], "Delayed because numbers were not settled points to uncertainty."],
+        ["The author treats the popular explanation with __________, acknowledging its appeal while questioning its evidence.", "skepticism", ["deference", "enthusiasm", "indifference", "hostility", "nostalgia"], "Questioning evidence while acknowledging appeal is skeptical but not hostile."],
+        ["The team's early confidence proved __________ when a minor design change caused the whole prototype to fail.", "premature", ["justified", "durable", "measured", "methodical", "productive"], "Failure after confidence shows the confidence came too soon."],
+        ["The report is valuable because it is __________: it compares several cities instead of drawing conclusions from one case.", "comparative", ["anecdotal", "provincial", "fragmentary", "abstract", "evasive"], "Several cities indicate comparison."],
+        ["The curator's decision was __________, preserving the damaged frame because it revealed how the painting had been displayed.", "conservative", ["destructive", "careless", "impulsive", "cosmetic", "extravagant"], "Preserving an object for historical evidence reflects conservation."],
+        ["The argument appears forceful, but it rests on a __________ assumption: that all survey respondents interpreted the question identically.", "questionable", ["necessary", "verified", "minor", "transparent", "mathematical"], "An unsupported assumption about interpretation is doubtful."],
+        ["The review praises the book's range but criticizes its __________, noting that chapters often jump abruptly between topics.", "disorganization", ["brevity", "accuracy", "generosity", "restraint", "originality"], "Abrupt jumps point to weak organization."],
+        ["The new evidence did not disprove the theory; it merely made the original version less __________.", "complete", ["vulnerable", "useful", "testable", "famous", "recent"], "If evidence requires revision but not rejection, the old version is incomplete."],
+        ["The instructor's feedback was __________, identifying not only errors but also the habits that had produced them.", "diagnostic", ["perfunctory", "punitive", "vague", "ceremonial", "belated"], "Identifying causes behind errors is diagnostic."],
+        ["The plan's appeal lies in its __________: it can be implemented with existing staff and equipment.", "feasibility", ["novelty", "complexity", "secrecy", "fragility", "ambiguity"], "Existing resources make the plan feasible."],
+        ["The candidate's answer was __________, addressing the question directly without volunteering unnecessary details.", "concise", ["evasive", "verbose", "flamboyant", "equivocal", "meandering"], "Direct and without excess detail means concise."],
+        ["The economist called the data __________ because the sample excluded the very households most affected by the policy.", "unrepresentative", ["decisive", "comprehensive", "transparent", "routine", "neutral"], "Excluding key households makes the sample unrepresentative."],
+        ["The philosopher's conclusion is __________: it follows only if one accepts a disputed definition introduced at the start.", "conditional", ["self-evident", "empirical", "irrelevant", "universal", "accidental"], "A conclusion that depends on an assumption is conditional."],
+        ["The restoration was deliberately __________, replacing only what was necessary and leaving visible signs of age.", "minimal", ["lavish", "radical", "theatrical", "impatient", "ornate"], "Replacing only what is necessary signals minimal intervention."],
+        ["The editor accepted the article after the author made the evidence more __________, adding dates, sources, and examples.", "concrete", ["abstract", "speculative", "diffuse", "ornamental", "equivocal"], "Dates, sources, and examples make evidence concrete."],
+        ["The lecturer's tone was __________, inviting disagreement instead of presenting his interpretation as final.", "open-ended", ["dogmatic", "dismissive", "scornful", "peremptory", "incidental"], "Inviting disagreement means not dogmatic or final."]
+      ];
+      for (let index = 0; index < 160; index += 1) {
+        const [stem, correct, distractors, logic] = tcPatterns[index % tcPatterns.length];
+        const variant = ["in the policy memo", "during the faculty review", "in the field report", "as the evidence accumulated"][Math.floor(index / tcPatterns.length) % 4];
+        const variedStem = `${stem} ${variant.charAt(0).toUpperCase() + variant.slice(1)}.`;
+        const packed = packChoices(correct, distractors, `gre-tc-${index}`);
+        add({
+          id: `gre-tc-${index}`,
+          exam: "GRE",
+          section: "GREVerbal",
+          topic: "Text Completion",
+          responseType: "single",
+          stem: variedStem,
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation: verbalExplanation(logic, `"${correct}" best matches the sentence's internal logic and produces a coherent meaning.`),
+          difficulty: clamp(1 + Math.floor(index / 38), 1, 5)
+        });
+      }
+
+      const sePatterns = [
+        ["The scientist was __________ about the startling result, requesting replication before treating it as settled.", ["skeptical", "doubtful"], ["credulous", "certain", "enthusiastic", "dismissive"], "The request for replication shows caution, not belief or rejection."],
+        ["The curator's notes were __________, recording even minor changes in lighting, placement, and framing.", ["meticulous", "painstaking"], ["careless", "hasty", "casual", "imprecise"], "Recording minor details points to thorough care."],
+        ["The mayor's promise proved __________; within weeks it was replaced by a different proposal.", ["transient", "ephemeral"], ["permanent", "durable", "entrenched", "regular"], "Quick replacement means short-lived."],
+        ["The witness gave a __________ account, acknowledging uncertainty instead of exaggerating what she had seen.", ["candid", "forthright"], ["evasive", "guarded", "cryptic", "hostile"], "Acknowledging uncertainty openly points to honesty."],
+        ["The critic found the ending __________, as if the author had forced every conflict to disappear at once.", ["contrived", "artificial"], ["inevitable", "organic", "restrained", "plausible"], "Forced resolution suggests artificial construction."],
+        ["The new rules were __________, applying differently across departments and creating confusion.", ["inconsistent", "uneven"], ["uniform", "coherent", "transparent", "systematic"], "Different application across departments means not uniform."],
+        ["The manager's explanation was __________, avoiding technical terms and using familiar examples.", ["lucid", "clear"], ["opaque", "convoluted", "arcane", "ambiguous"], "Avoiding jargon and using examples makes the explanation clear."],
+        ["The historian's claim is __________, supported by letters, court records, and contemporary newspapers.", ["well-documented", "substantiated"], ["speculative", "baseless", "intuitive", "decorative"], "Multiple independent sources support the claim."],
+        ["The committee considered the plan __________ because it required equipment already owned by the school.", ["feasible", "practicable"], ["impossible", "quixotic", "wasteful", "unrelated"], "Existing equipment makes implementation practical."],
+        ["The lecturer was __________, presenting one qualification after another instead of offering a simple answer.", ["circumspect", "cautious"], ["reckless", "dogmatic", "flippant", "impulsive"], "Repeated qualifications indicate caution."],
+        ["The design was __________, using only the elements needed to make the data readable.", ["spare", "austere"], ["ornate", "lavish", "cluttered", "baroque"], "Only necessary elements indicate spareness."],
+        ["The analyst called the trend __________ because it appeared in one data set but vanished in another.", ["unstable", "inconstant"], ["robust", "durable", "settled", "persistent"], "Appearing and vanishing across data sets indicates instability."],
+        ["The author's tone is __________, amused by the policy's contradictions but not openly angry.", ["wry", "ironic"], ["furious", "solemn", "sentimental", "reverent"], "Amused criticism without anger suggests irony."],
+        ["The judge rejected the argument as __________ because it depended on facts not in evidence.", ["unsupported", "unsubstantiated"], ["airtight", "decisive", "balanced", "routine"], "Facts not in evidence leave the argument unsupported."],
+        ["The team's approach was __________, changing as new measurements revealed flaws in the original plan.", ["adaptive", "flexible"], ["rigid", "static", "stubborn", "formulaic"], "Changing in response to evidence indicates flexibility."],
+        ["The editor found the draft __________, filled with repeated claims that did not advance the argument.", ["repetitive", "redundant"], ["concise", "varied", "incisive", "economical"], "Repeated claims point to redundancy."],
+        ["The policy's benefits were __________, helping a few residents immediately but leaving broader effects uncertain.", ["limited", "circumscribed"], ["sweeping", "universal", "boundless", "comprehensive"], "Helping only a few means limited."],
+        ["The philosopher's prose is __________, requiring readers to track several definitions at once.", ["demanding", "challenging"], ["effortless", "transparent", "casual", "superficial"], "Tracking several definitions makes the prose challenging."],
+        ["The evidence was __________, pointing toward a conclusion but not proving it beyond doubt.", ["suggestive", "indicative"], ["conclusive", "irrelevant", "contradictory", "decorative"], "Pointing toward but not proving is suggestive."],
+        ["The administrator's response was __________, addressing the complaint only after months of reminders.", ["belated", "tardy"], ["prompt", "immediate", "timely", "preemptive"], "After months of reminders means late."],
+        ["The report was __________, drawing on interviews, financial records, and site visits.", ["comprehensive", "thorough"], ["partial", "perfunctory", "cursory", "narrow"], "Multiple evidence sources make the report thorough."],
+        ["The proposal was __________, promising large benefits without explaining how they would be achieved.", ["vague", "imprecise"], ["specific", "detailed", "concrete", "explicit"], "Benefits without mechanisms are vague."],
+        ["The scholar's treatment of the theory is __________, praising its insight while noting its limits.", ["balanced", "evenhanded"], ["partisan", "uncritical", "dismissive", "reverential"], "Praise plus limits indicates balance."],
+        ["The pilot program was __________, designed to test an idea before a broader rollout.", ["experimental", "trial"], ["permanent", "mandatory", "retrospective", "symbolic"], "Testing before expansion indicates an experimental trial."],
+        ["The poet's revisions were __________, changing only a few words but sharpening the whole stanza.", ["subtle", "nuanced"], ["wholesale", "clumsy", "obvious", "drastic"], "Few changes with a refined effect indicate subtlety."],
+        ["The official's denial was __________, contradicted by documents released the same day.", ["untenable", "indefensible"], ["plausible", "credible", "convincing", "measured"], "Contradictory documents make the denial impossible to defend."],
+        ["The explanation was __________, moving away from the question into unrelated anecdotes.", ["digressive", "meandering"], ["focused", "concise", "direct", "orderly"], "Unrelated anecdotes signal digression."],
+        ["The method was __________, producing nearly the same result in repeated trials.", ["reliable", "dependable"], ["erratic", "capricious", "fragile", "accidental"], "Similar repeated results indicate reliability."],
+        ["The director's style is __________, allowing actors to make many interpretive choices.", ["permissive", "lenient"], ["controlling", "rigid", "prescriptive", "severe"], "Allowing choices means permissive."],
+        ["The estimate was __________, based on too small a sample to support confident conclusions.", ["tentative", "provisional"], ["definitive", "certain", "settled", "absolute"], "Small samples require tentative conclusions."],
+        ["The committee's language was __________, leaving room for several interpretations.", ["ambiguous", "equivocal"], ["plain", "explicit", "unequivocal", "precise"], "Several interpretations indicate ambiguity."],
+        ["The engineer's solution was __________, solving the problem without adding unnecessary parts.", ["elegant", "efficient"], ["cumbersome", "wasteful", "baroque", "convoluted"], "Solving with no unnecessary parts is elegant or efficient."],
+        ["The speech was __________, designed more to inspire loyalty than to analyze the issue.", ["rhetorical", "oratorical"], ["technical", "empirical", "statistical", "procedural"], "Inspiring loyalty points to rhetoric."],
+        ["The old map was __________, useful as a historical artifact but inaccurate for modern navigation.", ["obsolete", "outmoded"], ["current", "reliable", "precise", "updated"], "Not accurate for modern use means obsolete."],
+        ["The critic's praise was __________, limited to the book's opening chapter.", ["qualified", "reserved"], ["unqualified", "effusive", "lavish", "unbounded"], "Praise limited to one part is qualified."],
+        ["The teacher's instructions were __________, making the assignment's requirements easy to follow.", ["explicit", "clear-cut"], ["vague", "implicit", "cryptic", "elliptical"], "Easy-to-follow requirements require explicit instructions."],
+        ["The team's progress was __________, interrupted by funding delays and staff turnover.", ["fitful", "intermittent"], ["steady", "continuous", "unbroken", "regular"], "Interrupted progress is fitful."],
+        ["The catalog entry was __________, listing dimensions, materials, date, and provenance.", ["detailed", "comprehensive"], ["sketchy", "sparse", "perfunctory", "incomplete"], "Many listed attributes indicate detail."],
+        ["The author's conclusion is __________, extending beyond what the evidence can support.", ["overstated", "exaggerated"], ["modest", "restrained", "understated", "careful"], "Going beyond evidence means overstated."],
+        ["The experiment was __________, carefully designed to isolate the variable under study.", ["controlled", "systematic"], ["haphazard", "casual", "anecdotal", "unstructured"], "Isolating a variable requires control and system."]
+      ];
+      for (let index = 0; index < 160; index += 1) {
+        const [stem, correctPair, distractors, logic] = sePatterns[index % sePatterns.length];
+        const setting = ["In a research review, ", "During a policy hearing, ", "In a museum catalog, ", "While assessing the proposal, "][Math.floor(index / sePatterns.length) % 4];
+        const variedStem = `${setting}${stem.charAt(0).toLowerCase()}${stem.slice(1)}`;
+        const choices = [...correctPair, ...distractors];
+        addMulti({
+          id: `gre-se-${index}`,
+          section: "GREVerbal",
+          topic: "Sentence Equivalence",
+          stem: variedStem,
+          choices,
+          answer: [0, 1],
+          explanation: verbalExplanation(logic, `"${correctPair[0]}" and "${correctPair[1]}" both fit the blank and produce sentences with similar meanings, which is required for Sentence Equivalence.`),
+          difficulty: clamp(2 + Math.floor(index / 42), 2, 5)
+        });
+      }
+
+      const rcPassages = [
+        ["urban heat", "Cities often experience higher temperatures than nearby rural areas because pavement and buildings absorb and reradiate heat. Tree canopy can reduce this effect, but its benefits depend on placement, maintenance, and local climate. A planting campaign that ignores those constraints may produce uneven results.", "Urban tree programs can reduce heat, but their effectiveness depends on practical conditions.", "Tree programs require planning beyond simply planting the largest possible number of trees.", "to qualify a generally favorable claim about tree canopy", "It is cautious and analytical."],
+        ["scientific models", "A scientific model can be useful even when it simplifies reality. Its value lies not in perfect imitation but in whether it clarifies relationships, generates testable predictions, and exposes where additional evidence is needed.", "Models are valuable when they clarify and test relationships despite simplification.", "A simplified model should not be rejected solely because it omits some real-world details.", "to shift the standard for judging a model from realism to usefulness", "It is explanatory and corrective."],
+        ["archives", "Digitizing archives increases access, but it can also create a false sense of completeness. Materials selected for digitization often reflect funding, preservation concerns, and institutional priorities rather than the full historical record.", "Digitized archives improve access but may not represent the complete historical record.", "Researchers should ask how digitized materials were selected before drawing broad conclusions.", "to warn that availability can be mistaken for representativeness", "It is cautionary."],
+        ["ecology", "Reintroducing a predator can reshape an ecosystem, but outcomes are difficult to predict. Prey behavior, vegetation, human land use, and climate all influence whether the reintroduction restores an earlier balance or creates a new one.", "Predator reintroduction has complex, context-dependent ecological effects.", "An earlier ecosystem state is not automatically recovered when a predator returns.", "to complicate a simple restoration narrative", "It is measured and qualified."],
+        ["public transit", "Express bus routes are often defended as efficient because they shorten long commutes. Yet by skipping intermediate stops, they may reduce service for riders whose trips are short but essential. The policy question is therefore not merely speed but distribution of benefit.", "Transit efficiency should be judged by both speed and distribution of benefits.", "A route that improves average travel time can still disadvantage some riders.", "to broaden the criterion used to evaluate express routes", "It is analytical and concerned with trade-offs."],
+        ["medical screening", "Screening programs can detect disease earlier, but earlier detection is not automatically better. Tests may produce false positives, expose patients to unnecessary procedures, and divert resources from patients with symptoms. Benefits must be weighed against these costs.", "Medical screening has potential benefits but must be evaluated against costs and false positives.", "A test with some accurate detections may still be problematic as public policy.", "to challenge the assumption that earlier detection is always beneficial", "It is cautious and evaluative."],
+        ["language change", "Linguists often describe language change rather than condemn it. A construction considered improper in one century may become standard in the next if speakers adopt it widely. This does not mean all usage is equally effective, but it does mean that authority follows use more than decree.", "Language standards often emerge from usage, not simply from official rules.", "A once-criticized expression can become accepted through widespread use.", "to separate descriptive analysis from blanket approval", "It is explanatory and mildly corrective."],
+        ["materials science", "A stronger material is not always the better engineering choice. Weight, flexibility, cost, repairability, and environmental exposure can matter as much as raw strength. Engineers therefore choose materials by matching properties to use rather than by maximizing one property.", "Material choice depends on multiple requirements, not strength alone.", "The strongest available material can be unsuitable for a particular application.", "to reject a single-factor view of engineering choice", "It is practical and clarifying."],
+        ["education", "Small classes are often assumed to improve learning, but studies suggest that class size matters most when teachers change their methods. Without more individual feedback, discussion, or targeted practice, a smaller class may simply reproduce the same instruction for fewer students.", "Class size reductions are most useful when they change instruction.", "Reducing class size alone may not guarantee better learning.", "to identify a condition under which a popular reform works", "It is qualified and evidence-oriented."],
+        ["agriculture", "Farmers who diversify crops may reduce risk, since a pest or price decline affecting one crop will not ruin the entire harvest. Diversification, however, can require new equipment and expertise. Its value depends on whether risk reduction exceeds those added costs.", "Crop diversification reduces some risks but introduces costs that must be considered.", "Diversification is not automatically profitable even when it lowers risk.", "to frame diversification as a trade-off rather than a simple improvement", "It is balanced."],
+        ["urban history", "Histories of cities often emphasize mayors and planners, but informal decisions by residents can be equally important. Paths, markets, and neighborhood institutions sometimes emerge from repeated local use before officials recognize them. Urban form is thus partly planned and partly improvised.", "Urban development reflects both official planning and informal resident behavior.", "Some city features may originate before they receive official approval.", "to expand the causes considered in urban history", "It is synthetic and explanatory."],
+        ["climate adaptation", "Sea walls can protect coastlines from storm surge, but they may also encourage development in risky areas. If residents interpret protection as permanent safety, future losses can grow. Adaptation policies can therefore change behavior as well as physical risk.", "Coastal defenses can reduce immediate risk while increasing future exposure.", "A protective structure may indirectly encourage choices that increase vulnerability.", "to show that infrastructure can alter incentives", "It is cautionary and analytical."],
+        ["art conservation", "Restoring a painting can make it more visually coherent, but excessive restoration may erase evidence of the object's history. Conservators must decide whether damage is merely a distraction or part of the work's record of ownership, display, and repair.", "Art restoration requires balancing visual coherence against historical evidence.", "Some visible damage may have historical value.", "to present conservation as a judgment about evidence, not just appearance", "It is reflective and balanced."],
+        ["labor economics", "Remote work expands the geographic range of hiring, but it can also weaken informal training. New employees often learn by overhearing questions, watching routines, and receiving quick corrections. Organizations that move remote must deliberately replace these informal channels.", "Remote work offers hiring flexibility but can reduce informal learning unless organizations adapt.", "Remote organizations may need explicit systems for training that once happened casually.", "to identify an often-overlooked cost of remote work", "It is practical and qualified."],
+        ["memory research", "Human memory is reconstructive rather than archival. People can remember the gist of an event accurately while misplacing details or incorporating later information. This makes memory useful but also vulnerable to confident error.", "Memory can preserve general meaning while distorting details.", "Confidence in a memory does not guarantee accuracy in every detail.", "to distinguish gist accuracy from detailed accuracy", "It is explanatory and cautionary."],
+        ["innovation", "Breakthroughs are often narrated as sudden insights, but many depend on slow improvements in tools, materials, and institutions. The dramatic moment is real, yet it may be visible only because less glamorous groundwork has accumulated.", "Innovation often combines visible insight with gradual supporting developments.", "A breakthrough may depend on prior work that receives little attention.", "to complicate stories that credit innovation to sudden insight alone", "It is corrective and historical."],
+        ["environmental policy", "A tax on pollution can reduce emissions by making harmful activity more expensive. But if households lack affordable alternatives, the tax may impose burdens without changing behavior much. Policy design must consider both incentives and available substitutes.", "Pollution taxes work best when people have feasible alternatives.", "A price signal may be less effective when substitutes are unavailable.", "to qualify the expected effect of an economic incentive", "It is analytical and policy-focused."],
+        ["anthropology", "Artifacts found in a settlement can reveal trade connections, but their presence does not always prove direct contact. Objects may pass through intermediaries, be reused long after manufacture, or imitate foreign styles. Interpretation requires attention to context.", "Artifacts can suggest connections, but context is needed before inferring direct contact.", "A foreign-looking object in a settlement may not have arrived through direct exchange.", "to caution against an overstrong inference from material evidence", "It is careful and methodological."],
+        ["technology adoption", "New workplace software often promises efficiency, yet its early use may slow employees as they learn new routines. This temporary slowdown is not necessarily evidence of failure; it may be the cost of transition before benefits appear.", "Early productivity losses from new software can reflect transition costs rather than failure.", "An initial slowdown should not automatically be treated as proof that software is ineffective.", "to distinguish short-term adjustment from long-term value", "It is practical and reassuring but qualified."],
+        ["literary translation", "A translator may preserve literal wording at the cost of tone, or preserve tone while altering structure. No translation can carry every feature of the original with equal force. Each version is therefore an argument about what matters most.", "Translation involves choices about which features of a text to prioritize.", "A less literal translation can still be faithful to an important aspect of the original.", "to frame translation as interpretive judgment", "It is reflective and analytical."]
+      ];
+      const rcStems = [
+        ["Which choice best states the main idea of the passage?", 2],
+        ["Which of the following can be inferred from the passage?", 3],
+        ["The highlighted contrast in the passage primarily serves which purpose?", 4],
+        ["The author's tone is best described as", 5],
+        ["Which choice would most weaken the passage's central claim?", 6],
+        ["The passage is primarily concerned with", 2],
+        ["The author would most likely agree with which statement?", 3],
+        ["The passage's qualification of the main claim functions chiefly to", 4],
+        ["The author's attitude toward the subject is best characterized as", 5],
+        ["Which finding would most directly challenge the author's reasoning?", 6],
+        ["Which choice best summarizes the passage's argument?", 2]
+      ];
+      for (let index = 0; index < 220; index += 1) {
+        const passage = rcPassages[index % rcPassages.length];
+        const kind = rcStems[Math.floor(index / rcPassages.length) % rcStems.length];
+        const correct = kind[1] === 2
+          ? passage[2]
+          : kind[1] === 3
+            ? passage[3]
+            : kind[1] === 4
+              ? passage[4]
+              : kind[1] === 5
+                ? passage[5]
+                : `Evidence that the effect described in the passage occurs even when the stated condition is absent`;
+        const distractors = kind[1] === 6
+          ? [
+            "Evidence that the stated condition is necessary for the described effect",
+            "A second example that follows the same pattern as the passage",
+            "A clarification that narrows but does not contradict the author's claim",
+            "A historical anecdote unrelated to the passage's causal logic"
+          ]
+          : [
+            "The passage proves that the discussed approach always fails.",
+            "The passage is primarily a biography of one researcher.",
+            "The passage argues that practical constraints are irrelevant.",
+            "The passage rejects the need for evidence."
+          ];
+        const packed = packChoices(correct, distractors, `gre-rc-${index}`);
+        add({
+          id: `gre-rc-${index}`,
+          exam: "GRE",
+          section: "GREVerbal",
+          topic: "Reading Comprehension",
+          responseType: "single",
+          context: passage[1],
+          stem: kind[0],
+          choices: packed.choices,
+          answer: packed.answer,
+          explanation: verbalExplanation(`The passage about ${passage[0]} is qualified: it makes a central claim, adds limits or conditions, and avoids extreme conclusions.`, `The correct choice stays inside the author's actual claim: ${correct}`, "Extreme choices using words like always, proves, rejects, or irrelevant usually fail here because the passage is qualified rather than absolute."),
+          difficulty: clamp(1 + Math.floor(index / 50), 1, 5)
+        });
+      }
+
+      const issueTopics = [
+        "Governments should prioritize funding for public transportation over expanding highways.",
+        "Universities should require all students to study fields outside their intended specialization.",
+        "The most effective leaders are those who are willing to change their views when new evidence appears.",
+        "Technology has made people better informed but less patient with complexity.",
+        "In any field, progress depends more on collaboration than on individual genius.",
+        "A society should judge public policies primarily by their long-term consequences.",
+        "Educational institutions should reward students more for improvement than for final performance.",
+        "People learn more from work that challenges their assumptions than from work that confirms them.",
+        "Cities should preserve historic buildings even when replacing them would be less expensive.",
+        "The best way to solve environmental problems is to make environmentally harmful behavior more costly.",
+        "Experts should have more influence than public opinion in decisions involving complex technology.",
+        "A nation should invest more in preventing problems than in responding to crises after they occur.",
+        "Competition produces better results than cooperation in most professional settings.",
+        "Schools should teach students how to evaluate information before teaching them specialized content.",
+        "Public officials should be judged more by transparency than by efficiency.",
+        "The most valuable discoveries often come from research with no immediate practical goal.",
+        "Organizations should encourage employees to question long-standing procedures.",
+        "The success of a community depends more on shared responsibilities than on individual rights.",
+        "Students should be allowed to design part of their own curriculum.",
+        "It is better for leaders to admit uncertainty than to project confidence they do not feel.",
+        "Art should challenge people's beliefs rather than simply entertain them.",
+        "Economic growth should not be considered progress unless it improves quality of life for most citizens.",
+        "People are more likely to act ethically when institutions make ethical behavior convenient.",
+        "The most important function of education is to prepare people for responsible citizenship.",
+        "Scientific claims should be communicated with their uncertainties, even if this makes them less persuasive.",
+        "Traditions are valuable only when they continue to serve a present purpose.",
+        "Governments should fund basic scientific research even when its benefits are uncertain.",
+        "Employees should be evaluated by team outcomes rather than individual achievements.",
+        "The best teachers are those who make students comfortable with being wrong.",
+        "A society benefits when citizens are exposed to views they strongly disagree with.",
+        "Technology companies should be responsible for the social consequences of their products.",
+        "Personal discipline is more important than talent in achieving long-term success.",
+        "Policies designed for average people often fail because they ignore unusual cases.",
+        "Museums should present controversial objects with context rather than remove them from public view.",
+        "The ability to communicate clearly is more important than specialized knowledge in leadership roles.",
+        "Universities should devote more resources to teaching than to research.",
+        "A person's character is revealed more by ordinary habits than by major decisions.",
+        "Governments should prioritize reducing inequality over maximizing overall wealth.",
+        "Innovation is slowed when organizations avoid failure too aggressively.",
+        "The most reliable way to understand a problem is to study it from multiple disciplines.",
+        "Public policy should be based on evidence even when the evidence conflicts with popular beliefs.",
+        "People benefit more from specific criticism than from general encouragement.",
+        "A community should measure success by the well-being of its least advantaged members.",
+        "The best solutions are usually simple enough for nonexperts to understand.",
+        "Young people should be encouraged to specialize early in order to develop mastery.",
+        "A leader's primary responsibility is to create conditions in which others can succeed.",
+        "Laws should change slowly because rapid reform often produces unintended consequences.",
+        "Access to information has made independent judgment more important than memorized knowledge.",
+        "Organizations should value reliability more than originality.",
+        "The purpose of higher education should be intellectual growth rather than career preparation.",
+        "Public spaces should be designed primarily for usefulness rather than beauty.",
+        "People are more persuaded by stories than by statistics.",
+        "A society should protect unpopular speech because popular speech does not need protection.",
+        "The most effective reforms are those that change incentives rather than attitudes.",
+        "Success in any field depends on knowing when to abandon a failing plan.",
+        "Cultural institutions should adapt to popular tastes in order to remain relevant.",
+        "A person should choose work that is socially useful even if it is less personally rewarding.",
+        "Decision makers should give more weight to local experience than to abstract principles.",
+        "Progress often requires questioning the standards by which progress is measured.",
+        "The best preparation for uncertainty is broad knowledge rather than narrow expertise.",
+        "Public trust is more difficult to restore than to maintain.",
+        "A society should invest in arts and humanities even during periods of economic difficulty.",
+        "The strongest arguments acknowledge the best objections to their own position.",
+        "Institutions should be designed for ordinary human weaknesses, not ideal human behavior.",
+        "It is more important to ask the right questions than to find quick answers."
+      ];
+      for (let index = 0; index < 60; index += 1) {
+        const topic = issueTopics[index % issueTopics.length];
+        add({
+          id: `gre-aw-${index}`,
+          exam: "GRE",
+          section: "GREWriting",
+          topic: "Issue Task",
+          responseType: "essay",
+          stem: `Analyze an Issue: ${topic}`,
+          prompt: "Write a response in which you discuss the extent to which you agree or disagree with the statement. Develop and support your position with reasons and examples.",
+          explanation: "A strong GRE Issue essay takes a clear position, qualifies it where appropriate, supports each claim with concrete reasons or examples, considers an important objection or limitation, and maintains clear organization and control of language.",
+          difficulty: clamp(1 + Math.floor(index / 14), 1, 5)
+        });
+      }
+
+      return questions;
+    }
+
     BANK.splice(0, BANK.length, ...buildStandardsAlignedBank(), ...buildExpansionBank());
     diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
+    const GRE_BANK = pruneQuestionBank(buildGREBank());
 
     const PRACTICE_MODES = { Official: "Official test", Training: "Section drill" };
     const DEFAULT_MODE = "Training";
-    const OFFICIAL_SECTION_SECONDS = OFFICIAL_GMAT_BLUEPRINT.Quant.minutes * 60;
-    const OFFICIAL_SECTION_COUNTS = Object.fromEntries(sections.map((section) => [section, OFFICIAL_GMAT_BLUEPRINT[section].questions]));
+    const DEFAULT_EXAM = "GMAT";
+    const GMAT_OFFICIAL_SECTION_SECONDS = OFFICIAL_GMAT_BLUEPRINT.Quant.minutes * 60;
+    const OFFICIAL_SECTION_COUNTS = {
+      Quant: 21,
+      Verbal: 23,
+      DI: 20,
+      GREWritingOfficial: 1,
+      GREVerbal1: 12,
+      GREQuant1: 12,
+      GREVerbal2: 15,
+      GREQuant2: 15
+    };
+    const OFFICIAL_SECTION_SECONDS = {
+      Quant: 45 * 60,
+      Verbal: 45 * 60,
+      DI: 45 * 60,
+      GREWritingOfficial: 30 * 60,
+      GREVerbal1: 18 * 60,
+      GREQuant1: 21 * 60,
+      GREVerbal2: 23 * 60,
+      GREQuant2: 26 * 60
+    };
     const SESSION_PRESETS = { Quick: 5 * 60, Focus: 30 * 60, Full: 90 * 60 };
     const DEFAULT_SESSION = "Full";
     const SECTION_SECONDS = SESSION_PRESETS[DEFAULT_SESSION];
@@ -6352,16 +7640,21 @@
         question.fundamentalSkill = fundamentalSkillForQuestion(question);
         question.trainingArea = trainingAreaForQuestion(question);
         question.subskill = subskillForQuestion(question);
-        question.expectedSeconds = question.section === "Verbal"
-          ? 115 + difficulty * 15
-          : question.section === "DI"
-            ? 125 + difficulty * 18
-            : 85 + difficulty * 12;
+        const poolSection = sectionPoolKey(question.section);
+        question.expectedSeconds = poolSection === "GREWriting"
+          ? 30 * 60
+          : poolSection === "Verbal" || poolSection === "GREVerbal"
+            ? 80 + difficulty * 12
+            : poolSection === "DI"
+              ? 125 + difficulty * 18
+              : poolSection === "GREQuant"
+                ? 75 + difficulty * 12
+                : 85 + difficulty * 12;
         question.scoreLevel = 60 + difficulty * 6;
         question.irt = {
           a: compactNumber(0.82 + difficulty * 0.11 + discriminationSeed),
           b: compactNumber(initialDifficultyLocation(difficulty) + difficultySeed),
-          c: question.section === "Verbal" ? 0.16 : 0.18
+          c: poolSection === "Verbal" || poolSection === "GREVerbal" ? 0.16 : 0.18
         };
         question.auditStatus = "Algorithmic format check";
         question.reviewStatus = "Expert review required before paid launch";
@@ -6370,11 +7663,55 @@
     }
 
     enrichQuestionBank(BANK);
-    const questionById = new Map(BANK.map((question) => [question.id, question]));
+    enrichQuestionBank(GRE_BANK);
+    const questionById = new Map([...BANK, ...GRE_BANK].map((question) => [question.id, question]));
     const $ = (selector) => document.querySelector(selector);
 
     function normalizeMode(mode) {
       return PRACTICE_MODES[mode] ? mode : DEFAULT_MODE;
+    }
+
+    function normalizeExam(exam) {
+      return EXAM_CONFIG[exam] ? exam : DEFAULT_EXAM;
+    }
+
+    function activeExam() {
+      try {
+        return normalizeExam(state.exam);
+      } catch (_) {
+        return DEFAULT_EXAM;
+      }
+    }
+
+    function currentExamConfig(exam = activeExam()) {
+      return EXAM_CONFIG[normalizeExam(exam)];
+    }
+
+    function sectionPoolKey(section) {
+      return SECTION_POOL[section] || section;
+    }
+
+    function sectionBlueprintKey(section) {
+      return sectionPoolKey(section);
+    }
+
+    function sectionsForMode(mode = activeMode(), exam = activeExam()) {
+      const config = currentExamConfig(exam);
+      return normalizeMode(mode) === "Official" ? config.officialSections : config.drillSections;
+    }
+
+    function activeSections() {
+      return sectionsForMode(activeMode(), activeExam());
+    }
+
+    function scoredSections(exam = activeExam()) {
+      return currentExamConfig(exam).scoredSections;
+    }
+
+    function ensureSectionInActiveMode() {
+      const available = activeSections();
+      const preferred = currentExamConfig().defaultSection;
+      if (!available.includes(state.section)) state.section = available.includes(preferred) ? preferred : available[0] || preferred;
     }
 
     function activeMode() {
@@ -6386,18 +7723,23 @@
     }
 
     function scopedQuestionKey(questionId, mode) {
-      return `${normalizeMode(mode || activeMode())}:${questionId}`;
+      return `${activeExam()}:${normalizeMode(mode || activeMode())}:${questionId}`;
+    }
+
+    function sectionObject(valueFactory) {
+      return Object.fromEntries(ALL_SECTIONS.map((section) => [section, valueFactory(section)]));
     }
 
     const defaultState = () => ({
+      exam: DEFAULT_EXAM,
       mode: DEFAULT_MODE,
       section: "Quant",
       sessionPreset: DEFAULT_SESSION,
-      indexBySection: { Quant: 0, Verbal: 0, DI: 0 },
-      queueBySection: { Quant: [], Verbal: [], DI: [] },
-      drillTopicBySection: { Quant: [], Verbal: [], DI: [] },
-      targetDifficulty: { Quant: 2, Verbal: 2, DI: 2 },
-      streakBySection: { Quant: 0, Verbal: 0, DI: 0 },
+      indexBySection: sectionObject(() => 0),
+      queueBySection: sectionObject(() => []),
+      drillTopicBySection: sectionObject(() => []),
+      targetDifficulty: sectionObject(() => 2),
+      streakBySection: sectionObject(() => 0),
       topicStats: {},
       answersByMode: { Official: {}, Training: {} },
       answers: {},
@@ -6408,13 +7750,21 @@
       confidenceTags: {},
       feedbackReports: {},
       officialScore: "",
-      lastAdjustment: { Quant: null, Verbal: null, DI: null },
+      lastAdjustment: sectionObject(() => null),
       paused: false,
-      timers: { Quant: SECTION_SECONDS, Verbal: SECTION_SECONDS, DI: SECTION_SECONDS }
+      timers: sectionObject((section) => OFFICIAL_SECTION_SECONDS[section] || SECTION_SECONDS)
     });
 
     function isOfficialMode(mode = activeMode()) {
       return normalizeMode(mode) === "Official";
+    }
+
+    function officialQuestionCount(section = state.section) {
+      return OFFICIAL_SECTION_COUNTS[section] || OFFICIAL_GMAT_BLUEPRINT[sectionBlueprintKey(section)]?.questions || null;
+    }
+
+    function officialSectionSeconds(section = state.section) {
+      return OFFICIAL_SECTION_SECONDS[section] || GMAT_OFFICIAL_SECTION_SECONDS;
     }
 
     function answerStore(mode = activeMode()) {
@@ -6449,15 +7799,15 @@
     }
 
     function sectionQuestionLimit(section = state.section) {
-      return isOfficialMode() ? OFFICIAL_SECTION_COUNTS[section] : null;
+      return isOfficialMode() ? officialQuestionCount(section) : null;
     }
 
     function sessionSeconds() {
-      return isOfficialMode() ? OFFICIAL_SECTION_SECONDS : SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION];
+      return isOfficialMode() ? officialSectionSeconds(state.section) : SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION];
     }
 
     function sessionLabel() {
-      if (isOfficialMode()) return "45 min official";
+      if (isOfficialMode()) return `${Math.round(officialSectionSeconds(state.section) / 60)} min official`;
       return state.sessionPreset === "Quick" ? "5 min" : state.sessionPreset === "Focus" ? "30 min" : "90 min";
     }
 
@@ -6476,16 +7826,13 @@
           : storedFocus[section]
             ? [storedFocus[section]]
             : [];
-        return Object.assign(base, stored || {}, {
+        const loaded = Object.assign(base, stored || {}, {
+          exam: normalizeExam(stored?.exam),
           mode: PRACTICE_MODES[stored?.mode] ? stored.mode : DEFAULT_MODE,
           sessionPreset: SESSION_PRESETS[stored?.sessionPreset] ? stored.sessionPreset : DEFAULT_SESSION,
           indexBySection: Object.assign(base.indexBySection, stored?.indexBySection || {}),
           queueBySection: Object.assign(base.queueBySection, stored?.queueBySection || {}),
-          drillTopicBySection: {
-            Quant: normalizeStoredFocus("Quant"),
-            Verbal: normalizeStoredFocus("Verbal"),
-            DI: normalizeStoredFocus("DI")
-          },
+          drillTopicBySection: Object.assign(base.drillTopicBySection, Object.fromEntries(ALL_SECTIONS.map((section) => [section, normalizeStoredFocus(section)]))),
           targetDifficulty: Object.assign(base.targetDifficulty, stored?.targetDifficulty || {}),
           streakBySection: Object.assign(base.streakBySection, stored?.streakBySection || {}),
           topicStats: stored?.topicStats || {},
@@ -6504,6 +7851,9 @@
           lastAdjustment: Object.assign(base.lastAdjustment, stored?.lastAdjustment || {}),
           timers: Object.assign(base.timers, stored?.timers || {})
         });
+        const validSections = sectionsForMode(loaded.mode, loaded.exam);
+        if (!validSections.includes(loaded.section)) loaded.section = validSections[0] || currentExamConfig(loaded.exam).defaultSection;
+        return loaded;
       } catch (_) {
         return defaultState();
       }
@@ -6512,15 +7862,20 @@
     function saveState() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        $("#saveState").textContent = "GMAT practice offline";
+        $("#saveState").textContent = currentExamConfig().tagline;
       } catch (_) {
         $("#saveState").textContent = "Session only";
       }
     }
 
+    function activeBank() {
+      return activeExam() === "GRE" ? GRE_BANK : BANK;
+    }
+
     function rawBySection(section = state.section) {
-      return BANK
-        .filter((q) => q.section === section)
+      const poolSection = sectionPoolKey(section);
+      return activeBank()
+        .filter((q) => q.section === poolSection)
         .sort((a, b) => a.difficulty - b.difficulty || a.topic.localeCompare(b.topic) || a.id.localeCompare(b.id));
     }
 
@@ -6602,7 +7957,7 @@
       const answeredRecordsForSection = answeredRecords(section);
       const rawTheta = answeredRecordsForSection.length ? estimateTheta(answeredRecordsForSection) : 0;
       const theta = rawTheta * Math.min(1, answeredRecordsForSection.length / 8);
-      const unanswered = all.filter((question) => !answerFor(question.id));
+      const unanswered = all.filter((question) => !answerIsComplete(answerFor(question.id)));
       const pool = (unanswered.length ? unanswered : all).filter((question) => question.id !== lastId);
       const candidates = pool.length ? pool : all;
       const target = state.targetDifficulty[section] || 2;
@@ -6614,7 +7969,7 @@
       }, {});
       return candidates
         .map((question) => {
-          const answeredPenalty = answerFor(question.id) ? 42 : 0;
+          const answeredPenalty = answerIsComplete(answerFor(question.id)) ? 42 : 0;
           const queuePenalty = queue.includes(question.id) ? 18 : 0;
           const recentTopicCount = recentTopics.filter((topic) => topic === question.topic).length;
           const recentTopicPenalty = recentTopicCount * 26;
@@ -6665,18 +8020,18 @@
 
     function officialSectionComplete(section = state.section) {
       if (!isOfficialMode()) return false;
-      const limit = OFFICIAL_SECTION_COUNTS[section];
+      const limit = officialQuestionCount(section);
       const queue = cleanQueue(section).slice(0, limit);
-      return queue.length >= limit && queue.every((id) => answerFor(id, "Official"));
+      return queue.length >= limit && queue.every((id) => answerIsComplete(answerFor(id, "Official")));
     }
 
     function officialTestComplete() {
-      return isOfficialMode() && sections.every((section) => officialSectionComplete(section));
+      return isOfficialMode() && activeSections().every((section) => officialSectionComplete(section));
     }
 
     function nextIncompleteOfficialSection() {
       if (!isOfficialMode()) return null;
-      return sections.find((section) => !officialSectionComplete(section)) || null;
+      return activeSections().find((section) => !officialSectionComplete(section)) || null;
     }
 
     function explanationsUnlocked() {
@@ -6694,19 +8049,25 @@
       render();
     }
 
+    function answerIsComplete(answer) {
+      return Boolean(answer && !answer.pending);
+    }
+
     function statsFor(section = state.section) {
-      const list = bySection(section);
       const limit = sectionQuestionLimit(section);
-      const answered = list.filter((q) => answerFor(q.id)).length;
-      const correct = list.filter((q) => answerFor(q.id)?.correct).length;
+      const list = isOfficialMode()
+        ? cleanQueue(section).slice(0, limit || undefined).map((id) => questionById.get(id)).filter(Boolean)
+        : bySection(section);
+      const answered = list.filter((q) => answerIsComplete(answerFor(q.id))).length;
+      const correct = list.filter((q) => answerIsComplete(answerFor(q.id)) && answerFor(q.id)?.correct).length;
       const flagged = list.filter((q) => scopedStateValue(state.flagged, q.id)).length;
-      const wrong = list.filter((q) => answerFor(q.id) && !answerFor(q.id).correct).length;
+      const wrong = list.filter((q) => answerIsComplete(answerFor(q.id)) && !answerFor(q.id).correct).length;
       const accuracy = answered ? Math.round((correct / answered) * 100) : 0;
       return { answered, correct, flagged, wrong, total: limit || list.length, accuracy };
     }
 
     function sectionShortName(section) {
-      return section === "Quant" ? "Q" : section === "Verbal" ? "V" : "DI";
+      return OFFICIAL_GMAT_BLUEPRINT[sectionBlueprintKey(section)]?.shortName || sectionLabel[section] || section;
     }
 
     function sectionToTotalScore(sectionAverage) {
@@ -6763,7 +8124,7 @@
 
     function answeredRecords(section) {
       return bySection(section)
-        .filter((question) => answerFor(question.id))
+        .filter((question) => answerIsComplete(answerFor(question.id)))
         .map((question) => ({ question, answer: answerFor(question.id) }));
     }
 
@@ -6900,12 +8261,12 @@
         const locked = officialFeedbackLocked();
         const enoughForBand = estimate.answered >= 4;
         const scoreText = locked
-          ? `${estimate.answered}/${OFFICIAL_SECTION_COUNTS[estimate.section]}`
+          ? `${estimate.answered}/${officialQuestionCount(estimate.section)}`
           : enoughForBand ? `${estimate.low}-${estimate.high}` : `${estimate.answered}/${SECTION_ESTIMATE_MIN}`;
         const sectionPercentiles = SECTION_PERCENTILES[estimate.section] || {};
         const percentileText = locked ? "locked" : enoughForBand ? percentileBand(estimate.low, estimate.high, sectionPercentiles) : "need 8";
         const meter = locked
-          ? Math.round((estimate.answered / OFFICIAL_SECTION_COUNTS[estimate.section]) * 100)
+          ? Math.round((estimate.answered / officialQuestionCount(estimate.section)) * 100)
           : enoughForBand ? estimate.meter : Math.round((estimate.answered / SECTION_ESTIMATE_MIN) * 100);
         row.innerHTML = `
           <span class="section-estimate-label">${sectionShortName(estimate.section)}</span>
@@ -6916,15 +8277,86 @@
       });
     }
 
+    function greMeasureEstimate(section) {
+      const records = answeredRecords(section).filter(({ answer }) => answerIsComplete(answer));
+      const answered = records.length;
+      if (!answered) return { section, answered: 0, ready: false, low: 130, high: 170, meter: 0 };
+      const theta = estimateTheta(records);
+      const standardError = thetaStandardError(theta, records);
+      const rawScore = clamp(150 + theta * 6.8 + Math.min(5, answered / 5), 130, 170);
+      const score = Math.round(rawScore);
+      const width = clamp(Math.ceil(standardError * 4.8) + (answered < 8 ? 3 : 0), 3, 9);
+      return {
+        section,
+        answered,
+        ready: answered >= 8,
+        score,
+        low: clamp(score - width, 130, 170),
+        high: clamp(score + width, 130, 170),
+        meter: Math.round(((score - 130) / 40) * 100)
+      };
+    }
+
+    function renderGREScoreEstimate() {
+      const anchorRow = document.querySelector(".anchor-row");
+      if (anchorRow) anchorRow.hidden = true;
+      const verbal = greMeasureEstimate("GREVerbal");
+      const quant = greMeasureEstimate("GREQuant");
+      const writingAnswered = answeredRecords("GREWriting").filter(({ answer }) => answerIsComplete(answer)).length;
+      const locked = officialFeedbackLocked();
+      if (locked) {
+        const answered = activeSections().reduce((sum, section) => sum + statsFor(section).answered, 0);
+        const total = activeSections().reduce((sum, section) => sum + officialQuestionCount(section), 0);
+        $("#estimateValue").textContent = `${answered}/${total}`;
+        $("#estimatePercentile").textContent = "GRE review locked";
+        $("#estimateConfidence").textContent = "locked";
+        $("#estimateNote").textContent = "GRE Official Test mode follows the shorter GRE structure and withholds correctness/explanations until all five sections are complete.";
+      } else if (verbal.ready && quant.ready) {
+        $("#estimateValue").textContent = `V ${verbal.low}-${verbal.high} / Q ${quant.low}-${quant.high}`;
+        $("#estimatePercentile").textContent = "Scaled estimate";
+        $("#estimateConfidence").textContent = Math.min(verbal.answered, quant.answered) >= 15 ? "usable" : "wide";
+        $("#estimateNote").textContent = `GRE Verbal and Quant scores are reported separately from 130-170. This estimate uses ${verbal.answered} verbal and ${quant.answered} quant answers; it is not ETS calibrated.`;
+      } else {
+        $("#estimateValue").textContent = "Calibrating";
+        $("#estimatePercentile").textContent = "Need V/Q signal";
+        $("#estimateConfidence").textContent = "early";
+        $("#estimateNote").textContent = "Answer at least 8 GRE Verbal and 8 GRE Quant questions for a first scaled-score band. Analytical Writing is essay self-review, not auto-scored.";
+      }
+      $("#officialScoreInput").value = state.officialScore || "";
+      const rows = [
+        { label: "V", answered: verbal.answered, scoreText: verbal.ready && !locked ? `${verbal.low}-${verbal.high}` : `${verbal.answered}/8`, small: "130-170", meter: verbal.ready ? verbal.meter : Math.round((verbal.answered / 8) * 100) },
+        { label: "Q", answered: quant.answered, scoreText: quant.ready && !locked ? `${quant.low}-${quant.high}` : `${quant.answered}/8`, small: "130-170", meter: quant.ready ? quant.meter : Math.round((quant.answered / 8) * 100) },
+        { label: "AW", answered: writingAnswered, scoreText: writingAnswered ? "drafted" : "0/1", small: "0-6 self-review", meter: writingAnswered ? 100 : 0 }
+      ];
+      const container = $("#sectionEstimates");
+      container.innerHTML = "";
+      rows.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "section-estimate-row";
+        row.innerHTML = `
+          <span class="section-estimate-label">${item.label}</span>
+          <span class="section-meter" aria-hidden="true"><span style="--meter: ${clamp(item.meter, 0, 100)}%"></span></span>
+          <span class="section-estimate-score">${item.scoreText}<small>${item.small}</small></span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
     function renderScoreEstimate() {
-      const sectionEstimates = sections.map(estimateSectionScore);
+      if (activeExam() === "GRE") {
+        renderGREScoreEstimate();
+        return;
+      }
+      const anchorRow = document.querySelector(".anchor-row");
+      if (anchorRow) anchorRow.hidden = false;
+      const sectionEstimates = scoredSections().map(estimateSectionScore);
       const current = sectionEstimates.find((estimate) => estimate.section === state.section);
       const rawTotalEstimate = estimateTotalScore(sectionEstimates);
       const totalEstimate = applyOfficialAnchor(rawTotalEstimate);
       const confidence = estimateConfidence(sectionEstimates, totalEstimate);
       if (officialFeedbackLocked()) {
         const answered = sectionEstimates.reduce((sum, estimate) => sum + estimate.answered, 0);
-        const total = sections.reduce((sum, section) => sum + OFFICIAL_SECTION_COUNTS[section], 0);
+        const total = activeSections().reduce((sum, section) => sum + officialQuestionCount(section), 0);
         $("#estimateValue").textContent = `${answered}/${total}`;
         $("#estimatePercentile").textContent = "Score unlocks in review";
         $("#estimateConfidence").textContent = "locked";
@@ -6972,7 +8404,7 @@
         if (!topics.has(question.topic)) {
           topics.set(question.topic, { topic: question.topic, subskill: question.subskill, answered: 0, correct: 0, wrong: 0 });
         }
-        if (answer) {
+        if (answerIsComplete(answer)) {
           const item = topics.get(question.topic);
           item.answered += 1;
           if (answer.correct) item.correct += 1;
@@ -7006,14 +8438,15 @@
     function missedQuestions(section = state.section, options = {}) {
       const includeResolved = Boolean(options.includeResolved);
       return bySection(section).filter((question) => (
-        answerFor(question.id)
+        answerIsComplete(answerFor(question.id))
         && !answerFor(question.id).correct
         && (includeResolved || !scopedStateValue(state.resolvedMisses, question.id))
       ));
     }
 
     function recommendedSection() {
-      return sections
+      const candidateSections = currentExamConfig().drillSections;
+      return candidateSections
         .map((section) => {
           const stats = statsFor(section);
           const weak = weakestTopic(section);
@@ -7022,7 +8455,7 @@
             score: (stats.wrong * 5) + (weak.weakness || 0) + Math.max(0, TOTAL_ESTIMATE_MIN - stats.answered) * 1.5
           };
         })
-        .sort((a, b) => b.score - a.score || sections.indexOf(a.section) - sections.indexOf(b.section))[0]?.section || state.section;
+        .sort((a, b) => b.score - a.score || candidateSections.indexOf(a.section) - candidateSections.indexOf(b.section))[0]?.section || state.section;
     }
 
     function buildStudyPlan() {
@@ -7053,16 +8486,17 @@
     function renderCoach() {
       if (officialFeedbackLocked()) {
         const stats = statsFor();
+        const totalQuestions = activeSections().reduce((sum, section) => sum + officialQuestionCount(section), 0);
         $("#startPlanButton").textContent = "Continue";
         $("#coachBody").innerHTML = `
           <div class="coach-card">
             <span class="coach-kicker">Official test</span>
             <h3 class="coach-title">${sectionLabel[state.section]} ${stats.answered}/${stats.total}</h3>
-            <p class="coach-text">Keep moving through the section. Correctness, explanations, weak topics, and score estimates unlock after all three sections are complete.</p>
+            <p class="coach-text">Keep moving through the section. Correctness, explanations, weak topics, and score estimates unlock after all ${activeSections().length} official sections are complete.</p>
             <div class="coach-metrics">
               <span class="metric-pill"><strong>${sectionShortName(state.section)}</strong>active</span>
               <span class="metric-pill"><strong>${formatTime(state.timers[state.section] ?? sessionSeconds())}</strong>left</span>
-              <span class="metric-pill"><strong>64</strong>total questions</span>
+              <span class="metric-pill"><strong>${totalQuestions}</strong>total questions</span>
             </div>
           </div>
         `;
@@ -7097,7 +8531,7 @@
     function renderAnswerCoach(question) {
       const answer = answerFor(question.id);
       const container = $("#answerCoach");
-      if (!answer || !explanationsUnlocked()) {
+      if (!answerIsComplete(answer) || !explanationsUnlocked()) {
         container.classList.remove("is-visible");
         container.innerHTML = "";
         return;
@@ -7126,14 +8560,17 @@
 
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
-      const officialTypeCount = sections.reduce((sum, section) => sum + officialTypesForSection(section).length, 0);
-      const scoreDimensionCount = sections.reduce((sum, section) => {
-        const blueprint = OFFICIAL_GMAT_BLUEPRINT[section];
+      const methodologySections = currentExamConfig().drillSections;
+      const officialTypeCount = methodologySections.reduce((sum, section) => sum + officialTypesForSection(section).length, 0);
+      const scoreDimensionCount = methodologySections.reduce((sum, section) => {
+        const blueprint = OFFICIAL_GMAT_BLUEPRINT[sectionBlueprintKey(section)];
         return sum + blueprint.contentDomains.length + blueprint.scoreReportQuestionTypes.length + blueprint.fundamentalSkills.length;
       }, 0);
-      $("#methodCopy").textContent = "The app follows the public GMAC structure and score-report-style dimensions: Quant has Arithmetic/Algebra, Pure/Real Contexts, and four fundamental-skill groups; Verbal has Reading Comprehension and Critical Reasoning with reading and reasoning skills; Data Insights has the five official DI question types. Section Drill adds finer training topics inside those dimensions. Questions are original practice items with algorithmic format checks, adaptive routing, teaching explanations, and an IRT-style score model; this still does not reproduce GMAC calibration, GMAC item content, or claim GMAC affiliation.";
+      $("#methodCopy").textContent = activeExam() === "GRE"
+        ? "The GRE side follows the public ETS structure: Analytical Writing has one Analyze an Issue task, Verbal has Reading Comprehension, Text Completion, and Sentence Equivalence, and Quant has Quantitative Comparison, select-one, select-one-or-more, Numeric Entry, and Data Interpretation practice across arithmetic, algebra, geometry, and data analysis. Questions are original practice items with format checks, adaptive routing, teaching explanations, and an IRT-style estimate; this does not reproduce ETS calibration, ETS item content, or claim ETS affiliation."
+        : "The app follows the public GMAC structure and score-report-style dimensions: Quant has Arithmetic/Algebra, Pure/Real Contexts, and four fundamental-skill groups; Verbal has Reading Comprehension and Critical Reasoning with reading and reasoning skills; Data Insights has the five official DI question types. Section Drill adds finer training topics inside those dimensions. Questions are original practice items with algorithmic format checks, adaptive routing, teaching explanations, and an IRT-style score model; this still does not reproduce GMAC calibration, GMAC item content, or claim GMAC affiliation.";
       $("#methodMetrics").innerHTML = `
-        <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
+        <span class="metric-pill"><strong>${activeBank().length}</strong>questions</span>
         <span class="metric-pill"><strong>${officialTypeCount}</strong>official types</span>
         <span class="metric-pill"><strong>${scoreDimensionCount}</strong>score dims</span>
         <span class="metric-pill"><strong>${reported}</strong>reported</span>
@@ -7158,17 +8595,25 @@
       timerProgress.hidden = !official;
       $("#pauseButton").hidden = !official;
       if (official) {
-        const remaining = state.timers[state.section] ?? OFFICIAL_SECTION_SECONDS;
+        const totalSeconds = officialSectionSeconds(state.section);
+        const remaining = state.timers[state.section] ?? totalSeconds;
         timerValue.innerHTML = `${formatTime(remaining)} <span>left</span>`;
-        $("#timerProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, remaining / OFFICIAL_SECTION_SECONDS))})`;
+        $("#timerProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, remaining / totalSeconds))})`;
         $("#pauseButton").innerHTML = `${state.paused ? icon.play : icon.pause} ${state.paused ? "Resume" : "Pause"}`;
         $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
       }
       $("#resetButton").innerHTML = `${icon.reset} Reset`;
       $("#sectionTitle").textContent = sectionLabel[state.section] || state.section;
       $("#planSummary").textContent = official
-        ? `${sectionShortName(state.section)} official - ${OFFICIAL_SECTION_COUNTS[state.section]} questions`
+        ? `${sectionShortName(state.section)} official - ${officialQuestionCount(state.section)} questions`
         : `${sectionLabel[state.section]} drill - ${drillFocusLabel()}`;
+    }
+
+    function renderExamButtons() {
+      document.querySelectorAll(".exam-button").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.exam === activeExam()));
+      });
+      $("#saveState").textContent = currentExamConfig().tagline;
     }
 
     function renderModeButtons() {
@@ -7177,9 +8622,28 @@
       });
     }
 
+    function sectionIcon(section) {
+      const pool = sectionPoolKey(section);
+      if (pool === "GREWriting") return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19h14M7 16l8.5-8.5 2 2L9 18H7v-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      if (pool === "GREVerbal" || pool === "Verbal") return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v11H9l-4 4V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+      if (pool === "GREQuant" || pool === "Quant") return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v14H5V5Zm4 0v14M5 9h14M5 14h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+      return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9m7 10V5m7 14v-7" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>';
+    }
+
     function renderSegments() {
-      document.querySelectorAll(".segment").forEach((button) => {
-        button.setAttribute("aria-selected", String(button.dataset.section === state.section));
+      const container = $("#sectionSegments");
+      const available = activeSections();
+      container.setAttribute("aria-label", `${activeExam()} section`);
+      container.style.setProperty("--segment-count", String(Math.max(1, available.length)));
+      container.innerHTML = "";
+      available.forEach((section) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "segment";
+        button.dataset.section = section;
+        button.setAttribute("aria-selected", String(section === state.section));
+        button.innerHTML = `${sectionIcon(section)}<span>${sectionLabel[section] || section}</span>`;
+        container.appendChild(button);
       });
     }
 
@@ -7246,8 +8710,8 @@
         const marker = document.createElement("span");
         marker.className = "dot";
         if (absoluteIndex === index) marker.classList.add("is-current");
-        if (feedbackVisible && answer?.correct) marker.classList.add("is-correct");
-        if (feedbackVisible && answer && !answer.correct) marker.classList.add("is-wrong");
+        if (feedbackVisible && answerIsComplete(answer) && answer?.correct) marker.classList.add("is-correct");
+        if (feedbackVisible && answerIsComplete(answer) && !answer.correct) marker.classList.add("is-wrong");
         if (scopedStateValue(state.flagged, question.id)) marker.classList.add("is-flagged");
         marker.setAttribute("aria-hidden", "true");
         strip.appendChild(marker);
@@ -7259,14 +8723,44 @@
       const answer = answerFor(question.id);
       const show = Boolean(explanationsUnlocked() && scopedStateValue(state.showExplanation, question.id));
       choices.innerHTML = "";
+      if (question.responseType === "essay") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "essay-response";
+        wrapper.innerHTML = `
+          <p class="context-box">${question.prompt || "Write a clear, well-organized response."}</p>
+          <textarea id="essayResponseInput" rows="10" placeholder="Draft your GRE Issue essay here."></textarea>
+          <button class="text-button primary" type="button" id="essaySubmitButton">Mark draft complete</button>
+        `;
+        choices.appendChild(wrapper);
+        const input = $("#essayResponseInput");
+        input.value = answer?.text || "";
+        $("#essaySubmitButton").addEventListener("click", () => submitEssayAnswer(question, input.value));
+        return;
+      }
+      if (question.responseType === "numeric") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "numeric-response";
+        wrapper.innerHTML = `
+          <input id="numericResponseInput" inputmode="decimal" aria-label="Numeric entry answer" placeholder="Enter answer">
+          <button class="text-button primary" type="button" id="numericSubmitButton">Submit</button>
+        `;
+        choices.appendChild(wrapper);
+        const input = $("#numericResponseInput");
+        input.value = answer?.choice || "";
+        $("#numericSubmitButton").addEventListener("click", () => submitNumericAnswer(question, input.value));
+        return;
+      }
+      const selectedChoices = Array.isArray(answer?.choice) ? answer.choice : [];
       question.choices.forEach((choice, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "choice";
-        if (answer?.choice === index) button.classList.add("is-selected");
-        if (answer?.choice === index && officialFeedbackLocked()) button.classList.add("is-locked");
-        if (show && index === question.answer) button.classList.add("is-correct");
-        if (show && answer?.choice === index && !answer.correct) button.classList.add("is-wrong");
+        const selected = question.responseType === "multi" ? selectedChoices.includes(index) : answer?.choice === index;
+        const correctChoice = question.responseType === "multi" ? question.answer.includes(index) : index === question.answer;
+        if (selected) button.classList.add("is-selected");
+        if (selected && officialFeedbackLocked()) button.classList.add("is-locked");
+        if (show && answerIsComplete(answer) && correctChoice) button.classList.add("is-correct");
+        if (show && answerIsComplete(answer) && selected && !answer.correct) button.classList.add("is-wrong");
         button.innerHTML = `<span class="choice-letter">${LETTERS[index]}</span><span class="choice-text">${choice}</span>`;
         button.addEventListener("click", () => chooseAnswer(question, index));
         choices.appendChild(button);
@@ -7275,19 +8769,20 @@
 
     function renderExplanation(question) {
       const answer = answerFor(question.id);
-      const locked = Boolean(answer && !explanationsUnlocked());
-      const isVisible = Boolean(answer && explanationsUnlocked() && scopedStateValue(state.showExplanation, question.id));
+      const complete = answerIsComplete(answer);
+      const locked = Boolean(complete && !explanationsUnlocked());
+      const isVisible = Boolean(complete && explanationsUnlocked() && scopedStateValue(state.showExplanation, question.id));
       const explanation = $("#explanation");
       explanation.classList.toggle("is-visible", isVisible);
-      $("#explainButton").disabled = !answer || locked;
-      $("#explainButton").innerHTML = !answer
+      $("#explainButton").disabled = !complete || locked;
+      $("#explainButton").innerHTML = !complete
         ? `${icon.eye} Answer first`
         : locked
           ? `${icon.eye} Locked until review`
           : `${icon.eye} ${isVisible ? "Hide explanation" : "Show explanation"}`;
-      if (!answer) {
+      if (!complete) {
         $("#resultLabel").className = "result";
-        $("#resultLabel").textContent = "";
+        $("#resultLabel").textContent = answer?.pending ? "Incomplete" : "";
         $("#correctAnswer").textContent = "";
         $("#explanationText").textContent = "";
         renderAnswerCoach(question);
@@ -7300,9 +8795,18 @@
         $("#resultLabel").className = "result is-wrong";
         $("#resultLabel").innerHTML = `${icon.x} Review this`;
       }
-      $("#correctAnswer").textContent = `Answer: ${LETTERS[question.answer]}`;
+      $("#correctAnswer").textContent = formatCorrectAnswer(question);
       $("#explanationText").textContent = question.explanation;
       renderAnswerCoach(question);
+    }
+
+    function formatCorrectAnswer(question) {
+      if (question.responseType === "essay") return "Answer: self-review against the Issue task rubric";
+      if (question.responseType === "numeric") return `Answer: ${question.answer}`;
+      if (question.responseType === "multi") {
+        return `Answer: ${question.answer.map((index) => `${LETTERS[index]} (${question.choices[index]})`).join(", ")}`;
+      }
+      return `Answer: ${LETTERS[question.answer]} (${question.choices[question.answer]})`;
     }
 
     function renderErrorLog() {
@@ -7372,8 +8876,8 @@
       $("#doneStat").textContent = `${stats.answered}/${stats.total}`;
       if (officialFeedbackLocked()) {
         $("#rightStat").textContent = "--";
-        $("#flagStat").textContent = "CAT";
-        $("#difficultyChip").textContent = "IRT CAT";
+        $("#flagStat").textContent = activeExam() === "GRE" ? "LOCK" : "CAT";
+        $("#difficultyChip").textContent = activeExam() === "GRE" ? "Official" : "IRT CAT";
         $("#scoreChip").textContent = `${stats.answered}/${stats.total}`;
         $("#reviewMissedButton").hidden = true;
         $("#clearLogButton").hidden = true;
@@ -7397,6 +8901,7 @@
       const answer = answerFor(question.id);
 
       renderTimer();
+      renderExamButtons();
       renderModeButtons();
       renderSegments();
       renderSessionLengths();
@@ -7408,6 +8913,13 @@
       $("#questionCount").textContent = limit ? `Question ${index + 1} of ${limit}` : `Question ${index + 1}`;
       $("#questionTopic").textContent = `${questionTopicLabel(question)} - L${question.difficulty}`;
       $("#questionStem").textContent = question.stem;
+      $("#promptLabel").textContent = question.responseType === "essay"
+        ? "Draft a response"
+        : question.responseType === "numeric"
+          ? "Enter an answer"
+          : question.responseType === "multi"
+            ? "Select all that apply"
+            : "Pick an answer";
       $("#questionContext").hidden = !question.context;
       $("#questionContext").textContent = question.context || "";
       $("#flagButton").innerHTML = scopedStateValue(state.flagged, question.id) ? icon.flagFilled : icon.flag;
@@ -7434,6 +8946,33 @@
 
     function chooseAnswer(question, choice) {
       const previous = answerFor(question.id);
+      if (question.responseType === "multi") {
+        const required = question.answer.length;
+        const selected = new Set(Array.isArray(previous?.choice) ? previous.choice : []);
+        if (selected.has(choice)) selected.delete(choice);
+        else selected.add(choice);
+        const selectedList = [...selected].sort((a, b) => a - b);
+        const correctList = [...question.answer].sort((a, b) => a - b);
+        const complete = selectedList.length === required;
+        const correct = complete && selectedList.length === correctList.length && selectedList.every((value, index) => value === correctList[index]);
+        setAnswerFor(question.id, {
+          choice: selectedList,
+          correct,
+          pending: !complete,
+          mode: activeMode(),
+          section: question.section,
+          topic: question.topic,
+          difficulty: question.difficulty,
+          irt: question.irt,
+          at: Date.now()
+        });
+        if (complete) finalizeAnswer(question, previous, correct);
+        else {
+          saveState();
+          render();
+        }
+        return;
+      }
       const correct = choice === question.answer;
       setAnswerFor(question.id, {
         choice,
@@ -7445,17 +8984,62 @@
         irt: question.irt,
         at: Date.now()
       });
+      finalizeAnswer(question, previous, correct);
+    }
+
+    function submitNumericAnswer(question, rawValue) {
+      const previous = answerFor(question.id);
+      const normalized = String(rawValue || "").trim();
+      const expected = Number(question.answer);
+      const numeric = Number(normalized);
+      const correct = normalized !== "" && Number.isFinite(numeric) && Math.abs(numeric - expected) < 0.0001;
+      setAnswerFor(question.id, {
+        choice: normalized,
+        correct,
+        mode: activeMode(),
+        section: question.section,
+        topic: question.topic,
+        difficulty: question.difficulty,
+        irt: question.irt,
+        at: Date.now()
+      });
+      finalizeAnswer(question, previous, correct);
+    }
+
+    function submitEssayAnswer(question, text) {
+      const previous = answerFor(question.id);
+      const response = String(text || "").trim();
+      const complete = response.split(/\s+/).filter(Boolean).length >= 50;
+      setAnswerFor(question.id, {
+        choice: "essay",
+        text: response,
+        correct: complete,
+        pending: !complete,
+        mode: activeMode(),
+        section: question.section,
+        topic: question.topic,
+        difficulty: question.difficulty,
+        at: Date.now()
+      });
+      if (complete) finalizeAnswer(question, previous, true);
+      else {
+        saveState();
+        render();
+      }
+    }
+
+    function finalizeAnswer(question, previous, correct) {
       deleteScopedStateValue(state.resolvedMisses, question.id);
       if (correct) deleteScopedStateValue(state.missReasons, question.id);
       else deleteScopedStateValue(state.confidenceTags, question.id);
-      if (!previous) updateAdaptiveDifficulty(question, correct);
+      if (!answerIsComplete(previous)) updateAdaptiveDifficulty(question, correct);
       setScopedStateValue(state.showExplanation, question.id, explanationsUnlocked());
       saveState();
       render();
     }
 
     function updateAdaptiveDifficulty(question, correct) {
-      const section = question.section;
+      const section = state.section || question.section;
       const statsKey = scopedQuestionKey(question.topic);
       const topicStats = state.topicStats[statsKey] || { correct: 0, wrong: 0 };
       if (correct) topicStats.correct += 1;
@@ -7504,7 +9088,7 @@
       tickHandle = setInterval(() => {
         if (!isOfficialMode()) return;
         if (state.paused) return;
-        const remaining = state.timers[state.section] ?? OFFICIAL_SECTION_SECONDS;
+        const remaining = state.timers[state.section] ?? officialSectionSeconds(state.section);
         if (remaining <= 0) return;
         state.timers[state.section] = remaining - 1;
         renderTimer();
@@ -7575,21 +9159,34 @@
     }
 
     function resetModeQueues() {
-      state.indexBySection = { Quant: 0, Verbal: 0, DI: 0 };
-      state.queueBySection = { Quant: [], Verbal: [], DI: [] };
-      state.targetDifficulty = { Quant: 2, Verbal: 2, DI: 2 };
-      state.streakBySection = { Quant: 0, Verbal: 0, DI: 0 };
+      state.indexBySection = sectionObject(() => 0);
+      state.queueBySection = sectionObject(() => []);
+      state.targetDifficulty = sectionObject(() => 2);
+      state.streakBySection = sectionObject(() => 0);
     }
 
     function resetModeTimers() {
-      const seconds = sessionSeconds();
-      state.timers = { Quant: seconds, Verbal: seconds, DI: seconds };
+      state.timers = sectionObject((section) => isOfficialMode() ? officialSectionSeconds(section) : (SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION]));
     }
 
     function changePracticeMode(mode) {
       const normalized = normalizeMode(mode);
       if (normalized === activeMode()) return;
       state.mode = normalized;
+      ensureSectionInActiveMode();
+      resetModeQueues();
+      resetModeTimers();
+      state.paused = false;
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function changeExam(exam) {
+      const normalized = normalizeExam(exam);
+      if (normalized === activeExam()) return;
+      state.exam = normalized;
+      ensureSectionInActiveMode();
       resetModeQueues();
       resetModeTimers();
       state.paused = false;
@@ -7635,11 +9232,20 @@
 
     function reportCurrentQuestion() {
       const question = currentQuestion();
+      const answerText = question.responseType === "multi"
+        ? question.answer.map((index) => question.choices[index]).join("; ")
+        : question.responseType === "numeric"
+          ? question.answer
+          : question.responseType === "essay"
+            ? "Self-review essay response"
+            : question.choices[question.answer];
       state.feedbackReports[question.id] = {
         at: Date.now(),
         id: question.id,
+        exam: activeExam(),
         section: question.section,
         topic: question.topic,
+        responseType: question.responseType || "single",
         officialType: question.officialType,
         contentDomain: question.contentDomain,
         scoreReportQuestionType: question.scoreReportQuestionType,
@@ -7651,7 +9257,7 @@
         context: question.context || "",
         choices: question.choices,
         answerIndex: question.answer,
-        answerText: question.choices[question.answer],
+        answerText,
         explanation: question.explanation,
         userAnswer: answerFor(question.id) || null,
         missReason: scopedStateValue(state.missReasons, question.id) || "",
@@ -7681,17 +9287,23 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    document.querySelectorAll(".segment").forEach((button) => {
+    $("#sectionSegments").addEventListener("click", (event) => {
+      const button = event.target.closest(".segment");
+      if (!button) return;
+      state.section = button.dataset.section;
+      if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
+        state.timers[state.section] = sessionSeconds();
+      }
+      const list = currentList();
+      state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    document.querySelectorAll(".exam-button").forEach((button) => {
       button.addEventListener("click", () => {
-        state.section = button.dataset.section;
-        if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
-          state.timers[state.section] = sessionSeconds();
-        }
-        const list = currentList();
-        state.indexBySection[state.section] = clamp(state.indexBySection[state.section] || 0, 0, Math.max(0, list.length - 1));
-        saveState();
-        render();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        changeExam(button.dataset.exam);
       });
     });
 
