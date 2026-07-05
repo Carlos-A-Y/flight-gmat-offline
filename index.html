@@ -504,6 +504,19 @@
       accent-color: var(--teal);
     }
 
+    .focus-option span,
+    .focus-option small {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .focus-option small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 720;
+    }
+
     .focus-option:has(input:checked) {
       border-color: #86c7c3;
       color: var(--teal-strong);
@@ -3286,6 +3299,68 @@
       DI: "Data Insights"
     };
 
+    const sections = ["Quant", "Verbal", "DI"];
+    const OFFICIAL_GMAT_BLUEPRINT = {
+      Quant: {
+        officialName: "Quantitative Reasoning",
+        shortName: "Q",
+        questions: 21,
+        minutes: 45,
+        calculator: false,
+        questionTypes: ["Problem Solving"],
+        publicSkills: ["Arithmetic", "Elementary algebra", "Logic and analytical problem solving"]
+      },
+      Verbal: {
+        officialName: "Verbal Reasoning",
+        shortName: "V",
+        questions: 23,
+        minutes: 45,
+        calculator: false,
+        questionTypes: ["Reading Comprehension", "Critical Reasoning"],
+        publicSkills: ["Main idea", "Supporting idea", "Inference", "Application", "Logical structure", "Style", "Argument evaluation"]
+      },
+      DI: {
+        officialName: "Data Insights",
+        shortName: "DI",
+        questions: 20,
+        minutes: 45,
+        calculator: true,
+        questionTypes: ["Data Sufficiency", "Multi-Source Reasoning", "Table Analysis", "Graphics Interpretation", "Two-Part Analysis"],
+        publicSkills: ["Data interpretation", "Data sufficiency", "Multi-source synthesis", "Quantitative and verbal analysis"]
+      }
+    };
+
+    const TRAINING_TOPIC_BLUEPRINT = {
+      Quant: {
+        Algebra: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Equations and expressions" },
+        Percents: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Successive change and ratios" },
+        "Number Properties": { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Divisibility and remainders" },
+        Averages: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Means and weighted averages" },
+        Rates: { officialType: "Problem Solving", trainingArea: "Applied arithmetic", subskill: "Work, distance, and unit rates" },
+        Functions: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Function notation" },
+        Ratios: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Ratio scaling and part-whole relationships" },
+        Inequalities: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Inequality solving and integer bounds" },
+        Remainders: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Modular arithmetic" },
+        Fractions: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Fraction relationships" },
+        "Word Problems": { officialType: "Problem Solving", trainingArea: "Applied arithmetic", subskill: "Translation to equations" },
+        Combinatorics: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Counting without overcounting" },
+        Counting: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Combinations and arrangements" },
+        Probability: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Favorable outcomes over total outcomes" },
+        Sets: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Overlapping groups" }
+      },
+      Verbal: {
+        "Reading Comprehension": { officialType: "Reading Comprehension", trainingArea: "Reading Comprehension", subskill: "Main idea, inference, structure, and application" },
+        "Critical Reasoning": { officialType: "Critical Reasoning", trainingArea: "Critical Reasoning", subskill: "Argument structure, assumptions, strengthen, weaken, evaluate, and explain" }
+      },
+      DI: {
+        "Data Sufficiency": { officialType: "Data Sufficiency", trainingArea: "Data Sufficiency", subskill: "Sufficiency logic and relevance of data" },
+        "Multi-Source Reasoning": { officialType: "Multi-Source Reasoning", trainingArea: "Multi-Source Reasoning", subskill: "Cross-source synthesis and inference" },
+        "Table Analysis": { officialType: "Table Analysis", trainingArea: "Table Analysis", subskill: "Sorting, filtering, and table comparisons" },
+        "Graphics Interpretation": { officialType: "Graphics Interpretation", trainingArea: "Graphics Interpretation", subskill: "Chart interpretation and relationship finding" },
+        "Two-Part Analysis": { officialType: "Two-Part Analysis", trainingArea: "Two-Part Analysis", subskill: "Linked constraints, tradeoffs, and paired answers" }
+      }
+    };
+
     const BANK = [
       {
         id: "q1", section: "Quant", topic: "Algebra",
@@ -3324,10 +3399,10 @@
         explanation: "2a^2 - 3 = 15, so 2a^2 = 18 and a^2 = 9. The possible values are -3 and 3, whose sum is 0."
       },
       {
-        id: "q7", section: "Quant", topic: "Geometry",
-        stem: "The angles of a triangle are 2x + 10, 3x - 5, and x + 25 degrees. What is the measure of the largest angle?",
+        id: "q7", section: "Quant", topic: "Inequalities",
+        stem: "If 2x + 10, 3x - 5, and x + 25 are positive integers with a sum of 180, what is the greatest of the three integers?",
         choices: ["55", "60", "65", "70", "75"], answer: 3,
-        explanation: "The angles sum to 180: 2x + 10 + 3x - 5 + x + 25 = 180, so 6x + 30 = 180 and x = 25. The angles are 60, 70, and 50."
+        explanation: "Combine the expressions: 2x + 10 + 3x - 5 + x + 25 = 180, so 6x + 30 = 180 and x = 25. The values are 60, 70, and 50; the greatest is 70."
       },
       {
         id: "q8", section: "Quant", topic: "Remainders",
@@ -3355,9 +3430,9 @@
       },
       {
         id: "q12", section: "Quant", topic: "Word Problems",
-        stem: "A rectangular garden has a perimeter of 50 meters. Its length is 5 meters greater than its width. What is its area?",
-        choices: ["100", "125", "150", "175", "200"], answer: 2,
-        explanation: "Let width be w and length be w + 5. Since 2l + 2w = 50, l + w = 25. Thus 2w + 5 = 25, so w = 10 and l = 15. Area = 150."
+        stem: "A plan has a fixed fee of $50 plus $5 per user. If the total cost is $150, how many users are included?",
+        choices: ["10", "15", "20", "25", "30"], answer: 2,
+        explanation: "Subtract the fixed fee first: 150 - 50 = 100. Each user costs $5, so the number of users is 100 / 5 = 20."
       },
       {
         id: "v1", section: "Verbal", topic: "Critical Reasoning",
@@ -3755,18 +3830,18 @@
       }
 
       for (let index = 0; index < 18; index += 1) {
-        const width = 6 + (index % 8);
+        const smaller = 6 + (index % 8);
         const extra = 3 + (index % 5);
-        const length = width + extra;
-        const perimeter = 2 * (length + width);
+        const larger = smaller + extra;
+        const total = smaller + larger;
         add(numericQuestion({
           id: `gq${id++}`,
           section: "Quant",
-          topic: "Geometry",
-          stem: `A rectangle has a perimeter of ${perimeter}. Its length is ${extra} greater than its width. What is its area?`,
-          correct: width * length,
-          distractors: [perimeter * extra, width + length, width * width, length * length],
-          explanation: `Let the width be w, so the length is w + ${extra}. Since 2w + 2(w + ${extra}) = ${perimeter}, w = ${width} and the length is ${length}. Area = ${width} x ${length} = ${width * length}.`,
+          topic: "Algebra",
+          stem: `Two positive integers have a sum of ${total}. The larger integer is ${extra} greater than the smaller integer. What is the larger integer?`,
+          correct: larger,
+          distractors: [smaller, total, larger + extra, Math.max(1, smaller - extra)],
+          explanation: `Let the smaller integer be s. Then the larger is s + ${extra}, so 2s + ${extra} = ${total}. Thus s = ${smaller}, and the larger integer is ${larger}.`,
           difficulty: clamp(2 + Math.floor(index / 6), 2, 5)
         }));
       }
@@ -4160,19 +4235,18 @@
       }
 
       for (let index = 0; index < 65; index += 1) {
-        const width = 5 + (index % 13);
+        const smaller = 5 + (index % 13);
         const extra = 2 + ((index * 3) % 9);
-        const length = width + extra;
-        const area = width * length;
-        const perimeter = 2 * (width + length);
+        const larger = smaller + extra;
+        const total = smaller + larger;
         add(numericQuestion({
           id: `lq-g-${index}`,
           section: "Quant",
-          topic: "Geometry",
-          stem: `A rectangle has perimeter ${perimeter}, and its length is ${extra} greater than its width. What is its area?`,
-          correct: area,
-          distractors: [perimeter, width + length, width * width, length * length],
-          explanation: `Let the width be w. Then 2w + 2(w + ${extra}) = ${perimeter}, so w = ${width}, length = ${length}, and area = ${area}.`,
+          topic: "Algebra",
+          stem: `Two positive integers have sum ${total}, and the larger is ${extra} greater than the smaller. What is the larger integer?`,
+          correct: larger,
+          distractors: [smaller, total, larger + extra, Math.max(1, smaller - extra)],
+          explanation: `Let the smaller integer be s. Then s + (s + ${extra}) = ${total}, so s = ${smaller}. The larger integer is ${larger}.`,
           difficulty: clamp(2 + Math.floor(index / 18), 2, 5)
         }));
       }
@@ -4428,20 +4502,47 @@
       return questions;
     }
 
+    function officialTypesForSection(section) {
+      return OFFICIAL_GMAT_BLUEPRINT[section]?.questionTypes || [];
+    }
+
+    function topicBlueprintForQuestion(question) {
+      return TRAINING_TOPIC_BLUEPRINT[question.section]?.[question.topic] || null;
+    }
+
+    function officialTypeForQuestion(question) {
+      const blueprint = topicBlueprintForQuestion(question);
+      if (blueprint?.officialType) return blueprint.officialType;
+      const officialTypes = officialTypesForSection(question.section);
+      if (officialTypes.includes(question.topic)) return question.topic;
+      return question.section === "Quant" ? "Problem Solving" : question.topic || "Unmapped";
+    }
+
+    function trainingAreaForQuestion(question) {
+      return topicBlueprintForQuestion(question)?.trainingArea || officialTypeForQuestion(question);
+    }
+
+    function subskillForQuestion(question) {
+      return topicBlueprintForQuestion(question)?.subskill || SUBSKILL_BY_TOPIC[question.topic] || question.topic || "General reasoning";
+    }
+
+    function officialTypeRank(section, officialType) {
+      const index = officialTypesForSection(section).indexOf(officialType);
+      return index === -1 ? 99 : index;
+    }
+
     function isStandardsAlignedQuestion(question) {
       const text = `${question.stem || ""} ${question.context || ""} ${question.explanation || ""}`;
+      const officialType = officialTypeForQuestion(question);
+      const officialTypes = officialTypesForSection(question.section);
       if (question.section === "Quant") {
-        return !/\b(geometry|triangle|rectangle|perimeter|area|angle)s?\b/i.test(`${question.topic || ""} ${text}`);
+        return officialType === "Problem Solving" && !/\b(geometry|triangle|rectangle|perimeter|area|angle)s?\b/i.test(`${question.topic || ""} ${text}`);
       }
       if (question.section === "Verbal") {
-        return question.topic === "Critical Reasoning" || question.topic === "Reading Comprehension";
+        return officialTypes.includes(officialType);
       }
       if (question.section === "DI") {
-        return question.topic === "Data Sufficiency"
-          || question.topic === "Table Analysis"
-          || question.topic === "Multi-Source Reasoning"
-          || question.topic === "Graphics Interpretation"
-          || question.topic === "Two-Part Analysis";
+        return officialTypes.includes(officialType);
       }
       return false;
     }
@@ -4874,7 +4975,7 @@
           return "Use the relationship average = total / count. That means total = average x count. For combined groups, find each group total first, add the totals, and then divide by the combined count. Do not average the two averages unless the groups have the same size.";
         }
         if (question.topic === "Rates") {
-          return "Use the rate triangle: work = rate x time, time = work / rate, and rate = work / time. If two machines or people work at the same time on the same job, add their rates before finding time. Keep the units consistent, such as hours with units per hour.";
+          return "Use the rate relationship: work = rate x time, time = work / rate, and rate = work / time. If two machines or people work at the same time on the same job, add their rates before finding time. Keep the units consistent, such as hours with units per hour.";
         }
         if (question.topic === "Ratios") {
           return "Treat a ratio as a recipe made of parts. Add the ratio parts to get the total number of parts, find the value of one part, and then multiply by the part count you need. For part-to-whole questions, the denominator is the sum of all ratio parts, not just the other category.";
@@ -6128,15 +6229,14 @@
 
     const PRACTICE_MODES = { Official: "Official test", Training: "Section drill" };
     const DEFAULT_MODE = "Training";
-    const OFFICIAL_SECTION_SECONDS = 45 * 60;
-    const OFFICIAL_SECTION_COUNTS = { Quant: 21, Verbal: 23, DI: 20 };
+    const OFFICIAL_SECTION_SECONDS = OFFICIAL_GMAT_BLUEPRINT.Quant.minutes * 60;
+    const OFFICIAL_SECTION_COUNTS = Object.fromEntries(sections.map((section) => [section, OFFICIAL_GMAT_BLUEPRINT[section].questions]));
     const SESSION_PRESETS = { Quick: 5 * 60, Focus: 30 * 60, Full: 90 * 60 };
     const DEFAULT_SESSION = "Full";
     const SECTION_SECONDS = SESSION_PRESETS[DEFAULT_SESSION];
     const STORAGE_KEY = "clearprep-state-v1";
     const LEGACY_STORAGE_KEY = "flight-gmat-state-v2";
     const LETTERS = ["A", "B", "C", "D", "E"];
-    const sections = ["Quant", "Verbal", "DI"];
     const SECTION_SCORE_MIN = 60;
     const SECTION_SCORE_MAX = 90;
     const TOTAL_SCORE_MIN = 205;
@@ -6158,6 +6258,7 @@
       Fractions: "Fraction relationships",
       "Word Problems": "Translation to equations",
       Combinatorics: "Counting without overcounting",
+      Counting: "Combinations and arrangements",
       Probability: "Favorable outcomes over total outcomes",
       "Critical Reasoning": "Argument structure",
       "Reading Comprehension": "Passage inference and role",
@@ -6204,7 +6305,9 @@
         const difficulty = clamp(question.difficulty || 2, 1, 5);
         const discriminationSeed = (hashText(`${question.id}-a`) % 9) / 100;
         const difficultySeed = ((hashText(`${question.id}-b`) % 17) - 8) / 100;
-        question.subskill = SUBSKILL_BY_TOPIC[question.topic] || question.topic || "General reasoning";
+        question.officialType = officialTypeForQuestion(question);
+        question.trainingArea = trainingAreaForQuestion(question);
+        question.subskill = subskillForQuestion(question);
         question.expectedSeconds = question.section === "Verbal"
           ? 115 + difficulty * 15
           : question.section === "DI"
@@ -6381,11 +6484,21 @@
       const topics = new Map();
       rawBySection(section).forEach((question) => {
         if (!topics.has(question.topic)) {
-          topics.set(question.topic, { topic: question.topic, subskill: question.subskill, count: 0 });
+          topics.set(question.topic, {
+            topic: question.topic,
+            officialType: question.officialType,
+            trainingArea: question.trainingArea,
+            subskill: question.subskill,
+            count: 0
+          });
         }
         topics.get(question.topic).count += 1;
       });
-      return [...topics.values()].sort((a, b) => a.topic.localeCompare(b.topic));
+      return [...topics.values()].sort((a, b) => (
+        officialTypeRank(section, a.officialType) - officialTypeRank(section, b.officialType)
+        || a.trainingArea.localeCompare(b.trainingArea)
+        || a.topic.localeCompare(b.topic)
+      ));
     }
 
     function activeDrillTopics(section = state.section) {
@@ -6401,6 +6514,11 @@
       if (!selected.length) return `All ${sectionLabel[section]}`;
       if (selected.length === 1) return selected[0];
       return `${selected.length} topics`;
+    }
+
+    function questionTopicLabel(question) {
+      if (!question.officialType || question.officialType === question.topic) return question.topic;
+      return `${question.officialType} · ${question.topic}`;
     }
 
     function bySection(section = state.section) {
@@ -6941,7 +7059,7 @@
       container.innerHTML = `
         <span class="coach-kicker">Why next</span>
         <p class="coach-text">${adjustment?.message || "Difficulty will adjust after each first attempt."}</p>
-        <p class="coach-text">Skill: ${question.subskill}. Expected solve time: about ${Math.round(question.expectedSeconds / 5) * 5} seconds.</p>
+        <p class="coach-text">Skill: ${question.officialType} - ${question.subskill}. Expected solve time: about ${Math.round(question.expectedSeconds / 5) * 5} seconds.</p>
         <div>
           <span class="coach-kicker">${label}</span>
           <div class="coach-chip-row">${buttons}</div>
@@ -6954,11 +7072,11 @@
 
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
-      const expertReviewed = BANK.filter((question) => question.reviewStatus === "Expert reviewed").length;
-      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, teaching explanations, and an IRT-style score model. Official Test mode uses 21 Quant, 23 Verbal, and 20 DI questions with 45-minute section timers. Section Drill is untimed and can focus on one or more section topics. Score anchoring can narrow the estimate from an official practice score, but this still does not reproduce GMAC calibration or claim GMAC affiliation.";
+      const officialTypeCount = sections.reduce((sum, section) => sum + officialTypesForSection(section).length, 0);
+      $("#methodCopy").textContent = "The app follows the public GMAC structure: Quantitative Reasoning has 21 Problem Solving questions, Verbal Reasoning has 23 Reading Comprehension and Critical Reasoning questions, and Data Insights has 20 questions across Data Sufficiency, Multi-Source Reasoning, Table Analysis, Graphics Interpretation, and Two-Part Analysis. Section Drill adds finer training topics inside those official question types. The questions are original practice items with algorithmic format checks, adaptive routing, teaching explanations, and an IRT-style score model; this still does not reproduce GMAC calibration, GMAC item content, or claim GMAC affiliation.";
       $("#methodMetrics").innerHTML = `
         <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
-        <span class="metric-pill"><strong>${expertReviewed}</strong>expert reviewed</span>
+        <span class="metric-pill"><strong>${officialTypeCount}</strong>official types</span>
         <span class="metric-pill"><strong>${reported}</strong>reported</span>
         <span class="metric-pill"><strong>IRT</strong>scoring model</span>
       `;
@@ -7043,9 +7161,15 @@
           changeDrillTopics([...next]);
         });
         const text = document.createElement("span");
-        text.textContent = `${item.topic} (${item.count})`;
+        text.textContent = item.topic;
+        const meta = document.createElement("small");
+        meta.textContent = item.officialType === item.topic
+          ? `${item.count}`
+          : `${item.officialType} · ${item.count}`;
+        label.title = `${item.officialType} - ${item.trainingArea}: ${item.subskill}`;
         label.appendChild(checkbox);
         label.appendChild(text);
+        label.appendChild(meta);
         options.appendChild(label);
       });
     }
@@ -7225,7 +7349,7 @@
 
       const limit = sectionQuestionLimit();
       $("#questionCount").textContent = limit ? `Question ${index + 1} of ${limit}` : `Question ${index + 1}`;
-      $("#questionTopic").textContent = `${question.topic} - L${question.difficulty}`;
+      $("#questionTopic").textContent = `${questionTopicLabel(question)} - L${question.difficulty}`;
       $("#questionStem").textContent = question.stem;
       $("#questionContext").hidden = !question.context;
       $("#questionContext").textContent = question.context || "";
