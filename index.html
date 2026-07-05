@@ -7730,10 +7730,15 @@
       return Object.fromEntries(ALL_SECTIONS.map((section) => [section, valueFactory(section)]));
     }
 
+    function newRunSeed() {
+      return hashText(`${Date.now()}-${Math.random()}`);
+    }
+
     const defaultState = () => ({
       exam: DEFAULT_EXAM,
       mode: DEFAULT_MODE,
       section: "Quant",
+      runSeed: newRunSeed(),
       sessionPreset: DEFAULT_SESSION,
       indexBySection: sectionObject(() => 0),
       queueBySection: sectionObject(() => []),
@@ -7848,6 +7853,7 @@
           confidenceTags: stored?.confidenceTags || {},
           feedbackReports: stored?.feedbackReports || {},
           officialScore: stored?.officialScore || "",
+          runSeed: stored?.runSeed || base.runSeed,
           lastAdjustment: Object.assign(base.lastAdjustment, stored?.lastAdjustment || {}),
           timers: Object.assign(base.timers, stored?.timers || {})
         });
@@ -7948,7 +7954,108 @@
       return Math.max(0, (stats.wrong || 0) - (stats.correct || 0));
     }
 
+    function isGREOfficialMeasureSection(section = state.section) {
+      return activeExam() === "GRE" && isOfficialMode() && ["GREVerbal1", "GREVerbal2", "GREQuant1", "GREQuant2"].includes(section);
+    }
+
+    function greFirstSectionFor(section) {
+      if (section === "GREVerbal2") return "GREVerbal1";
+      if (section === "GREQuant2") return "GREQuant1";
+      return null;
+    }
+
+    function greOfficialSectionResults(section) {
+      const ids = (state.queueBySection[section] || []).slice(0, officialQuestionCount(section));
+      const answered = ids
+        .map((id) => answerFor(id, "Official"))
+        .filter(answerIsComplete);
+      const correct = answered.filter((answer) => answer.correct).length;
+      return {
+        answered: answered.length,
+        correct,
+        accuracy: answered.length ? correct / answered.length : 0
+      };
+    }
+
+    function greOfficialBandFor(section) {
+      const prerequisite = greFirstSectionFor(section);
+      if (!prerequisite) return { label: "medium", target: 3, levels: [2, 3, 4] };
+      const first = greOfficialSectionResults(prerequisite);
+      if (first.answered < officialQuestionCount(prerequisite)) return { label: "medium", target: 3, levels: [2, 3, 4] };
+      if (first.accuracy >= 0.75) return { label: "hard", target: 4, levels: [3, 4, 5] };
+      if (first.accuracy <= 0.4) return { label: "easy", target: 2, levels: [1, 2, 3] };
+      return { label: "medium", target: 3, levels: [2, 3, 4] };
+    }
+
+    function greOfficialTypeTargets(section) {
+      const count = officialQuestionCount(section);
+      if (sectionBlueprintKey(section) === "GREVerbal") {
+        return count === 12
+          ? { "Reading Comprehension": 5, "Text Completion": 4, "Sentence Equivalence": 3 }
+          : { "Reading Comprehension": 6, "Text Completion": 5, "Sentence Equivalence": 4 };
+      }
+      return count === 12
+        ? { "Quantitative Comparison": 3, "Multiple-choice: Select One": 4, "Multiple-choice: Select One or More": 1, "Numeric Entry": 2, "Data Interpretation Set": 2 }
+        : { "Quantitative Comparison": 4, "Multiple-choice: Select One": 5, "Multiple-choice: Select One or More": 2, "Numeric Entry": 2, "Data Interpretation Set": 2 };
+    }
+
+    function greOfficialDifficultyTargets(section, band) {
+      const count = officialQuestionCount(section);
+      const longSection = count === 15;
+      if (band.label === "hard") return longSection ? { 3: 4, 4: 7, 5: 4 } : { 3: 3, 4: 6, 5: 3 };
+      if (band.label === "easy") return longSection ? { 1: 4, 2: 7, 3: 4 } : { 1: 3, 2: 6, 3: 3 };
+      return longSection ? { 2: 4, 3: 7, 4: 4 } : { 2: 3, 3: 6, 4: 3 };
+    }
+
+    function pickGREOfficialQuestion(section) {
+      const queue = cleanQueue(section);
+      const limit = officialQuestionCount(section);
+      if (limit && queue.length >= limit) return null;
+      const all = bySection(section);
+      const unanswered = all.filter((question) => !answerIsComplete(answerFor(question.id, "Official")));
+      const pool = unanswered.length ? unanswered : all;
+      const band = greOfficialBandFor(section);
+      const bandPool = pool.filter((question) => band.levels.includes(question.difficulty));
+      const candidates = bandPool.length ? bandPool : pool;
+      const targets = greOfficialTypeTargets(section);
+      const difficultyTargets = greOfficialDifficultyTargets(section, band);
+      const typeExposure = queue.reduce((counts, id) => {
+        const type = questionById.get(id)?.officialType;
+        if (type) counts[type] = (counts[type] || 0) + 1;
+        return counts;
+      }, {});
+      const difficultyExposure = queue.reduce((counts, id) => {
+        const difficulty = questionById.get(id)?.difficulty;
+        if (difficulty) counts[difficulty] = (counts[difficulty] || 0) + 1;
+        return counts;
+      }, {});
+      const topicExposure = queue.reduce((counts, id) => {
+        const topic = questionById.get(id)?.topic;
+        if (topic) counts[topic] = (counts[topic] || 0) + 1;
+        return counts;
+      }, {});
+      const recentTopics = queue.slice(-3).map((id) => questionById.get(id)?.topic).filter(Boolean);
+      return candidates
+        .map((question) => {
+          const desired = targets[question.officialType] || 1;
+          const used = typeExposure[question.officialType] || 0;
+          const typePressure = used >= desired ? 120 + used * 10 : (used / desired) * 32;
+          const desiredDifficulty = difficultyTargets[question.difficulty] || 1;
+          const usedDifficulty = difficultyExposure[question.difficulty] || 0;
+          const difficultyPressure = usedDifficulty >= desiredDifficulty ? 95 + usedDifficulty * 8 : (usedDifficulty / desiredDifficulty) * 28;
+          const topicPenalty = (topicExposure[question.topic] || 0) * 9;
+          const recentTopicPenalty = recentTopics.includes(question.topic) ? 18 : 0;
+          const jitter = hashText(`${question.id}-${section}-${queue.length}-${state.runSeed || 0}`) % 23;
+          return {
+            question,
+            score: typePressure + difficultyPressure + topicPenalty + recentTopicPenalty + jitter
+          };
+        })
+        .sort((a, b) => a.score - b.score || a.question.id.localeCompare(b.question.id))[0]?.question;
+    }
+
     function pickAdaptiveQuestion(section = state.section) {
+      if (isGREOfficialMeasureSection(section)) return pickGREOfficialQuestion(section);
       const queue = cleanQueue(section);
       const limit = sectionQuestionLimit(section);
       if (limit && queue.length >= limit) return null;
@@ -7982,7 +8089,7 @@
           const irtScore = isOfficialMode()
             ? Math.abs(b - theta) * 16 + targetDistance * officialTargetWeight - itemInformation(theta, question) * 18
             : targetDistance * 20 - itemInformation(theta, question) * 4;
-          const jitter = hashText(`${question.id}-${queue.length}`) % 7;
+          const jitter = hashText(`${question.id}-${queue.length}-${state.runSeed || 0}`) % 7;
           return {
             question,
             score: irtScore + answeredPenalty + queuePenalty + recentTopicPenalty + immediateTopicPenalty + exposurePenalty + jitter - weakTopicBonus
@@ -9032,7 +9139,7 @@
       deleteScopedStateValue(state.resolvedMisses, question.id);
       if (correct) deleteScopedStateValue(state.missReasons, question.id);
       else deleteScopedStateValue(state.confidenceTags, question.id);
-      if (!answerIsComplete(previous)) updateAdaptiveDifficulty(question, correct);
+      if (!answerIsComplete(previous) && !(activeExam() === "GRE" && isOfficialMode())) updateAdaptiveDifficulty(question, correct);
       setScopedStateValue(state.showExplanation, question.id, explanationsUnlocked());
       saveState();
       render();
@@ -9110,6 +9217,7 @@
       state.queueBySection[state.section] = [];
       state.targetDifficulty[state.section] = 2;
       state.streakBySection[state.section] = 0;
+      if (isOfficialMode()) state.runSeed = newRunSeed();
       state.timers[state.section] = sessionSeconds();
       state.paused = false;
       saveState();
@@ -9159,6 +9267,7 @@
     }
 
     function resetModeQueues() {
+      state.runSeed = newRunSeed();
       state.indexBySection = sectionObject(() => 0);
       state.queueBySection = sectionObject(() => []);
       state.targetDifficulty = sectionObject(() => 2);
