@@ -284,7 +284,8 @@
     .text-button:active,
     .choice:active,
     .segment:active,
-    .session-button:active {
+    .session-button:active,
+    .mode-button:active {
       transform: translateY(1px);
     }
 
@@ -374,7 +375,8 @@
     }
 
     .segment,
-    .session-button {
+    .session-button,
+    .mode-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -382,12 +384,14 @@
     }
 
     .segment svg,
-    .session-button svg {
+    .session-button svg,
+    .mode-button svg {
       flex: 0 0 auto;
     }
 
     .segment span,
-    .session-button span {
+    .session-button span,
+    .mode-button span {
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -411,7 +415,19 @@
       background: #ffffff;
     }
 
-    .session-button {
+    .mode-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0;
+      margin: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .session-button,
+    .mode-button {
       min-width: 0;
       min-height: 46px;
       border-right: 1px solid var(--line);
@@ -422,11 +438,13 @@
       font-weight: 760;
     }
 
-    .session-button:last-child {
+    .session-button:last-child,
+    .mode-button:last-child {
       border-right: 0;
     }
 
-    .session-button[aria-selected="true"] {
+    .session-button[aria-selected="true"],
+    .mode-button[aria-selected="true"] {
       border-color: var(--line);
       color: #774600;
       background: linear-gradient(180deg, var(--amber-soft) 0%, #ffffff 100%);
@@ -757,7 +775,8 @@
     }
 
     .text-button:disabled,
-    .icon-button:disabled {
+    .icon-button:disabled,
+    .session-button:disabled {
       cursor: default;
       opacity: 0.55;
       transform: none;
@@ -1221,6 +1240,7 @@
     .choice:focus-visible,
     .segment:focus-visible,
     .session-button:focus-visible,
+    .mode-button:focus-visible,
     .text-button:focus-visible,
     .icon-button:focus-visible,
     .dot:focus-visible,
@@ -1618,13 +1638,15 @@
     }
 
     .segments,
-    .session-lengths {
+    .session-lengths,
+    .mode-switch {
       border-color: #cfdada;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
     }
 
     .segment,
-    .session-button {
+    .session-button,
+    .mode-button {
       min-height: 48px;
       color: #3f4d55;
       font-size: 12px;
@@ -1639,7 +1661,8 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
     }
 
-    .session-button[aria-selected="true"] {
+    .session-button[aria-selected="true"],
+    .mode-button[aria-selected="true"] {
       color: #7c4700;
       background:
         linear-gradient(180deg, #fff7e8 0%, #ffffff 100%);
@@ -2352,14 +2375,16 @@
     }
 
     .segments,
-    .session-lengths {
+    .session-lengths,
+    .mode-switch {
       border-color: var(--line);
       border-radius: 8px;
       box-shadow: none;
     }
 
     .segment,
-    .session-button {
+    .session-button,
+    .mode-button {
       min-height: 42px;
       color: var(--muted);
       background: #ffffff;
@@ -2370,7 +2395,8 @@
     }
 
     .segment[aria-selected="true"],
-    .session-button[aria-selected="true"] {
+    .session-button[aria-selected="true"],
+    .mode-button[aria-selected="true"] {
       color: var(--teal-strong);
       background: var(--teal-soft);
       box-shadow: inset 0 0 0 1px rgba(7, 143, 138, 0.28);
@@ -2506,6 +2532,10 @@
     .choice.is-correct::after {
       display: grid;
       color: var(--teal);
+    }
+
+    .choice.is-locked::after {
+      display: none;
     }
 
     .choice-letter {
@@ -2986,6 +3016,16 @@
               <button class="text-button" id="pauseButton" aria-label="Pause timer"></button>
               <button class="text-button" id="resetButton" aria-label="Reset section"></button>
             </div>
+            <nav class="mode-switch" aria-label="Practice mode">
+              <button class="mode-button" data-mode="Official" aria-selected="false">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 4h12v16H6V4Zm3 5h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>Official test</span>
+              </button>
+              <button class="mode-button" data-mode="Training" aria-selected="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5m0 14h14M8 15l3-3 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Section drill</span>
+              </button>
+            </nav>
             <nav class="segments" aria-label="GMAT section">
               <button class="segment" data-section="Quant" aria-selected="true">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14v14H5V5Zm4 0v14M5 9h14M5 14h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -5986,6 +6026,10 @@
     diversifyQuestionBank(BANK);
     BANK.splice(0, BANK.length, ...pruneQuestionBank(BANK));
 
+    const PRACTICE_MODES = { Official: "Official test", Training: "Section drill" };
+    const DEFAULT_MODE = "Training";
+    const OFFICIAL_SECTION_SECONDS = 45 * 60;
+    const OFFICIAL_SECTION_COUNTS = { Quant: 21, Verbal: 23, DI: 20 };
     const SESSION_PRESETS = { Quick: 5 * 60, Focus: 30 * 60, Full: 90 * 60 };
     const DEFAULT_SESSION = "Full";
     const SECTION_SECONDS = SESSION_PRESETS[DEFAULT_SESSION];
@@ -6051,9 +6095,15 @@
       }
     };
 
+    function initialDifficultyLocation(difficulty) {
+      return (clamp(difficulty || 3, 1, 5) - 3) * 0.95;
+    }
+
     function enrichQuestionBank(questions) {
       questions.forEach((question) => {
         const difficulty = clamp(question.difficulty || 2, 1, 5);
+        const discriminationSeed = (hashText(`${question.id}-a`) % 9) / 100;
+        const difficultySeed = ((hashText(`${question.id}-b`) % 17) - 8) / 100;
         question.subskill = SUBSKILL_BY_TOPIC[question.topic] || question.topic || "General reasoning";
         question.expectedSeconds = question.section === "Verbal"
           ? 115 + difficulty * 15
@@ -6061,6 +6111,11 @@
             ? 125 + difficulty * 18
             : 85 + difficulty * 12;
         question.scoreLevel = 60 + difficulty * 6;
+        question.irt = {
+          a: compactNumber(0.82 + difficulty * 0.11 + discriminationSeed),
+          b: compactNumber(initialDifficultyLocation(difficulty) + difficultySeed),
+          c: question.section === "Verbal" ? 0.16 : 0.18
+        };
         question.auditStatus = "Algorithmic format check";
         question.reviewStatus = "Expert review required before paid launch";
         question.sourceType = "Original practice item";
@@ -6071,7 +6126,24 @@
     const questionById = new Map(BANK.map((question) => [question.id, question]));
     const $ = (selector) => document.querySelector(selector);
 
+    function normalizeMode(mode) {
+      return PRACTICE_MODES[mode] ? mode : DEFAULT_MODE;
+    }
+
+    function activeMode() {
+      try {
+        return normalizeMode(state.mode);
+      } catch (_) {
+        return DEFAULT_MODE;
+      }
+    }
+
+    function scopedQuestionKey(questionId, mode) {
+      return `${normalizeMode(mode || activeMode())}:${questionId}`;
+    }
+
     const defaultState = () => ({
+      mode: DEFAULT_MODE,
       section: "Quant",
       sessionPreset: DEFAULT_SESSION,
       indexBySection: { Quant: 0, Verbal: 0, DI: 0 },
@@ -6079,6 +6151,7 @@
       targetDifficulty: { Quant: 2, Verbal: 2, DI: 2 },
       streakBySection: { Quant: 0, Verbal: 0, DI: 0 },
       topicStats: {},
+      answersByMode: { Official: {}, Training: {} },
       answers: {},
       flagged: {},
       showExplanation: {},
@@ -6092,11 +6165,51 @@
       timers: { Quant: SECTION_SECONDS, Verbal: SECTION_SECONDS, DI: SECTION_SECONDS }
     });
 
+    function isOfficialMode(mode = activeMode()) {
+      return normalizeMode(mode) === "Official";
+    }
+
+    function answerStore(mode = activeMode()) {
+      const normalized = normalizeMode(mode);
+      state.answersByMode = state.answersByMode || { Official: {}, Training: {} };
+      state.answersByMode[normalized] = state.answersByMode[normalized] || {};
+      return state.answersByMode[normalized];
+    }
+
+    function answerFor(questionId, mode = activeMode()) {
+      return answerStore(mode)[questionId];
+    }
+
+    function setAnswerFor(questionId, answer, mode = activeMode()) {
+      answerStore(mode)[questionId] = answer;
+    }
+
+    function deleteAnswerFor(questionId, mode = activeMode()) {
+      delete answerStore(mode)[questionId];
+    }
+
+    function scopedStateValue(store, questionId, mode = activeMode()) {
+      return store[scopedQuestionKey(questionId, mode)];
+    }
+
+    function setScopedStateValue(store, questionId, value, mode = activeMode()) {
+      store[scopedQuestionKey(questionId, mode)] = value;
+    }
+
+    function deleteScopedStateValue(store, questionId, mode = activeMode()) {
+      delete store[scopedQuestionKey(questionId, mode)];
+    }
+
+    function sectionQuestionLimit(section = state.section) {
+      return isOfficialMode() ? OFFICIAL_SECTION_COUNTS[section] : null;
+    }
+
     function sessionSeconds() {
-      return SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION];
+      return isOfficialMode() ? OFFICIAL_SECTION_SECONDS : SESSION_PRESETS[state.sessionPreset] || SESSION_PRESETS[DEFAULT_SESSION];
     }
 
     function sessionLabel() {
+      if (isOfficialMode()) return "45 min official";
       return state.sessionPreset === "Quick" ? "5 min" : state.sessionPreset === "Focus" ? "30 min" : "90 min";
     }
 
@@ -6108,13 +6221,19 @@
         const rawStored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
         const stored = JSON.parse(rawStored);
         const base = defaultState();
+        const migratedAnswers = stored?.answersByMode || { Official: {}, Training: stored?.answers || {} };
         return Object.assign(base, stored || {}, {
+          mode: PRACTICE_MODES[stored?.mode] ? stored.mode : DEFAULT_MODE,
           sessionPreset: SESSION_PRESETS[stored?.sessionPreset] ? stored.sessionPreset : DEFAULT_SESSION,
           indexBySection: Object.assign(base.indexBySection, stored?.indexBySection || {}),
           queueBySection: Object.assign(base.queueBySection, stored?.queueBySection || {}),
           targetDifficulty: Object.assign(base.targetDifficulty, stored?.targetDifficulty || {}),
           streakBySection: Object.assign(base.streakBySection, stored?.streakBySection || {}),
           topicStats: stored?.topicStats || {},
+          answersByMode: {
+            Official: migratedAnswers.Official || {},
+            Training: migratedAnswers.Training || {}
+          },
           answers: stored?.answers || {},
           flagged: stored?.flagged || {},
           showExplanation: stored?.showExplanation || {},
@@ -6153,16 +6272,21 @@
     }
 
     function topicWeakness(topic) {
-      const stats = state.topicStats[topic];
+      const stats = state.topicStats[scopedQuestionKey(topic)] || state.topicStats[topic];
       if (!stats) return 0;
       return Math.max(0, (stats.wrong || 0) - (stats.correct || 0));
     }
 
     function pickAdaptiveQuestion(section = state.section) {
       const queue = cleanQueue(section);
+      const limit = sectionQuestionLimit(section);
+      if (limit && queue.length >= limit) return null;
       const lastId = queue[queue.length - 1];
       const all = bySection(section);
-      const unanswered = all.filter((question) => !state.answers[question.id]);
+      const answeredRecordsForSection = answeredRecords(section);
+      const rawTheta = answeredRecordsForSection.length ? estimateTheta(answeredRecordsForSection) : 0;
+      const theta = rawTheta * Math.min(1, answeredRecordsForSection.length / 8);
+      const unanswered = all.filter((question) => !answerFor(question.id));
       const pool = (unanswered.length ? unanswered : all).filter((question) => question.id !== lastId);
       const candidates = pool.length ? pool : all;
       const target = state.targetDifficulty[section] || 2;
@@ -6174,17 +6298,23 @@
       }, {});
       return candidates
         .map((question) => {
-          const answeredPenalty = state.answers[question.id] ? 42 : 0;
+          const answeredPenalty = answerFor(question.id) ? 42 : 0;
           const queuePenalty = queue.includes(question.id) ? 18 : 0;
           const recentTopicCount = recentTopics.filter((topic) => topic === question.topic).length;
           const recentTopicPenalty = recentTopicCount * 26;
           const immediateTopicPenalty = recentTopics[recentTopics.length - 1] === question.topic ? 34 : 0;
           const exposurePenalty = (topicExposure[question.topic] || 0) * 3;
           const weakTopicBonus = Math.min(topicWeakness(question.topic) * 6, 24);
+          const { b } = itemParameters(question);
+          const targetDistance = Math.abs(question.difficulty - target);
+          const officialTargetWeight = Math.max(5, 14 - answeredRecordsForSection.length);
+          const irtScore = isOfficialMode()
+            ? Math.abs(b - theta) * 16 + targetDistance * officialTargetWeight - itemInformation(theta, question) * 18
+            : targetDistance * 20 - itemInformation(theta, question) * 4;
           const jitter = hashText(`${question.id}-${queue.length}`) % 7;
           return {
             question,
-            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + recentTopicPenalty + immediateTopicPenalty + exposurePenalty + jitter - weakTopicBonus
+            score: irtScore + answeredPenalty + queuePenalty + recentTopicPenalty + immediateTopicPenalty + exposurePenalty + jitter - weakTopicBonus
           };
         })
         .sort((a, b) => a.score - b.score || a.question.id.localeCompare(b.question.id))[0]?.question;
@@ -6217,6 +6347,30 @@
       return state.indexBySection[state.section] || 0;
     }
 
+    function officialSectionComplete(section = state.section) {
+      if (!isOfficialMode()) return false;
+      const limit = OFFICIAL_SECTION_COUNTS[section];
+      const queue = cleanQueue(section).slice(0, limit);
+      return queue.length >= limit && queue.every((id) => answerFor(id, "Official"));
+    }
+
+    function officialTestComplete() {
+      return isOfficialMode() && sections.every((section) => officialSectionComplete(section));
+    }
+
+    function nextIncompleteOfficialSection() {
+      if (!isOfficialMode()) return null;
+      return sections.find((section) => !officialSectionComplete(section)) || null;
+    }
+
+    function explanationsUnlocked() {
+      return !isOfficialMode() || officialTestComplete();
+    }
+
+    function officialFeedbackLocked() {
+      return isOfficialMode() && !officialTestComplete();
+    }
+
     function setIndex(index) {
       const list = currentList();
       state.indexBySection[state.section] = Math.max(0, Math.min(index, list.length - 1));
@@ -6226,12 +6380,13 @@
 
     function statsFor(section = state.section) {
       const list = bySection(section);
-      const answered = list.filter((q) => state.answers[q.id]).length;
-      const correct = list.filter((q) => state.answers[q.id]?.correct).length;
-      const flagged = list.filter((q) => state.flagged[q.id]).length;
-      const wrong = list.filter((q) => state.answers[q.id] && !state.answers[q.id].correct).length;
+      const limit = sectionQuestionLimit(section);
+      const answered = list.filter((q) => answerFor(q.id)).length;
+      const correct = list.filter((q) => answerFor(q.id)?.correct).length;
+      const flagged = list.filter((q) => scopedStateValue(state.flagged, q.id)).length;
+      const wrong = list.filter((q) => answerFor(q.id) && !answerFor(q.id).correct).length;
       const accuracy = answered ? Math.round((correct / answered) * 100) : 0;
-      return { answered, correct, flagged, wrong, total: list.length, accuracy };
+      return { answered, correct, flagged, wrong, total: limit || list.length, accuracy };
     }
 
     function sectionShortName(section) {
@@ -6292,17 +6447,35 @@
 
     function answeredRecords(section) {
       return bySection(section)
-        .filter((question) => state.answers[question.id])
-        .map((question) => ({ question, answer: state.answers[question.id] }));
+        .filter((question) => answerFor(question.id))
+        .map((question) => ({ question, answer: answerFor(question.id) }));
     }
 
     function scoreDifficultyLocation(difficulty) {
-      return (clamp(difficulty || 3, 1, 5) - 3) * 0.95;
+      return initialDifficultyLocation(difficulty);
     }
 
-    function responseProbability(theta, difficulty) {
-      const exponent = -1.25 * (theta - scoreDifficultyLocation(difficulty));
-      return clamp(1 / (1 + Math.exp(exponent)), 0.03, 0.97);
+    function itemParameters(question) {
+      if (question?.irt) return question.irt;
+      return {
+        a: 1,
+        b: scoreDifficultyLocation(question?.difficulty || 3),
+        c: question?.section === "Verbal" ? 0.16 : 0.18
+      };
+    }
+
+    function responseProbability(theta, question) {
+      const { a, b, c } = itemParameters(question);
+      const logistic = 1 / (1 + Math.exp(-1.7 * a * (theta - b)));
+      return clamp(c + (1 - c) * logistic, 0.03, 0.97);
+    }
+
+    function itemInformation(theta, question) {
+      const { a, b, c } = itemParameters(question);
+      const logistic = 1 / (1 + Math.exp(-1.7 * a * (theta - b)));
+      const probability = responseProbability(theta, question);
+      const derivative = 1.7 * a * (1 - c) * logistic * (1 - logistic);
+      return (derivative * derivative) / Math.max(0.0001, probability * (1 - probability));
     }
 
     function estimateTheta(records) {
@@ -6312,7 +6485,7 @@
         const theta = step / 100;
         let logLikelihood = -0.5 * Math.pow(theta / 2.35, 2);
         records.forEach(({ question, answer }) => {
-          const probability = responseProbability(theta, question.difficulty);
+          const probability = responseProbability(theta, question);
           logLikelihood += answer.correct ? Math.log(probability) : Math.log(1 - probability);
         });
         if (logLikelihood > bestLogLikelihood) {
@@ -6323,9 +6496,16 @@
       return bestTheta;
     }
 
-    function sectionBandWidth(answered, topicCount) {
-      const base = answered < SECTION_ESTIMATE_MIN ? 9 : answered < 15 ? 7 : answered < 30 ? 5 : 4;
-      return base + (topicCount < 3 ? 1 : 0);
+    function thetaStandardError(theta, records) {
+      const priorInformation = 1 / Math.pow(2.35, 2);
+      const information = records.reduce((sum, { question }) => sum + itemInformation(theta, question), priorInformation);
+      return 1 / Math.sqrt(Math.max(0.001, information));
+    }
+
+    function sectionBandWidth(answered, topicCount, standardError) {
+      const multiplier = answered < SECTION_ESTIMATE_MIN ? 2.15 : answered < 15 ? 1.95 : answered < 30 ? 1.7 : 1.5;
+      const measurementWidth = Math.ceil(standardError * 5.6 * multiplier);
+      return clamp(measurementWidth + (topicCount < 3 ? 2 : 0), 4, 10);
     }
 
     function estimateSectionScore(section) {
@@ -6335,14 +6515,17 @@
         return { section, answered, ready: false, score: null, low: null, high: null, meter: 0 };
       }
       const theta = estimateTheta(records);
+      const standardError = thetaStandardError(theta, records);
       const rawScore = 75 + theta * 5.6;
       const score = clamp(Math.round(rawScore), SECTION_SCORE_MIN, SECTION_SCORE_MAX);
       const topicCount = new Set(records.map(({ question }) => question.topic)).size;
-      const width = sectionBandWidth(answered, topicCount);
+      const width = sectionBandWidth(answered, topicCount, standardError);
       return {
         section,
         answered,
         ready: answered >= SECTION_ESTIMATE_MIN,
+        theta,
+        standardError,
         score,
         low: clamp(score - width, SECTION_SCORE_MIN, SECTION_SCORE_MAX),
         high: clamp(score + width, SECTION_SCORE_MIN, SECTION_SCORE_MAX),
@@ -6398,11 +6581,16 @@
       sectionEstimates.forEach((estimate) => {
         const row = document.createElement("div");
         row.className = "section-estimate-row";
+        const locked = officialFeedbackLocked();
         const enoughForBand = estimate.answered >= 4;
-        const scoreText = enoughForBand ? `${estimate.low}-${estimate.high}` : `${estimate.answered}/${SECTION_ESTIMATE_MIN}`;
+        const scoreText = locked
+          ? `${estimate.answered}/${OFFICIAL_SECTION_COUNTS[estimate.section]}`
+          : enoughForBand ? `${estimate.low}-${estimate.high}` : `${estimate.answered}/${SECTION_ESTIMATE_MIN}`;
         const sectionPercentiles = SECTION_PERCENTILES[estimate.section] || {};
-        const percentileText = enoughForBand ? percentileBand(estimate.low, estimate.high, sectionPercentiles) : "need 8";
-        const meter = enoughForBand ? estimate.meter : Math.round((estimate.answered / SECTION_ESTIMATE_MIN) * 100);
+        const percentileText = locked ? "locked" : enoughForBand ? percentileBand(estimate.low, estimate.high, sectionPercentiles) : "need 8";
+        const meter = locked
+          ? Math.round((estimate.answered / OFFICIAL_SECTION_COUNTS[estimate.section]) * 100)
+          : enoughForBand ? estimate.meter : Math.round((estimate.answered / SECTION_ESTIMATE_MIN) * 100);
         row.innerHTML = `
           <span class="section-estimate-label">${sectionShortName(estimate.section)}</span>
           <span class="section-meter" aria-hidden="true"><span style="--meter: ${clamp(meter, 0, 100)}%"></span></span>
@@ -6418,6 +6606,17 @@
       const rawTotalEstimate = estimateTotalScore(sectionEstimates);
       const totalEstimate = applyOfficialAnchor(rawTotalEstimate);
       const confidence = estimateConfidence(sectionEstimates, totalEstimate);
+      if (officialFeedbackLocked()) {
+        const answered = sectionEstimates.reduce((sum, estimate) => sum + estimate.answered, 0);
+        const total = sections.reduce((sum, section) => sum + OFFICIAL_SECTION_COUNTS[section], 0);
+        $("#estimateValue").textContent = `${answered}/${total}`;
+        $("#estimatePercentile").textContent = "Score unlocks in review";
+        $("#estimateConfidence").textContent = "locked";
+        $("#estimateNote").textContent = "Official Test mode withholds score bands, correctness, and explanations until all three sections are complete.";
+        $("#officialScoreInput").value = state.officialScore || "";
+        renderSectionEstimateRows(sectionEstimates);
+        return;
+      }
       const missingSections = sectionEstimates
         .filter((estimate) => estimate.answered < TOTAL_ESTIMATE_MIN)
         .map((estimate) => `${sectionShortName(estimate.section)} ${TOTAL_ESTIMATE_MIN - estimate.answered}`);
@@ -6453,7 +6652,7 @@
     function sectionTopicStats(section) {
       const topics = new Map();
       bySection(section).forEach((question) => {
-        const answer = state.answers[question.id];
+        const answer = answerFor(question.id);
         if (!topics.has(question.topic)) {
           topics.set(question.topic, { topic: question.topic, subskill: question.subskill, answered: 0, correct: 0, wrong: 0 });
         }
@@ -6491,9 +6690,9 @@
     function missedQuestions(section = state.section, options = {}) {
       const includeResolved = Boolean(options.includeResolved);
       return bySection(section).filter((question) => (
-        state.answers[question.id]
-        && !state.answers[question.id].correct
-        && (includeResolved || !state.resolvedMisses[question.id])
+        answerFor(question.id)
+        && !answerFor(question.id).correct
+        && (includeResolved || !scopedStateValue(state.resolvedMisses, question.id))
       ));
     }
 
@@ -6539,6 +6738,23 @@
     }
 
     function renderCoach() {
+      if (officialFeedbackLocked()) {
+        const stats = statsFor();
+        $("#startPlanButton").textContent = "Continue";
+        $("#coachBody").innerHTML = `
+          <div class="coach-card">
+            <span class="coach-kicker">Official test</span>
+            <h3 class="coach-title">${sectionLabel[state.section]} ${stats.answered}/${stats.total}</h3>
+            <p class="coach-text">Keep moving through the section. Correctness, explanations, weak topics, and score estimates unlock after all three sections are complete.</p>
+            <div class="coach-metrics">
+              <span class="metric-pill"><strong>${sectionShortName(state.section)}</strong>active</span>
+              <span class="metric-pill"><strong>${formatTime(state.timers[state.section] ?? sessionSeconds())}</strong>left</span>
+              <span class="metric-pill"><strong>64</strong>total questions</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
       const plan = buildStudyPlan();
       $("#startPlanButton").textContent = plan.misses.length ? "Redo" : "Start";
       $("#coachBody").innerHTML = `
@@ -6557,25 +6773,25 @@
 
     function setAnswerTag(questionId, tag, correct) {
       if (correct) {
-        state.confidenceTags[questionId] = tag;
+        setScopedStateValue(state.confidenceTags, questionId, tag);
       } else {
-        state.missReasons[questionId] = tag;
+        setScopedStateValue(state.missReasons, questionId, tag);
       }
       saveState();
       render();
     }
 
     function renderAnswerCoach(question) {
-      const answer = state.answers[question.id];
+      const answer = answerFor(question.id);
       const container = $("#answerCoach");
-      if (!answer) {
+      if (!answer || !explanationsUnlocked()) {
         container.classList.remove("is-visible");
         container.innerHTML = "";
         return;
       }
       const adjustment = state.lastAdjustment[question.section];
       const tags = answer.correct ? CONFIDENCE_REASONS : MISS_REASONS;
-      const selected = answer.correct ? state.confidenceTags[question.id] : state.missReasons[question.id];
+      const selected = answer.correct ? scopedStateValue(state.confidenceTags, question.id) : scopedStateValue(state.missReasons, question.id);
       const label = answer.correct ? "Confidence" : "Miss reason";
       const buttons = tags.map((tag) => `
         <button class="reason-chip" type="button" data-answer-tag="${tag}" aria-pressed="${String(selected === tag)}">${tag}</button>
@@ -6598,11 +6814,12 @@
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
       const expertReviewed = BANK.filter((question) => question.reviewStatus === "Expert reviewed").length;
-      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, and teaching explanations. This build does not claim GMAC affiliation or official scoring; expert review is still required before a real paid launch. Reports can be exported as JSON for review.";
+      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, teaching explanations, and an IRT-style score model. Official Test mode uses 21 Quant, 23 Verbal, and 20 DI questions with 45-minute section timers. Score anchoring can narrow the estimate from an official practice score, but this still does not reproduce GMAC calibration or claim GMAC affiliation.";
       $("#methodMetrics").innerHTML = `
         <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
         <span class="metric-pill"><strong>${expertReviewed}</strong>expert reviewed</span>
         <span class="metric-pill"><strong>${reported}</strong>reported</span>
+        <span class="metric-pill"><strong>IRT</strong>scoring model</span>
       `;
       $("#exportFeedbackButton").hidden = reported === 0;
       $("#clearFeedbackButton").hidden = reported === 0;
@@ -6623,7 +6840,15 @@
       $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
       $("#resetButton").innerHTML = `${icon.reset} Reset`;
       $("#sectionTitle").textContent = sectionLabel[state.section] || state.section;
-      $("#planSummary").textContent = `${sessionLabel()} practice`;
+      $("#planSummary").textContent = isOfficialMode()
+        ? `${sectionShortName(state.section)} official - ${OFFICIAL_SECTION_COUNTS[state.section]} questions`
+        : `${sessionLabel()} section drill`;
+    }
+
+    function renderModeButtons() {
+      document.querySelectorAll(".mode-button").forEach((button) => {
+        button.setAttribute("aria-selected", String(button.dataset.mode === activeMode()));
+      });
     }
 
     function renderSegments() {
@@ -6633,8 +6858,11 @@
     }
 
     function renderSessionLengths() {
+      const container = document.querySelector(".session-lengths");
+      if (container) container.hidden = isOfficialMode();
       document.querySelectorAll(".session-button").forEach((button) => {
         button.setAttribute("aria-selected", String(button.dataset.session === state.sessionPreset));
+        button.disabled = isOfficialMode();
       });
     }
 
@@ -6648,13 +6876,14 @@
       strip.innerHTML = "";
       visible.forEach((question, offset) => {
         const absoluteIndex = start + offset;
-        const answer = state.answers[question.id];
+        const answer = answerFor(question.id);
+        const feedbackVisible = explanationsUnlocked();
         const marker = document.createElement("span");
         marker.className = "dot";
         if (absoluteIndex === index) marker.classList.add("is-current");
-        if (answer?.correct) marker.classList.add("is-correct");
-        if (answer && !answer.correct) marker.classList.add("is-wrong");
-        if (state.flagged[question.id]) marker.classList.add("is-flagged");
+        if (feedbackVisible && answer?.correct) marker.classList.add("is-correct");
+        if (feedbackVisible && answer && !answer.correct) marker.classList.add("is-wrong");
+        if (scopedStateValue(state.flagged, question.id)) marker.classList.add("is-flagged");
         marker.setAttribute("aria-hidden", "true");
         strip.appendChild(marker);
       });
@@ -6662,14 +6891,15 @@
 
     function renderChoices(question) {
       const choices = $("#choices");
-      const answer = state.answers[question.id];
-      const show = Boolean(state.showExplanation[question.id]);
+      const answer = answerFor(question.id);
+      const show = Boolean(explanationsUnlocked() && scopedStateValue(state.showExplanation, question.id));
       choices.innerHTML = "";
       question.choices.forEach((choice, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "choice";
         if (answer?.choice === index) button.classList.add("is-selected");
+        if (answer?.choice === index && officialFeedbackLocked()) button.classList.add("is-locked");
         if (show && index === question.answer) button.classList.add("is-correct");
         if (show && answer?.choice === index && !answer.correct) button.classList.add("is-wrong");
         button.innerHTML = `<span class="choice-letter">${LETTERS[index]}</span><span class="choice-text">${choice}</span>`;
@@ -6679,12 +6909,17 @@
     }
 
     function renderExplanation(question) {
-      const answer = state.answers[question.id];
-      const isVisible = Boolean(answer && state.showExplanation[question.id]);
+      const answer = answerFor(question.id);
+      const locked = Boolean(answer && !explanationsUnlocked());
+      const isVisible = Boolean(answer && explanationsUnlocked() && scopedStateValue(state.showExplanation, question.id));
       const explanation = $("#explanation");
       explanation.classList.toggle("is-visible", isVisible);
-      $("#explainButton").disabled = !answer;
-      $("#explainButton").innerHTML = answer ? `${icon.eye} ${isVisible ? "Hide explanation" : "Show explanation"}` : `${icon.eye} Answer first`;
+      $("#explainButton").disabled = !answer || locked;
+      $("#explainButton").innerHTML = !answer
+        ? `${icon.eye} Answer first`
+        : locked
+          ? `${icon.eye} Locked until review`
+          : `${icon.eye} ${isVisible ? "Hide explanation" : "Show explanation"}`;
       if (!answer) {
         $("#resultLabel").className = "result";
         $("#resultLabel").textContent = "";
@@ -6710,6 +6945,13 @@
       const missed = missedQuestions();
       const container = $("#errorList");
       container.innerHTML = "";
+      if (officialFeedbackLocked()) {
+        const locked = document.createElement("p");
+        locked.className = "empty";
+        locked.textContent = "Review unlocks after the official-style test is complete.";
+        container.appendChild(locked);
+        return;
+      }
       if (!missed.length) {
         const empty = document.createElement("p");
         empty.className = "empty";
@@ -6724,7 +6966,7 @@
         button.type = "button";
         button.className = "error-item";
         const index = list.findIndex((q) => q.id === question.id);
-        const reason = state.missReasons[question.id] || "Untagged";
+        const reason = scopedStateValue(state.missReasons, question.id) || "Untagged";
         button.innerHTML = `
           <span class="tiny-icon" style="color: var(--red)">${icon.x}</span>
           <span><strong>Q${index + 1} - ${question.topic}</strong><span>${reason} - ${question.subskill}</span></span>
@@ -6736,7 +6978,7 @@
           const queue = cleanQueue();
           if (!queue.includes(question.id)) queue.push(question.id);
           state.indexBySection[state.section] = Math.max(0, queue.indexOf(question.id));
-          state.showExplanation[question.id] = false;
+          setScopedStateValue(state.showExplanation, question.id, false);
           saveState();
           render();
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -6748,7 +6990,7 @@
           chip.type = "button";
           chip.className = "reason-chip";
           chip.textContent = tag;
-          chip.setAttribute("aria-pressed", String(state.missReasons[question.id] === tag));
+          chip.setAttribute("aria-pressed", String(scopedStateValue(state.missReasons, question.id) === tag));
           chip.addEventListener("click", () => setAnswerTag(question.id, tag, false));
           chips.appendChild(chip);
         });
@@ -6763,14 +7005,23 @@
       const activeMisses = missedQuestions();
       const target = state.targetDifficulty[state.section] || 2;
       $("#doneStat").textContent = `${stats.answered}/${stats.total}`;
-      $("#rightStat").textContent = `${stats.accuracy}%`;
-      $("#flagStat").textContent = `L${target}`;
-      $("#difficultyChip").textContent = `Target L${target}`;
-      $("#scoreChip").textContent = `${stats.correct}/${stats.answered || 0}`;
-      $("#reviewMissedButton").textContent = activeMisses.length ? `Missed ${activeMisses.length}` : "Missed";
-      $("#reviewMissedButton").hidden = !activeMisses.length;
-      $("#clearLogButton").textContent = activeMisses.length ? "Resolve" : "Clear";
-      $("#clearLogButton").hidden = !activeMisses.length;
+      if (officialFeedbackLocked()) {
+        $("#rightStat").textContent = "--";
+        $("#flagStat").textContent = "CAT";
+        $("#difficultyChip").textContent = "IRT CAT";
+        $("#scoreChip").textContent = `${stats.answered}/${stats.total}`;
+        $("#reviewMissedButton").hidden = true;
+        $("#clearLogButton").hidden = true;
+      } else {
+        $("#rightStat").textContent = `${stats.accuracy}%`;
+        $("#flagStat").textContent = `L${target}`;
+        $("#difficultyChip").textContent = `Target L${target}`;
+        $("#scoreChip").textContent = `${stats.correct}/${stats.answered || 0}`;
+        $("#reviewMissedButton").textContent = activeMisses.length ? `Missed ${activeMisses.length}` : "Missed";
+        $("#reviewMissedButton").hidden = !activeMisses.length;
+        $("#clearLogButton").textContent = activeMisses.length ? "Resolve" : "Clear";
+        $("#clearLogButton").hidden = !activeMisses.length;
+      }
       renderScoreEstimate();
     }
 
@@ -6778,21 +7029,23 @@
       const list = currentList();
       const question = currentQuestion();
       const index = currentIndex();
-      const answer = state.answers[question.id];
+      const answer = answerFor(question.id);
 
       renderTimer();
+      renderModeButtons();
       renderSegments();
       renderSessionLengths();
       renderProgress(list);
       renderStats();
 
-      $("#questionCount").textContent = `Question ${index + 1}`;
+      const limit = sectionQuestionLimit();
+      $("#questionCount").textContent = limit ? `Question ${index + 1} of ${limit}` : `Question ${index + 1}`;
       $("#questionTopic").textContent = `${question.topic} - L${question.difficulty}`;
       $("#questionStem").textContent = question.stem;
       $("#questionContext").hidden = !question.context;
       $("#questionContext").textContent = question.context || "";
-      $("#flagButton").innerHTML = state.flagged[question.id] ? icon.flagFilled : icon.flag;
-      $("#reviewButton").innerHTML = `${state.flagged[question.id] ? icon.flagFilled : icon.flag} Review`;
+      $("#flagButton").innerHTML = scopedStateValue(state.flagged, question.id) ? icon.flagFilled : icon.flag;
+      $("#reviewButton").innerHTML = `${scopedStateValue(state.flagged, question.id) ? icon.flagFilled : icon.flag} Review`;
 
       renderChoices(question);
       renderExplanation(question);
@@ -6801,9 +7054,12 @@
       renderMethodology();
 
       $("#previousButton").disabled = index === 0;
-      $("#nextButton").textContent = "Next";
+      const nextOfficialSection = nextIncompleteOfficialSection();
+      $("#nextButton").textContent = isOfficialMode() && officialSectionComplete(state.section)
+        ? (nextOfficialSection && nextOfficialSection !== state.section ? "Next section" : "Review")
+        : "Next";
 
-      if (answer && !state.showExplanation[question.id]) {
+      if (answer && explanationsUnlocked() && !scopedStateValue(state.showExplanation, question.id)) {
         $("#explainButton").classList.add("primary");
       } else {
         $("#explainButton").classList.remove("primary");
@@ -6811,31 +7067,34 @@
     }
 
     function chooseAnswer(question, choice) {
-      const previous = state.answers[question.id];
+      const previous = answerFor(question.id);
       const correct = choice === question.answer;
-      state.answers[question.id] = {
+      setAnswerFor(question.id, {
         choice,
         correct,
+        mode: activeMode(),
         section: question.section,
         topic: question.topic,
         difficulty: question.difficulty,
+        irt: question.irt,
         at: Date.now()
-      };
-      delete state.resolvedMisses[question.id];
-      if (correct) delete state.missReasons[question.id];
-      else delete state.confidenceTags[question.id];
+      });
+      deleteScopedStateValue(state.resolvedMisses, question.id);
+      if (correct) deleteScopedStateValue(state.missReasons, question.id);
+      else deleteScopedStateValue(state.confidenceTags, question.id);
       if (!previous) updateAdaptiveDifficulty(question, correct);
-      state.showExplanation[question.id] = true;
+      setScopedStateValue(state.showExplanation, question.id, explanationsUnlocked());
       saveState();
       render();
     }
 
     function updateAdaptiveDifficulty(question, correct) {
       const section = question.section;
-      const topicStats = state.topicStats[question.topic] || { correct: 0, wrong: 0 };
+      const statsKey = scopedQuestionKey(question.topic);
+      const topicStats = state.topicStats[statsKey] || { correct: 0, wrong: 0 };
       if (correct) topicStats.correct += 1;
       else topicStats.wrong += 1;
-      state.topicStats[question.topic] = topicStats;
+      state.topicStats[statsKey] = topicStats;
 
       const previousTarget = state.targetDifficulty[section] || 2;
       if (correct) {
@@ -6867,8 +7126,9 @@
 
     function toggleFlag() {
       const question = currentQuestion();
-      state.flagged[question.id] = !state.flagged[question.id];
-      if (!state.flagged[question.id]) delete state.flagged[question.id];
+      const nextValue = !scopedStateValue(state.flagged, question.id);
+      if (nextValue) setScopedStateValue(state.flagged, question.id, true);
+      else deleteScopedStateValue(state.flagged, question.id);
       saveState();
       render();
     }
@@ -6888,12 +7148,12 @@
     function resetSection() {
       const list = bySection();
       list.forEach((question) => {
-        delete state.answers[question.id];
-        delete state.flagged[question.id];
-        delete state.showExplanation[question.id];
-        delete state.missReasons[question.id];
-        delete state.resolvedMisses[question.id];
-        delete state.confidenceTags[question.id];
+        deleteAnswerFor(question.id);
+        deleteScopedStateValue(state.flagged, question.id);
+        deleteScopedStateValue(state.showExplanation, question.id);
+        deleteScopedStateValue(state.missReasons, question.id);
+        deleteScopedStateValue(state.resolvedMisses, question.id);
+        deleteScopedStateValue(state.confidenceTags, question.id);
       });
       state.indexBySection[state.section] = 0;
       state.queueBySection[state.section] = [];
@@ -6912,7 +7172,7 @@
         const queue = cleanQueue();
         if (!queue.includes(missed.id)) queue.push(missed.id);
         state.indexBySection[state.section] = Math.max(0, queue.indexOf(missed.id));
-        state.showExplanation[missed.id] = false;
+        setScopedStateValue(state.showExplanation, missed.id, false);
         saveState();
         render();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -6924,6 +7184,7 @@
 
     function changeSessionLength(preset) {
       if (!SESSION_PRESETS[preset]) return;
+      if (isOfficialMode()) return;
       state.sessionPreset = preset;
       state.timers[state.section] = SESSION_PRESETS[preset];
       state.paused = false;
@@ -6931,7 +7192,37 @@
       render();
     }
 
+    function resetModeQueues() {
+      state.indexBySection = { Quant: 0, Verbal: 0, DI: 0 };
+      state.queueBySection = { Quant: [], Verbal: [], DI: [] };
+      state.targetDifficulty = { Quant: 2, Verbal: 2, DI: 2 };
+      state.streakBySection = { Quant: 0, Verbal: 0, DI: 0 };
+    }
+
+    function resetModeTimers() {
+      const seconds = sessionSeconds();
+      state.timers = { Quant: seconds, Verbal: seconds, DI: seconds };
+    }
+
+    function changePracticeMode(mode) {
+      const normalized = normalizeMode(mode);
+      if (normalized === activeMode()) return;
+      state.mode = normalized;
+      resetModeQueues();
+      resetModeTimers();
+      state.paused = false;
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function startRecommendedPlan() {
+      if (officialFeedbackLocked()) {
+        saveState();
+        render();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       const plan = buildStudyPlan();
       state.section = plan.section;
       const queue = cleanQueue(plan.section);
@@ -6939,7 +7230,7 @@
       if (targetQuestion && !queue.includes(targetQuestion.id)) queue.push(targetQuestion.id);
       if (targetQuestion) {
         state.indexBySection[plan.section] = Math.max(0, queue.indexOf(targetQuestion.id));
-        if (plan.misses[0]) state.showExplanation[targetQuestion.id] = false;
+        if (plan.misses[0]) setScopedStateValue(state.showExplanation, targetQuestion.id, false);
       }
       if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
         state.timers[state.section] = sessionSeconds();
@@ -6975,8 +7266,8 @@
         answerIndex: question.answer,
         answerText: question.choices[question.answer],
         explanation: question.explanation,
-        userAnswer: state.answers[question.id] || null,
-        missReason: state.missReasons[question.id] || "",
+        userAnswer: answerFor(question.id) || null,
+        missReason: scopedStateValue(state.missReasons, question.id) || "",
         status: "Needs review"
       };
       saveState();
@@ -7023,6 +7314,12 @@
       });
     });
 
+    document.querySelectorAll(".mode-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        changePracticeMode(button.dataset.mode);
+      });
+    });
+
     $("#pauseButton").addEventListener("click", () => {
       state.paused = !state.paused;
       saveState();
@@ -7047,8 +7344,8 @@
 
     $("#explainButton").addEventListener("click", () => {
       const question = currentQuestion();
-      if (!state.answers[question.id]) return;
-      state.showExplanation[question.id] = !state.showExplanation[question.id];
+      if (!answerFor(question.id) || !explanationsUnlocked()) return;
+      setScopedStateValue(state.showExplanation, question.id, !scopedStateValue(state.showExplanation, question.id));
       saveState();
       render();
     });
@@ -7065,6 +7362,19 @@
           render();
           window.scrollTo({ top: 0, behavior: "smooth" });
         }
+        if (!next && isOfficialMode()) {
+          const nextSection = nextIncompleteOfficialSection();
+          if (nextSection && nextSection !== state.section) {
+            state.section = nextSection;
+            if (!Number.isFinite(state.timers[state.section]) || state.timers[state.section] > sessionSeconds()) {
+              state.timers[state.section] = sessionSeconds();
+            }
+            currentList();
+            saveState();
+            render();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        }
         return;
       }
       setIndex(currentIndex() + 1);
@@ -7074,7 +7384,7 @@
     $("#reviewMissedButton").addEventListener("click", jumpToMissed);
     $("#clearLogButton").addEventListener("click", () => {
       missedQuestions().forEach((question) => {
-        state.resolvedMisses[question.id] = true;
+        setScopedStateValue(state.resolvedMisses, question.id, true);
       });
       saveState();
       render();
