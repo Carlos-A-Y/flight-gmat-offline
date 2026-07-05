@@ -3308,6 +3308,9 @@
         minutes: 45,
         calculator: false,
         questionTypes: ["Problem Solving"],
+        contentDomains: ["Arithmetic", "Algebra"],
+        scoreReportQuestionTypes: ["Pure Contexts", "Real Contexts"],
+        fundamentalSkills: ["Rates/Ratio/Percent", "Value/Order/Factors", "Equalities/Inequalities/Algebra", "Counting/Sets/Series"],
         publicSkills: ["Arithmetic", "Elementary algebra", "Logic and analytical problem solving"]
       },
       Verbal: {
@@ -3317,6 +3320,9 @@
         minutes: 45,
         calculator: false,
         questionTypes: ["Reading Comprehension", "Critical Reasoning"],
+        contentDomains: ["Reading Comprehension", "Critical Reasoning"],
+        scoreReportQuestionTypes: ["Reading Comprehension", "Critical Reasoning"],
+        fundamentalSkills: ["Reading: Main/Supporting Idea", "Reading: Inference/Application", "Reasoning: Analysis/Critique", "Reasoning: Construction/Plan"],
         publicSkills: ["Main idea", "Supporting idea", "Inference", "Application", "Logical structure", "Style", "Argument evaluation"]
       },
       DI: {
@@ -3326,38 +3332,41 @@
         minutes: 45,
         calculator: true,
         questionTypes: ["Data Sufficiency", "Multi-Source Reasoning", "Table Analysis", "Graphics Interpretation", "Two-Part Analysis"],
+        contentDomains: ["Data Insights"],
+        scoreReportQuestionTypes: ["Data Sufficiency", "Multi-Source Reasoning", "Table Analysis", "Graphics Interpretation", "Two-Part Analysis"],
+        fundamentalSkills: ["Sufficiency logic", "Multi-source synthesis", "Table/graphic interpretation", "Two-part analysis"],
         publicSkills: ["Data interpretation", "Data sufficiency", "Multi-source synthesis", "Quantitative and verbal analysis"]
       }
     };
 
     const TRAINING_TOPIC_BLUEPRINT = {
       Quant: {
-        Algebra: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Equations and expressions" },
-        Percents: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Successive change and ratios" },
-        "Number Properties": { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Divisibility and remainders" },
-        Averages: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Means and weighted averages" },
-        Rates: { officialType: "Problem Solving", trainingArea: "Applied arithmetic", subskill: "Work, distance, and unit rates" },
-        Functions: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Function notation" },
-        Ratios: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Ratio scaling and part-whole relationships" },
-        Inequalities: { officialType: "Problem Solving", trainingArea: "Elementary algebra", subskill: "Inequality solving and integer bounds" },
-        Remainders: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Modular arithmetic" },
-        Fractions: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Fraction relationships" },
-        "Word Problems": { officialType: "Problem Solving", trainingArea: "Applied arithmetic", subskill: "Translation to equations" },
-        Combinatorics: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Counting without overcounting" },
-        Counting: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Combinations and arrangements" },
-        Probability: { officialType: "Problem Solving", trainingArea: "Counting and probability", subskill: "Favorable outcomes over total outcomes" },
-        Sets: { officialType: "Problem Solving", trainingArea: "Arithmetic", subskill: "Overlapping groups" }
+        Algebra: { officialType: "Problem Solving", contentDomain: "Algebra", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Equalities/Inequalities/Algebra", trainingArea: "Elementary algebra", subskill: "Equations and expressions" },
+        Percents: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Real Contexts", fundamentalSkill: "Rates/Ratio/Percent", trainingArea: "Arithmetic", subskill: "Successive change and ratios" },
+        "Number Properties": { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Value/Order/Factors", trainingArea: "Arithmetic", subskill: "Divisibility and remainders" },
+        Averages: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Real Contexts", fundamentalSkill: "Value/Order/Factors", trainingArea: "Arithmetic", subskill: "Means and weighted averages" },
+        Rates: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Real Contexts", fundamentalSkill: "Rates/Ratio/Percent", trainingArea: "Applied arithmetic", subskill: "Work, distance, and unit rates" },
+        Functions: { officialType: "Problem Solving", contentDomain: "Algebra", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Equalities/Inequalities/Algebra", trainingArea: "Elementary algebra", subskill: "Function notation" },
+        Ratios: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Real Contexts", fundamentalSkill: "Rates/Ratio/Percent", trainingArea: "Arithmetic", subskill: "Ratio scaling and part-whole relationships" },
+        Inequalities: { officialType: "Problem Solving", contentDomain: "Algebra", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Equalities/Inequalities/Algebra", trainingArea: "Elementary algebra", subskill: "Inequality solving and integer bounds" },
+        Remainders: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Value/Order/Factors", trainingArea: "Arithmetic", subskill: "Modular arithmetic" },
+        Fractions: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Value/Order/Factors", trainingArea: "Arithmetic", subskill: "Fraction relationships" },
+        "Word Problems": { officialType: "Problem Solving", contentDomain: "Algebra", scoreReportQuestionType: "Real Contexts", fundamentalSkill: "Equalities/Inequalities/Algebra", trainingArea: "Applied arithmetic", subskill: "Translation to equations" },
+        Combinatorics: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Counting/Sets/Series", trainingArea: "Counting and probability", subskill: "Counting without overcounting" },
+        Counting: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Counting/Sets/Series", trainingArea: "Counting and probability", subskill: "Combinations and arrangements" },
+        Probability: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Counting/Sets/Series", trainingArea: "Counting and probability", subskill: "Favorable outcomes over total outcomes" },
+        Sets: { officialType: "Problem Solving", contentDomain: "Arithmetic", scoreReportQuestionType: "Pure Contexts", fundamentalSkill: "Counting/Sets/Series", trainingArea: "Arithmetic", subskill: "Overlapping groups" }
       },
       Verbal: {
-        "Reading Comprehension": { officialType: "Reading Comprehension", trainingArea: "Reading Comprehension", subskill: "Main idea, inference, structure, and application" },
-        "Critical Reasoning": { officialType: "Critical Reasoning", trainingArea: "Critical Reasoning", subskill: "Argument structure, assumptions, strengthen, weaken, evaluate, and explain" }
+        "Reading Comprehension": { officialType: "Reading Comprehension", contentDomain: "Reading Comprehension", scoreReportQuestionType: "Reading Comprehension", fundamentalSkill: "Reading: Inference/Application", trainingArea: "Reading Comprehension", subskill: "Main idea, inference, structure, and application" },
+        "Critical Reasoning": { officialType: "Critical Reasoning", contentDomain: "Critical Reasoning", scoreReportQuestionType: "Critical Reasoning", fundamentalSkill: "Reasoning: Analysis/Critique", trainingArea: "Critical Reasoning", subskill: "Argument structure, assumptions, strengthen, weaken, evaluate, and explain" }
       },
       DI: {
-        "Data Sufficiency": { officialType: "Data Sufficiency", trainingArea: "Data Sufficiency", subskill: "Sufficiency logic and relevance of data" },
-        "Multi-Source Reasoning": { officialType: "Multi-Source Reasoning", trainingArea: "Multi-Source Reasoning", subskill: "Cross-source synthesis and inference" },
-        "Table Analysis": { officialType: "Table Analysis", trainingArea: "Table Analysis", subskill: "Sorting, filtering, and table comparisons" },
-        "Graphics Interpretation": { officialType: "Graphics Interpretation", trainingArea: "Graphics Interpretation", subskill: "Chart interpretation and relationship finding" },
-        "Two-Part Analysis": { officialType: "Two-Part Analysis", trainingArea: "Two-Part Analysis", subskill: "Linked constraints, tradeoffs, and paired answers" }
+        "Data Sufficiency": { officialType: "Data Sufficiency", contentDomain: "Data Insights", scoreReportQuestionType: "Data Sufficiency", fundamentalSkill: "Sufficiency logic", trainingArea: "Data Sufficiency", subskill: "Sufficiency logic and relevance of data" },
+        "Multi-Source Reasoning": { officialType: "Multi-Source Reasoning", contentDomain: "Data Insights", scoreReportQuestionType: "Multi-Source Reasoning", fundamentalSkill: "Multi-source synthesis", trainingArea: "Multi-Source Reasoning", subskill: "Cross-source synthesis and inference" },
+        "Table Analysis": { officialType: "Table Analysis", contentDomain: "Data Insights", scoreReportQuestionType: "Table Analysis", fundamentalSkill: "Table/graphic interpretation", trainingArea: "Table Analysis", subskill: "Sorting, filtering, and table comparisons" },
+        "Graphics Interpretation": { officialType: "Graphics Interpretation", contentDomain: "Data Insights", scoreReportQuestionType: "Graphics Interpretation", fundamentalSkill: "Table/graphic interpretation", trainingArea: "Graphics Interpretation", subskill: "Chart interpretation and relationship finding" },
+        "Two-Part Analysis": { officialType: "Two-Part Analysis", contentDomain: "Data Insights", scoreReportQuestionType: "Two-Part Analysis", fundamentalSkill: "Two-part analysis", trainingArea: "Two-Part Analysis", subskill: "Linked constraints, tradeoffs, and paired answers" }
       }
     };
 
@@ -4522,12 +4531,44 @@
       return topicBlueprintForQuestion(question)?.trainingArea || officialTypeForQuestion(question);
     }
 
+    function contentDomainForQuestion(question) {
+      return topicBlueprintForQuestion(question)?.contentDomain || officialTypeForQuestion(question);
+    }
+
+    function scoreReportQuestionTypeForQuestion(question) {
+      return topicBlueprintForQuestion(question)?.scoreReportQuestionType || officialTypeForQuestion(question);
+    }
+
+    function verbalFundamentalSkill(question, fallback) {
+      const text = `${question.stem || ""} ${question.context || ""}`.toLowerCase();
+      if (question.topic === "Reading Comprehension") {
+        if (/\binfer|suggest|imply|would most likely|application|apply\b/.test(text)) return "Reading: Inference/Application";
+        return "Reading: Main/Supporting Idea";
+      }
+      if (question.topic === "Critical Reasoning") {
+        if (/\bplan|proposal|evaluate|question should|explain\b/.test(text)) return "Reasoning: Construction/Plan";
+        return "Reasoning: Analysis/Critique";
+      }
+      return fallback;
+    }
+
+    function fundamentalSkillForQuestion(question) {
+      const fallback = topicBlueprintForQuestion(question)?.fundamentalSkill || trainingAreaForQuestion(question);
+      return question.section === "Verbal" ? verbalFundamentalSkill(question, fallback) : fallback;
+    }
+
     function subskillForQuestion(question) {
       return topicBlueprintForQuestion(question)?.subskill || SUBSKILL_BY_TOPIC[question.topic] || question.topic || "General reasoning";
     }
 
     function officialTypeRank(section, officialType) {
       const index = officialTypesForSection(section).indexOf(officialType);
+      return index === -1 ? 99 : index;
+    }
+
+    function blueprintRank(section, key, value) {
+      const values = OFFICIAL_GMAT_BLUEPRINT[section]?.[key] || [];
+      const index = values.indexOf(value);
       return index === -1 ? 99 : index;
     }
 
@@ -6306,6 +6347,9 @@
         const discriminationSeed = (hashText(`${question.id}-a`) % 9) / 100;
         const difficultySeed = ((hashText(`${question.id}-b`) % 17) - 8) / 100;
         question.officialType = officialTypeForQuestion(question);
+        question.contentDomain = contentDomainForQuestion(question);
+        question.scoreReportQuestionType = scoreReportQuestionTypeForQuestion(question);
+        question.fundamentalSkill = fundamentalSkillForQuestion(question);
         question.trainingArea = trainingAreaForQuestion(question);
         question.subskill = subskillForQuestion(question);
         question.expectedSeconds = question.section === "Verbal"
@@ -6487,6 +6531,9 @@
           topics.set(question.topic, {
             topic: question.topic,
             officialType: question.officialType,
+            contentDomain: question.contentDomain,
+            scoreReportQuestionType: question.scoreReportQuestionType,
+            fundamentalSkill: question.fundamentalSkill,
             trainingArea: question.trainingArea,
             subskill: question.subskill,
             count: 0
@@ -6496,7 +6543,8 @@
       });
       return [...topics.values()].sort((a, b) => (
         officialTypeRank(section, a.officialType) - officialTypeRank(section, b.officialType)
-        || a.trainingArea.localeCompare(b.trainingArea)
+        || blueprintRank(section, "contentDomains", a.contentDomain) - blueprintRank(section, "contentDomains", b.contentDomain)
+        || blueprintRank(section, "fundamentalSkills", a.fundamentalSkill) - blueprintRank(section, "fundamentalSkills", b.fundamentalSkill)
         || a.topic.localeCompare(b.topic)
       ));
     }
@@ -6517,8 +6565,14 @@
     }
 
     function questionTopicLabel(question) {
-      if (!question.officialType || question.officialType === question.topic) return question.topic;
-      return `${question.officialType} · ${question.topic}`;
+      if (question.section === "Quant") return `${question.officialType} - ${question.contentDomain} - ${question.topic}`;
+      if (!question.officialType || question.officialType === question.topic) return `${question.topic} - ${question.fundamentalSkill}`;
+      return `${question.officialType} - ${question.topic}`;
+    }
+
+    function focusMetaText(item, section = state.section) {
+      if (section === "Quant") return `${item.contentDomain} - ${item.fundamentalSkill} - ${item.count}`;
+      return `${item.scoreReportQuestionType} - ${item.fundamentalSkill} - ${item.count}`;
     }
 
     function bySection(section = state.section) {
@@ -7059,7 +7113,7 @@
       container.innerHTML = `
         <span class="coach-kicker">Why next</span>
         <p class="coach-text">${adjustment?.message || "Difficulty will adjust after each first attempt."}</p>
-        <p class="coach-text">Skill: ${question.officialType} - ${question.subskill}. Expected solve time: about ${Math.round(question.expectedSeconds / 5) * 5} seconds.</p>
+        <p class="coach-text">Skill: ${question.fundamentalSkill} - ${question.subskill}. Expected solve time: about ${Math.round(question.expectedSeconds / 5) * 5} seconds.</p>
         <div>
           <span class="coach-kicker">${label}</span>
           <div class="coach-chip-row">${buttons}</div>
@@ -7073,10 +7127,15 @@
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
       const officialTypeCount = sections.reduce((sum, section) => sum + officialTypesForSection(section).length, 0);
-      $("#methodCopy").textContent = "The app follows the public GMAC structure: Quantitative Reasoning has 21 Problem Solving questions, Verbal Reasoning has 23 Reading Comprehension and Critical Reasoning questions, and Data Insights has 20 questions across Data Sufficiency, Multi-Source Reasoning, Table Analysis, Graphics Interpretation, and Two-Part Analysis. Section Drill adds finer training topics inside those official question types. The questions are original practice items with algorithmic format checks, adaptive routing, teaching explanations, and an IRT-style score model; this still does not reproduce GMAC calibration, GMAC item content, or claim GMAC affiliation.";
+      const scoreDimensionCount = sections.reduce((sum, section) => {
+        const blueprint = OFFICIAL_GMAT_BLUEPRINT[section];
+        return sum + blueprint.contentDomains.length + blueprint.scoreReportQuestionTypes.length + blueprint.fundamentalSkills.length;
+      }, 0);
+      $("#methodCopy").textContent = "The app follows the public GMAC structure and score-report-style dimensions: Quant has Arithmetic/Algebra, Pure/Real Contexts, and four fundamental-skill groups; Verbal has Reading Comprehension and Critical Reasoning with reading and reasoning skills; Data Insights has the five official DI question types. Section Drill adds finer training topics inside those dimensions. Questions are original practice items with algorithmic format checks, adaptive routing, teaching explanations, and an IRT-style score model; this still does not reproduce GMAC calibration, GMAC item content, or claim GMAC affiliation.";
       $("#methodMetrics").innerHTML = `
         <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
         <span class="metric-pill"><strong>${officialTypeCount}</strong>official types</span>
+        <span class="metric-pill"><strong>${scoreDimensionCount}</strong>score dims</span>
         <span class="metric-pill"><strong>${reported}</strong>reported</span>
         <span class="metric-pill"><strong>IRT</strong>scoring model</span>
       `;
@@ -7163,10 +7222,8 @@
         const text = document.createElement("span");
         text.textContent = item.topic;
         const meta = document.createElement("small");
-        meta.textContent = item.officialType === item.topic
-          ? `${item.count}`
-          : `${item.officialType} · ${item.count}`;
-        label.title = `${item.officialType} - ${item.trainingArea}: ${item.subskill}`;
+        meta.textContent = focusMetaText(item);
+        label.title = `${item.officialType} - ${item.contentDomain} - ${item.scoreReportQuestionType} - ${item.fundamentalSkill}: ${item.subskill}`;
         label.appendChild(checkbox);
         label.appendChild(text);
         label.appendChild(meta);
@@ -7583,6 +7640,11 @@
         id: question.id,
         section: question.section,
         topic: question.topic,
+        officialType: question.officialType,
+        contentDomain: question.contentDomain,
+        scoreReportQuestionType: question.scoreReportQuestionType,
+        fundamentalSkill: question.fundamentalSkill,
+        trainingArea: question.trainingArea,
         subskill: question.subskill,
         difficulty: question.difficulty,
         stem: question.stem,
