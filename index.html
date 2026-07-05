@@ -4399,6 +4399,33 @@
       return Number.isInteger(rounded) ? rounded : rounded;
     }
 
+    function gcd(a, b) {
+      let left = Math.abs(a);
+      let right = Math.abs(b);
+      while (right) {
+        const next = left % right;
+        left = right;
+        right = next;
+      }
+      return left || 1;
+    }
+
+    function ratioText(left, right) {
+      const divisor = gcd(left, right);
+      return `${left / divisor}:${right / divisor}`;
+    }
+
+    function ratioChoices(pairs) {
+      const seen = new Set();
+      return pairs
+        .map(([left, right]) => ratioText(Math.max(1, left), Math.max(1, right)))
+        .filter((choice) => {
+          if (seen.has(choice)) return false;
+          seen.add(choice);
+          return true;
+        });
+    }
+
     function rewriteQuantQuestion(question, idNumber) {
       if (question.id.startsWith("std-q-alg-")) {
         const x = 4 + idNumber;
@@ -4577,10 +4604,18 @@
           refreshPackedChoices(question, extra, [hours, compactNumber(work / rateB - hours), compactNumber(extra + 1), Math.max(0.5, compactNumber(extra - 1))], `${question.id}-rate-saved`);
           question.explanation = `The time saved is ${compactNumber(work / rateA)} - ${hours} = ${extra} hours.`;
         } else {
-          const ratio = `${rateA}:${rateB}`;
+          const ratio = ratioText(rateA, rateB);
           question.stem = `Machine A and Machine B produce at rates of ${rateA} and ${rateB} units per hour. What is the ratio of A's output to B's output over the same amount of time?`;
-          refreshPackedChoices(question, ratio, [`${rateB}:${rateA}`, `${rateA + rateB}:${rateB}`, `${rateA}:${rateA + rateB}`, `${hours}:${work}`], `${question.id}-rate-ratio`);
-          question.explanation = `Over the same time, output is proportional to rate, so the ratio is ${rateA}:${rateB}.`;
+          refreshPackedChoices(question, ratio, ratioChoices([
+            [rateB, rateA],
+            [rateA + rateB, rateB],
+            [rateA, rateA + rateB],
+            [rateA + 1, rateB],
+            [rateA, rateB + 1],
+            [Math.max(1, rateA - 1), rateB],
+            [hours, work]
+          ]), `${question.id}-rate-ratio`);
+          question.explanation = `Over the same time, output is proportional to rate. The raw ratio is ${rateA}:${rateB}; reduce it by dividing both sides by the same factor when possible, giving ${ratio}.`;
         }
       } else if (question.id.startsWith("std-q-rem-")) {
         const divisorA = 4 + (idNumber % 9);
@@ -5511,9 +5546,18 @@
           explanation = `Type A represents ${a} of ${a + b} total ratio parts, so the percent is ${a} / ${a + b} = ${share}.`;
         } else if (mode === 3) {
           stem = `A department has ${first} analysts and ${second} associates. What is the ratio of analysts to all employees in the department?`;
-          correct = `${a}:${a + b}`;
-          distractors = [`${a}:${b}`, `${b}:${a + b}`, `${first}:${second}`, `${a + b}:${a}`];
-          explanation = `Analysts are ${first}, and all employees total ${total}. Divide ${first}:${total} by ${multiplier} to get ${a}:${a + b}.`;
+          correct = ratioText(a, a + b);
+          distractors = ratioChoices([
+            [a, b],
+            [b, a + b],
+            [a + b, a],
+            [b, a],
+            [a + b, b],
+            [a + 1, a + b],
+            [a, a + b + 1],
+            [Math.max(1, a - 1), a + b]
+          ]);
+          explanation = `Analysts are ${first}, and all employees total ${total}. The raw ratio is ${first}:${total}. Divide both sides by ${multiplier} to get ${a}:${a + b}, then reduce again if those two numbers share a factor. The simplified ratio is ${correct}.`;
         } else {
           stem = `The ratio of domestic to international orders is ${a}:${b}. If international orders exceed domestic orders by ${second - first}, how many total orders are there?`;
           correct = total;
@@ -6123,16 +6167,24 @@
       const candidates = pool.length ? pool : all;
       const target = state.targetDifficulty[section] || 2;
       const recentTopics = queue.slice(-3).map((id) => questionById.get(id)?.topic).filter(Boolean);
+      const topicExposure = queue.reduce((counts, id) => {
+        const topic = questionById.get(id)?.topic;
+        if (topic) counts[topic] = (counts[topic] || 0) + 1;
+        return counts;
+      }, {});
       return candidates
         .map((question) => {
           const answeredPenalty = state.answers[question.id] ? 42 : 0;
           const queuePenalty = queue.includes(question.id) ? 18 : 0;
-          const recentTopicPenalty = recentTopics.includes(question.topic) ? 10 : 0;
-          const weakTopicBonus = topicWeakness(question.topic) * 8;
+          const recentTopicCount = recentTopics.filter((topic) => topic === question.topic).length;
+          const recentTopicPenalty = recentTopicCount * 26;
+          const immediateTopicPenalty = recentTopics[recentTopics.length - 1] === question.topic ? 34 : 0;
+          const exposurePenalty = (topicExposure[question.topic] || 0) * 3;
+          const weakTopicBonus = Math.min(topicWeakness(question.topic) * 6, 24);
           const jitter = hashText(`${question.id}-${queue.length}`) % 7;
           return {
             question,
-            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + recentTopicPenalty + jitter - weakTopicBonus
+            score: Math.abs(question.difficulty - target) * 20 + answeredPenalty + queuePenalty + recentTopicPenalty + immediateTopicPenalty + exposurePenalty + jitter - weakTopicBonus
           };
         })
         .sort((a, b) => a.score - b.score || a.question.id.localeCompare(b.question.id))[0]?.question;
@@ -6787,9 +6839,10 @@
 
       const previousTarget = state.targetDifficulty[section] || 2;
       if (correct) {
-        state.streakBySection[section] = (state.streakBySection[section] || 0) + 1;
-        const shouldRaise = state.streakBySection[section] >= 2 || question.difficulty > previousTarget;
+        const streak = (state.streakBySection[section] || 0) + 1;
+        const shouldRaise = streak >= 2 && question.difficulty >= previousTarget;
         state.targetDifficulty[section] = clamp(previousTarget + (shouldRaise ? 1 : 0), 1, 5);
+        state.streakBySection[section] = shouldRaise ? 0 : streak;
         const newTarget = state.targetDifficulty[section];
         state.lastAdjustment[section] = {
           previousTarget,

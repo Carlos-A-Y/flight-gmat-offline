@@ -1,4 +1,4 @@
-const CACHE_NAME = "clearprep-offline-v13";
+const CACHE_NAME = "clearprep-offline-v14";
 const APP_SHELL = ["./", "./index.html"];
 
 self.addEventListener("install", (event) => {
