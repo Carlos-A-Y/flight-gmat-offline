@@ -426,6 +426,42 @@
       background: #ffffff;
     }
 
+    .drill-focus {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #ffffff;
+    }
+
+    .drill-focus label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 780;
+      white-space: nowrap;
+    }
+
+    .drill-focus select {
+      min-width: 0;
+      width: 100%;
+      min-height: 34px;
+      border: 0;
+      color: var(--text);
+      background: transparent;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .drill-focus select:focus {
+      outline: 3px solid rgba(8, 118, 109, 0.18);
+      border-radius: 6px;
+    }
+
     .session-button,
     .mode-button {
       min-width: 0;
@@ -1639,7 +1675,8 @@
 
     .segments,
     .session-lengths,
-    .mode-switch {
+    .mode-switch,
+    .drill-focus {
       border-color: #cfdada;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
     }
@@ -2376,7 +2413,8 @@
 
     .segments,
     .session-lengths,
-    .mode-switch {
+    .mode-switch,
+    .drill-focus {
       border-color: var(--line);
       border-radius: 8px;
       box-shadow: none;
@@ -3040,8 +3078,12 @@
                 <span>DI</span>
               </button>
             </nav>
+            <div class="drill-focus" id="drillFocusControl">
+              <label for="drillTopicSelect">Focus</label>
+              <select id="drillTopicSelect" aria-label="Section drill focus"></select>
+            </div>
 
-            <nav class="session-lengths" aria-label="Session length">
+            <nav class="session-lengths" aria-label="Session length" hidden>
               <button class="session-button" data-session="Quick" aria-selected="false">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 7v5l3 2M7 3h10M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 <span>5 min</span>
@@ -6148,6 +6190,7 @@
       sessionPreset: DEFAULT_SESSION,
       indexBySection: { Quant: 0, Verbal: 0, DI: 0 },
       queueBySection: { Quant: [], Verbal: [], DI: [] },
+      drillTopicBySection: { Quant: "", Verbal: "", DI: "" },
       targetDifficulty: { Quant: 2, Verbal: 2, DI: 2 },
       streakBySection: { Quant: 0, Verbal: 0, DI: 0 },
       topicStats: {},
@@ -6227,6 +6270,7 @@
           sessionPreset: SESSION_PRESETS[stored?.sessionPreset] ? stored.sessionPreset : DEFAULT_SESSION,
           indexBySection: Object.assign(base.indexBySection, stored?.indexBySection || {}),
           queueBySection: Object.assign(base.queueBySection, stored?.queueBySection || {}),
+          drillTopicBySection: Object.assign(base.drillTopicBySection, stored?.drillTopicBySection || {}),
           targetDifficulty: Object.assign(base.targetDifficulty, stored?.targetDifficulty || {}),
           streakBySection: Object.assign(base.streakBySection, stored?.streakBySection || {}),
           topicStats: stored?.topicStats || {},
@@ -6259,10 +6303,33 @@
       }
     }
 
-    function bySection(section = state.section) {
+    function rawBySection(section = state.section) {
       return BANK
         .filter((q) => q.section === section)
         .sort((a, b) => a.difficulty - b.difficulty || a.topic.localeCompare(b.topic) || a.id.localeCompare(b.id));
+    }
+
+    function drillTopicsForSection(section = state.section) {
+      const topics = new Map();
+      rawBySection(section).forEach((question) => {
+        if (!topics.has(question.topic)) {
+          topics.set(question.topic, { topic: question.topic, subskill: question.subskill, count: 0 });
+        }
+        topics.get(question.topic).count += 1;
+      });
+      return [...topics.values()].sort((a, b) => a.topic.localeCompare(b.topic));
+    }
+
+    function activeDrillTopic(section = state.section) {
+      const topic = state.drillTopicBySection?.[section] || "";
+      if (!topic || isOfficialMode()) return "";
+      return drillTopicsForSection(section).some((item) => item.topic === topic) ? topic : "";
+    }
+
+    function bySection(section = state.section) {
+      const topic = activeDrillTopic(section);
+      const pool = rawBySection(section);
+      return topic ? pool.filter((question) => question.topic === topic) : pool;
     }
 
     function cleanQueue(section = state.section) {
@@ -6719,11 +6786,7 @@
       const nextAction = misses.length
         ? `Redo ${Math.min(5, misses.length)} missed ${sectionName} question${Math.min(5, misses.length) === 1 ? "" : "s"}, then drill ${weak.topic}.`
         : `Drill ${weak.topic} at target Level ${target}.`;
-      const session = state.sessionPreset === "Quick"
-        ? "5-minute sprint"
-        : state.sessionPreset === "Focus"
-          ? "30-minute focus block"
-          : "90-minute full block";
+      const session = activeDrillTopic(section) ? `${activeDrillTopic(section)} drill` : "Section drill";
       return {
         section,
         sectionName,
@@ -6814,7 +6877,7 @@
     function renderMethodology() {
       const reported = Object.keys(state.feedbackReports || {}).length;
       const expertReviewed = BANK.filter((question) => question.reviewStatus === "Expert reviewed").length;
-      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, teaching explanations, and an IRT-style score model. Official Test mode uses 21 Quant, 23 Verbal, and 20 DI questions with 45-minute section timers. Score anchoring can narrow the estimate from an official practice score, but this still does not reproduce GMAC calibration or claim GMAC affiliation.";
+      $("#methodCopy").textContent = "Questions are original practice items with algorithmic format checks, metadata, adaptive routing, teaching explanations, and an IRT-style score model. Official Test mode uses 21 Quant, 23 Verbal, and 20 DI questions with 45-minute section timers. Section Drill is untimed and can focus on a specific section topic. Score anchoring can narrow the estimate from an official practice score, but this still does not reproduce GMAC calibration or claim GMAC affiliation.";
       $("#methodMetrics").innerHTML = `
         <span class="metric-pill"><strong>${BANK.length}</strong>questions</span>
         <span class="metric-pill"><strong>${expertReviewed}</strong>expert reviewed</span>
@@ -6833,16 +6896,25 @@
     }
 
     function renderTimer() {
-      const remaining = state.timers[state.section] ?? SECTION_SECONDS;
-      $("#timerValue").innerHTML = `${formatTime(remaining)} <span>left</span>`;
-      $("#timerProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, remaining / sessionSeconds()))})`;
-      $("#pauseButton").innerHTML = `${state.paused ? icon.play : icon.pause} ${state.paused ? "Resume" : "Pause"}`;
-      $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
+      const timerValue = $("#timerValue");
+      const timerProgress = $("#timerProgress").parentElement;
+      const official = isOfficialMode();
+      timerValue.hidden = !official;
+      timerProgress.hidden = !official;
+      $("#pauseButton").hidden = !official;
+      if (official) {
+        const remaining = state.timers[state.section] ?? OFFICIAL_SECTION_SECONDS;
+        timerValue.innerHTML = `${formatTime(remaining)} <span>left</span>`;
+        $("#timerProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, remaining / OFFICIAL_SECTION_SECONDS))})`;
+        $("#pauseButton").innerHTML = `${state.paused ? icon.play : icon.pause} ${state.paused ? "Resume" : "Pause"}`;
+        $("#pauseButton").setAttribute("aria-label", state.paused ? "Resume timer" : "Pause timer");
+      }
       $("#resetButton").innerHTML = `${icon.reset} Reset`;
       $("#sectionTitle").textContent = sectionLabel[state.section] || state.section;
-      $("#planSummary").textContent = isOfficialMode()
+      const focus = activeDrillTopic();
+      $("#planSummary").textContent = official
         ? `${sectionShortName(state.section)} official - ${OFFICIAL_SECTION_COUNTS[state.section]} questions`
-        : `${sessionLabel()} section drill`;
+        : `${sectionLabel[state.section]} drill${focus ? ` - ${focus}` : ""}`;
     }
 
     function renderModeButtons() {
@@ -6859,11 +6931,25 @@
 
     function renderSessionLengths() {
       const container = document.querySelector(".session-lengths");
-      if (container) container.hidden = isOfficialMode();
+      if (container) container.hidden = true;
       document.querySelectorAll(".session-button").forEach((button) => {
         button.setAttribute("aria-selected", String(button.dataset.session === state.sessionPreset));
-        button.disabled = isOfficialMode();
+        button.disabled = true;
       });
+    }
+
+    function renderDrillFocus() {
+      const control = $("#drillFocusControl");
+      const select = $("#drillTopicSelect");
+      const official = isOfficialMode();
+      control.hidden = official;
+      if (official) return;
+      const currentTopic = activeDrillTopic();
+      const topics = drillTopicsForSection();
+      select.innerHTML = `<option value="">All ${sectionLabel[state.section]}</option>` + topics
+        .map((item) => `<option value="${item.topic}">${item.topic} (${item.count})</option>`)
+        .join("");
+      select.value = currentTopic;
     }
 
     function renderProgress(list) {
@@ -7035,6 +7121,7 @@
       renderModeButtons();
       renderSegments();
       renderSessionLengths();
+      renderDrillFocus();
       renderProgress(list);
       renderStats();
 
@@ -7136,8 +7223,9 @@
     function startTimer() {
       clearInterval(tickHandle);
       tickHandle = setInterval(() => {
+        if (!isOfficialMode()) return;
         if (state.paused) return;
-        const remaining = state.timers[state.section] ?? SECTION_SECONDS;
+        const remaining = state.timers[state.section] ?? OFFICIAL_SECTION_SECONDS;
         if (remaining <= 0) return;
         state.timers[state.section] = remaining - 1;
         renderTimer();
@@ -7190,6 +7278,19 @@
       state.paused = false;
       saveState();
       render();
+    }
+
+    function changeDrillTopic(topic) {
+      if (isOfficialMode()) return;
+      const validTopic = drillTopicsForSection().some((item) => item.topic === topic) ? topic : "";
+      state.drillTopicBySection[state.section] = validTopic;
+      state.indexBySection[state.section] = 0;
+      state.queueBySection[state.section] = [];
+      state.targetDifficulty[state.section] = 2;
+      state.streakBySection[state.section] = 0;
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function resetModeQueues() {
@@ -7312,6 +7413,10 @@
       button.addEventListener("click", () => {
         changeSessionLength(button.dataset.session);
       });
+    });
+
+    $("#drillTopicSelect").addEventListener("change", (event) => {
+      changeDrillTopic(event.target.value);
     });
 
     document.querySelectorAll(".mode-button").forEach((button) => {
