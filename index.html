@@ -2913,85 +2913,6 @@
       box-shadow: none;
     }
 
-    .account-panel {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      overflow: hidden;
-    }
-
-    .account-panel summary {
-      min-height: 54px;
-      padding: 0 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      cursor: pointer;
-      list-style: none;
-      color: var(--ink);
-      font-weight: 700;
-    }
-
-    .account-panel summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .account-body {
-      border-top: 1px solid var(--line);
-      padding: 16px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .account-status {
-      display: grid;
-      gap: 8px;
-    }
-
-    .account-status strong {
-      color: var(--ink);
-      font-size: 15px;
-    }
-
-    .account-status span,
-    .account-note {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .account-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-    }
-
-    .account-form input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 0 12px;
-      min-height: 40px;
-      color: var(--ink);
-      font: inherit;
-      background: #fff;
-    }
-
-    .account-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .account-actions .reason-chip {
-      flex: 1 1 auto;
-    }
-
-    .account-file {
-      display: none;
-    }
-
     .bottom-bar {
       grid-template-columns: 1fr 1fr;
       gap: 14px;
@@ -3412,33 +3333,6 @@
           </details>
         </section>
 
-        <section class="review-panel" aria-label="Account and Sync">
-          <details class="account-panel" id="accountPanel">
-            <summary>
-              <span>Account & Sync</span>
-              <span class="metric-pill" id="accountSummary"><strong>Local</strong>offline first</span>
-            </summary>
-            <div class="account-body">
-              <div class="account-status">
-                <strong id="accountTitle">Local profile</strong>
-                <span id="accountDetail">Practice, review, estimates, and backups work without an account.</span>
-                <span id="syncDetail">Not synced yet.</span>
-              </div>
-              <div class="account-form" id="accountForm">
-                <input id="accountEmailInput" type="email" autocomplete="email" placeholder="Email for optional sync">
-                <button class="text-button" id="signInButton" type="button">Sign in</button>
-              </div>
-              <div class="account-actions">
-                <button class="reason-chip" id="syncNowButton" type="button">Sync now</button>
-                <button class="reason-chip" id="exportBackupButton" type="button">Export backup</button>
-                <button class="reason-chip" id="importBackupButton" type="button">Import backup</button>
-                <button class="reason-chip" id="signOutButton" type="button">Use local only</button>
-              </div>
-              <p class="account-note" id="accountNote">Core studying never waits on login or sync. Remote sync uses a configured ClearPrep endpoint; otherwise export/import is the portable backup path.</p>
-              <input class="account-file" id="backupFileInput" type="file" accept="application/json">
-            </div>
-          </details>
-        </section>
       </main>
     </div>
 
@@ -3504,6 +3398,8 @@
         tagline: "GRE practice offline"
       }
     };
+    const APP_EXAM_LOCK = EXAM_CONFIG[window.CLEARPREP_EXAM_LOCK] ? window.CLEARPREP_EXAM_LOCK : "";
+    const APP_DISPLAY_NAME = window.CLEARPREP_APP_NAME || (APP_EXAM_LOCK ? `ClearPrep ${APP_EXAM_LOCK}` : "ClearPrep");
     const OFFICIAL_GMAT_BLUEPRINT = {
       Quant: {
         officialName: "Quantitative Reasoning",
@@ -7672,10 +7568,6 @@
     const SECTION_SECONDS = SESSION_PRESETS[DEFAULT_SESSION];
     const STORAGE_KEY = "clearprep-state-v1";
     const LEGACY_STORAGE_KEY = "flight-gmat-state-v2";
-    const IDENTITY_STORAGE_KEY = "clearprep-identity-v1";
-    const LOCAL_CLOUD_PREFIX = "clearprep-local-cloud-v1:";
-    const SYNC_ENDPOINT_KEY = "clearprep-sync-endpoint";
-    const SYNC_DERIVED_RULE = "Skill estimates are derived from attempt history and recomputed after sync.";
     const LETTERS = ["A", "B", "C", "D", "E"];
     const SECTION_SCORE_MIN = 60;
     const SECTION_SCORE_MAX = 90;
@@ -7783,6 +7675,7 @@
     }
 
     function normalizeExam(exam) {
+      if (APP_EXAM_LOCK) return APP_EXAM_LOCK;
       return EXAM_CONFIG[exam] ? exam : DEFAULT_EXAM;
     }
 
@@ -7845,298 +7738,8 @@
       return hashText(`${Date.now()}-${Math.random()}`);
     }
 
-    function createId(prefix = "id") {
-      const random = window.crypto?.getRandomValues
-        ? Array.from(window.crypto.getRandomValues(new Uint32Array(2))).map((value) => value.toString(36)).join("")
-        : Math.random().toString(36).slice(2);
-      return `${prefix}_${Date.now().toString(36)}_${random}`;
-    }
-
-    function safeParseJson(raw, fallback = null) {
-      try {
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (_) {
-        return fallback;
-      }
-    }
-
-    function normalizeEmail(email) {
-      return String(email || "").trim().toLowerCase();
-    }
-
-    function defaultIdentity() {
-      const localProfileId = createId("local");
-      const deviceId = createId("device");
-      return {
-        localProfileId,
-        deviceId,
-        userId: null,
-        tenantId: localProfileId,
-        email: "",
-        status: "local",
-        pendingOps: [],
-        lastSyncAt: null,
-        lastSyncError: "",
-        lastSyncDetail: "Not synced yet.",
-        syncEndpoint: localStorage.getItem(SYNC_ENDPOINT_KEY) || "",
-        schemaVersion: 1
-      };
-    }
-
-    function loadIdentity() {
-      const base = defaultIdentity();
-      const stored = safeParseJson(localStorage.getItem(IDENTITY_STORAGE_KEY), {});
-      const loaded = Object.assign(base, stored || {});
-      loaded.localProfileId = loaded.localProfileId || base.localProfileId;
-      loaded.deviceId = loaded.deviceId || base.deviceId;
-      loaded.tenantId = loaded.tenantId || loaded.userId || loaded.localProfileId;
-      loaded.pendingOps = Array.isArray(loaded.pendingOps) ? loaded.pendingOps.slice(-250) : [];
-      loaded.syncEndpoint = loaded.syncEndpoint || localStorage.getItem(SYNC_ENDPOINT_KEY) || "";
-      loaded.status = loaded.userId ? "signed_in" : "local";
-      return loaded;
-    }
-
-    function saveIdentity() {
-      try {
-        localStorage.setItem(IDENTITY_STORAGE_KEY, JSON.stringify(identity));
-        if (identity.syncEndpoint) localStorage.setItem(SYNC_ENDPOINT_KEY, identity.syncEndpoint);
-      } catch (_) {
-        identity.lastSyncError = "Could not save account metadata locally.";
-      }
-    }
-
-    function activeTenantId() {
-      return identity.userId ? identity.tenantId : identity.localProfileId;
-    }
-
-    function identityHeaders() {
-      return {
-        "Content-Type": "application/json",
-        "X-ClearPrep-Tenant": activeTenantId(),
-        "X-ClearPrep-User": identity.userId || identity.localProfileId,
-        "X-ClearPrep-Device": identity.deviceId
-      };
-    }
-
-    function syncedObjectBase() {
-      const now = new Date().toISOString();
-      return {
-        tenantId: activeTenantId(),
-        userId: identity.userId,
-        localProfileId: identity.localProfileId,
-        deviceId: identity.deviceId,
-        appVersion: "web-static-2026.07.05",
-        schemaVersion: 1,
-        contentVersion: `${activeExam()}-${activeBank().length}`,
-        createdAt: now,
-        updatedAt: now
-      };
-    }
-
-    function queueSyncOperation(type, payload) {
-      identity.pendingOps = Array.isArray(identity.pendingOps) ? identity.pendingOps : [];
-      identity.pendingOps.push({
-        id: createId("op"),
-        type,
-        syncVersion: identity.pendingOps.length + 1,
-        ...syncedObjectBase(),
-        payload
-      });
-      identity.pendingOps = identity.pendingOps.slice(-250);
-      saveIdentity();
-    }
-
-    function compactStateSnapshot() {
-      return {
-        state,
-        identity: {
-          localProfileId: identity.localProfileId,
-          deviceId: identity.deviceId,
-          userId: identity.userId,
-          tenantId: activeTenantId(),
-          email: identity.email,
-          schemaVersion: identity.schemaVersion
-        }
-      };
-    }
-
-    function buildBackupPayload() {
-      return {
-        app: "ClearPrep",
-        backupVersion: 1,
-        exportedAt: new Date().toISOString(),
-        tenantId: activeTenantId(),
-        userId: identity.userId,
-        localProfileId: identity.localProfileId,
-        deviceId: identity.deviceId,
-        state,
-        identity: {
-          ...identity,
-          pendingOps: identity.pendingOps || []
-        }
-      };
-    }
-
-    function signInForSync() {
-      const email = normalizeEmail($("#accountEmailInput")?.value);
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        identity.lastSyncError = "Enter a valid email to create an optional sync account.";
-        saveIdentity();
-        renderAccountPanel();
-        return;
-      }
-      const userId = `user_${hashText(email).toString(36)}`;
-      const previousTenant = activeTenantId();
-      identity.email = email;
-      identity.userId = userId;
-      identity.tenantId = userId;
-      identity.status = "signed_in";
-      identity.lastSyncError = "";
-      identity.lastSyncDetail = previousTenant === userId
-        ? "Signed in. Local practice remains available offline."
-        : "Signed in. Local profile is attached to this account for the next sync.";
-      queueSyncOperation("profile.attached", {
-        previousTenant,
-        email,
-        attachedLocalProfileId: identity.localProfileId
-      });
-      saveIdentity();
-      render();
-    }
-
-    function signOutToLocal() {
-      identity.userId = null;
-      identity.email = "";
-      identity.tenantId = identity.localProfileId;
-      identity.status = "local";
-      identity.lastSyncError = "";
-      identity.lastSyncDetail = "Using local profile. Existing local progress was kept on this device.";
-      saveIdentity();
-      render();
-    }
-
-    function exportBackup() {
-      const payload = buildBackupPayload();
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `clearprep-backup-${Date.now()}.json`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      identity.lastSyncDetail = "Backup exported from this device.";
-      saveIdentity();
-      renderAccountPanel();
-    }
-
-    async function importBackupFile(file) {
-      if (!file) return;
-      try {
-        const payload = safeParseJson(await file.text());
-        if (payload?.app !== "ClearPrep" || !payload.state) throw new Error("Invalid ClearPrep backup.");
-        const replace = window.confirm("Import this ClearPrep backup? Current local data will be replaced after validation.");
-        if (!replace) return;
-        state = Object.assign(defaultState(), payload.state);
-        identity = Object.assign(defaultIdentity(), payload.identity || {}, {
-          localProfileId: payload.identity?.localProfileId || payload.localProfileId || createId("local"),
-          deviceId: identity.deviceId,
-          lastSyncDetail: "Backup imported on this device.",
-          lastSyncError: ""
-        });
-        identity.tenantId = identity.userId ? identity.userId : identity.localProfileId;
-        saveState();
-        saveIdentity();
-        render();
-      } catch (error) {
-        identity.lastSyncError = error?.message || "Backup import failed.";
-        saveIdentity();
-        renderAccountPanel();
-      }
-    }
-
-    async function syncNow() {
-      if (!identity.userId) {
-        identity.lastSyncError = "Sign in to use automatic sync. Export/import backup works without an account.";
-        saveIdentity();
-        renderAccountPanel();
-        return;
-      }
-      const operations = identity.pendingOps || [];
-      const payload = {
-        tenantId: activeTenantId(),
-        userId: identity.userId,
-        deviceId: identity.deviceId,
-        cursor: identity.lastSyncAt,
-        operations,
-        snapshot: compactStateSnapshot()
-      };
-      try {
-        if (identity.syncEndpoint) {
-          const endpoint = identity.syncEndpoint.replace(/\/+$/, "");
-          const response = await fetch(`${endpoint}/sync`, {
-            method: "POST",
-            headers: identityHeaders(),
-            body: JSON.stringify(payload)
-          });
-          if (!response.ok) throw new Error(`Sync endpoint returned ${response.status}.`);
-          const result = await response.json();
-          if (result?.snapshot?.state && result.updatedAt && (!identity.lastSyncAt || result.updatedAt > identity.lastSyncAt)) {
-            state = Object.assign(defaultState(), state, result.snapshot.state);
-            saveState();
-          }
-          identity.pendingOps = [];
-          identity.lastSyncAt = result?.updatedAt || new Date().toISOString();
-          identity.lastSyncDetail = "Synced with configured ClearPrep endpoint.";
-        } else {
-          const key = `${LOCAL_CLOUD_PREFIX}${activeTenantId()}`;
-          const previous = safeParseJson(localStorage.getItem(key), {});
-          const mergedOps = [...(previous.operations || []), ...operations].filter((op, index, ops) => (
-            ops.findIndex((candidate) => candidate.id === op.id) === index
-          )).slice(-1000);
-          localStorage.setItem(key, JSON.stringify({
-            tenantId: activeTenantId(),
-            userId: identity.userId,
-            updatedAt: new Date().toISOString(),
-            operations: mergedOps,
-            snapshot: compactStateSnapshot()
-          }));
-          identity.pendingOps = [];
-          identity.lastSyncAt = new Date().toISOString();
-          identity.lastSyncDetail = "No remote endpoint configured. Saved a local signed-in backup on this device.";
-        }
-        identity.lastSyncError = "";
-      } catch (error) {
-        identity.lastSyncError = error?.message || "Sync failed. Local changes remain queued.";
-      }
-      saveIdentity();
-      render();
-    }
-
-    function renderAccountPanel() {
-      const signedIn = Boolean(identity.userId);
-      const pending = (identity.pendingOps || []).length;
-      $("#accountSummary").innerHTML = signedIn
-        ? `<strong>${pending}</strong>queued`
-        : `<strong>Local</strong>offline first`;
-      $("#accountTitle").textContent = signedIn ? `Signed in as ${identity.email}` : "Local profile";
-      $("#accountDetail").textContent = signedIn
-        ? `Tenant ${activeTenantId()} on device ${identity.deviceId}. Practice still works offline.`
-        : "Practice, review, estimates, and backups work without an account.";
-      $("#syncDetail").textContent = identity.lastSyncError
-        ? identity.lastSyncError
-        : `${identity.lastSyncDetail || "Not synced yet."}${pending ? ` ${pending} local change${pending === 1 ? "" : "s"} queued.` : ""}`;
-      $("#accountForm").hidden = signedIn;
-      $("#signOutButton").hidden = !signedIn;
-      $("#syncNowButton").disabled = !signedIn;
-      $("#accountNote").textContent = identity.syncEndpoint
-        ? `Remote endpoint: ${identity.syncEndpoint}. Core studying never waits on login or sync. ${SYNC_DERIVED_RULE}`
-        : `Core studying never waits on login or sync. Configure a ClearPrep endpoint in localStorage key clearprep-sync-endpoint for automatic cloud sync; export/import is the portable backup path. ${SYNC_DERIVED_RULE}`;
-    }
-
     const defaultState = () => ({
-      exam: DEFAULT_EXAM,
+      exam: APP_EXAM_LOCK || DEFAULT_EXAM,
       mode: DEFAULT_MODE,
       section: "Quant",
       runSeed: newRunSeed(),
@@ -8218,7 +7821,6 @@
     }
 
     let state = loadState();
-    let identity = loadIdentity();
     let tickHandle = null;
 
     function loadState() {
@@ -9033,14 +8635,6 @@
       } else {
         setScopedStateValue(state.missReasons, questionId, tag);
       }
-      queueSyncOperation("review.tagged", {
-        questionId,
-        tag,
-        correct,
-        exam: activeExam(),
-        mode: activeMode(),
-        section: state.section
-      });
       saveState();
       render();
     }
@@ -9127,6 +8721,11 @@
     }
 
     function renderExamButtons() {
+      document.title = APP_DISPLAY_NAME;
+      const brandTitle = document.querySelector(".brand-title h1");
+      if (brandTitle) brandTitle.textContent = APP_DISPLAY_NAME;
+      const switcher = document.querySelector(".exam-switch");
+      if (switcher) switcher.hidden = Boolean(APP_EXAM_LOCK);
       document.querySelectorAll(".exam-button").forEach((button) => {
         button.setAttribute("aria-selected", String(button.dataset.exam === activeExam()));
       });
@@ -9447,7 +9046,6 @@
       renderErrorLog();
       renderCoach();
       renderMethodology();
-      renderAccountPanel();
 
       $("#previousButton").disabled = index === 0;
       const nextOfficialSection = nextIncompleteOfficialSection();
@@ -9460,23 +9058,6 @@
       } else {
         $("#explainButton").classList.remove("primary");
       }
-    }
-
-    function attemptPayload(question) {
-      const answer = answerFor(question.id);
-      return {
-        questionId: question.id,
-        exam: activeExam(),
-        mode: activeMode(),
-        section: question.section,
-        topic: question.topic,
-        subskill: question.subskill,
-        responseType: question.responseType || "single",
-        selected: answer?.choice ?? null,
-        correct: Boolean(answer?.correct),
-        difficulty: question.difficulty,
-        answeredAt: answer?.at || Date.now()
-      };
     }
 
     function chooseAnswer(question, choice) {
@@ -9569,7 +9150,6 @@
       else deleteScopedStateValue(state.confidenceTags, question.id);
       if (!answerIsComplete(previous) && !(activeExam() === "GRE" && isOfficialMode())) updateAdaptiveDifficulty(question, correct);
       setScopedStateValue(state.showExplanation, question.id, explanationsUnlocked());
-      queueSyncOperation("attempt.completed", attemptPayload(question));
       saveState();
       render();
     }
@@ -9615,13 +9195,6 @@
       const nextValue = !scopedStateValue(state.flagged, question.id);
       if (nextValue) setScopedStateValue(state.flagged, question.id, true);
       else deleteScopedStateValue(state.flagged, question.id);
-      queueSyncOperation("review.flagged", {
-        questionId: question.id,
-        flagged: nextValue,
-        exam: activeExam(),
-        mode: activeMode(),
-        section: question.section
-      });
       saveState();
       render();
     }
@@ -9656,7 +9229,6 @@
       if (isOfficialMode()) state.runSeed = newRunSeed();
       state.timers[state.section] = sessionSeconds();
       state.paused = false;
-      queueSyncOperation("session.reset", { exam: activeExam(), mode: activeMode(), section: state.section });
       saveState();
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -9684,7 +9256,6 @@
       state.sessionPreset = preset;
       state.timers[state.section] = SESSION_PRESETS[preset];
       state.paused = false;
-      queueSyncOperation("settings.session_length", { preset, exam: activeExam(), section: state.section });
       saveState();
       render();
     }
@@ -9699,7 +9270,6 @@
       state.queueBySection[state.section] = [];
       state.targetDifficulty[state.section] = 2;
       state.streakBySection[state.section] = 0;
-      queueSyncOperation("settings.drill_focus", { exam: activeExam(), section: state.section, topics: nextTopics });
       saveState();
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -9725,13 +9295,13 @@
       resetModeQueues();
       resetModeTimers();
       state.paused = false;
-      queueSyncOperation("settings.mode", { mode: normalized, exam: activeExam(), section: state.section });
       saveState();
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function changeExam(exam) {
+      if (APP_EXAM_LOCK) return;
       const normalized = normalizeExam(exam);
       if (normalized === activeExam()) return;
       state.exam = normalized;
@@ -9739,7 +9309,6 @@
       resetModeQueues();
       resetModeTimers();
       state.paused = false;
-      queueSyncOperation("settings.exam", { exam: normalized, mode: activeMode(), section: state.section });
       saveState();
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -9776,7 +9345,6 @@
       } else {
         state.officialScore = "";
       }
-      queueSyncOperation("calibration.official_score", { exam: activeExam(), officialScore: state.officialScore || null });
       saveState();
       render();
     }
@@ -9814,7 +9382,6 @@
         missReason: scopedStateValue(state.missReasons, question.id) || "",
         status: "Needs review"
       };
-      queueSyncOperation("item_issue.reported", state.feedbackReports[question.id]);
       saveState();
       render();
     }
@@ -9895,18 +9462,6 @@
       state.feedbackReports = {};
       saveState();
       render();
-    });
-    $("#signInButton").addEventListener("click", signInForSync);
-    $("#accountEmailInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") signInForSync();
-    });
-    $("#signOutButton").addEventListener("click", signOutToLocal);
-    $("#syncNowButton").addEventListener("click", syncNow);
-    $("#exportBackupButton").addEventListener("click", exportBackup);
-    $("#importBackupButton").addEventListener("click", () => $("#backupFileInput").click());
-    $("#backupFileInput").addEventListener("change", (event) => {
-      importBackupFile(event.target.files?.[0]);
-      event.target.value = "";
     });
 
     $("#explainButton").addEventListener("click", () => {
